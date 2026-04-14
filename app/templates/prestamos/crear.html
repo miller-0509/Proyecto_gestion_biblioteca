@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block titulo_pagina %}Nuevo Préstamo{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-plus-circle me-2"></i>
+          {% if modo == 'admin' %}
+            Crear Préstamo (Administrador)
+          {% else %}
+            Solicitar Préstamo
+          {% endif %}
+        </h5>
+      </div>
+      
+      <div class="card-body">
+        <form method="POST">
+          {% if modo == 'admin' %}
+            <!-- MODO ADMINISTRADOR -->
+            
+            <!-- Usuario -->
+            <div class="mb-3">
+              <label for="id_usuario" class="form-label">Usuario (Aprendiz/Instructor)</label>
+              <select class="form-control" id="id_usuario" name="id_usuario" required>
+                <option value="">-- Seleccionar usuario --</option>
+                {% for usuario in usuarios %}
+                  <option value="{{ usuario.id_usuario }}">
+                    {{ usuario.nombre_completo() }} ({{ usuario.rol }})
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <!-- Equipo -->
+            <div class="mb-3">
+              <label for="id_equipo" class="form-label">Equipo</label>
+              <select class="form-control" id="id_equipo" name="id_equipo" required>
+                <option value="">-- Seleccionar equipo --</option>
+                {% for equipo in equipos %}
+                  <option value="{{ equipo.id_equipo }}">
+                    {{ equipo.nombre }} ({{ equipo.tipo_equipo }})
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <!-- Días de préstamo -->
+            <div class="mb-3">
+              <label for="dias_prestamo" class="form-label">Días de Préstamo</label>
+              <input type="number" class="form-control" id="dias_prestamo" name="dias_prestamo" value="7" min="1" max="30" required>
+              <small class="text-muted">Número de días que tendrá el usuario para devolver el equipo</small>
+            </div>
+            
+          {% else %}
+            <!-- MODO USUARIO -->
+            
+            <!-- Equipo -->
+            <div class="mb-3">
+              <label for="id_equipo" class="form-label">Equipo a Solicitar</label>
+              <select class="form-control" id="id_equipo" name="id_equipo" required>
+                <option value="">-- Seleccionar equipo --</option>
+                {% for equipo in equipos %}
+                  <option value="{{ equipo.id_equipo }}" {% if equipo_seleccionado and equipo.id_equipo == equipo_seleccionado.id_equipo %}selected{% endif %}>
+                    {{ equipo.nombre }} ({{ equipo.tipo_equipo }})
+                  </option>
+                {% endfor %}
+              </select>
+              <small class="text-muted d-block mt-2">Solo se muestran equipos disponibles para préstamo</small>
+            </div>
+            
+            <!-- Información -->
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle me-2"></i>
+              <strong>Nota:</strong> El administrador revisará tu solicitud y la aceptará o rechazará en breve.
+            </div>
+            
+          {% endif %}
+          
+          <!-- Observaciones (para ambos) -->
+          <div class="mb-3">
+            <label for="observaciones" class="form-label">Observaciones (Opcional)</label>
+            <textarea class="form-control" id="observaciones" name="observaciones" rows="3" placeholder="Ingresa cualquier comentario relevante..."></textarea>
+          </div>
+          
+          <!-- Botones -->
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('prestamos.lista_prestamos') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left me-1"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle me-1"></i>
+              {% if modo == 'admin' %}
+                Crear Préstamo
+              {% else %}
+                Solicitar Préstamo
+              {% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

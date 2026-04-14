@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block titulo_pagina %}Registro de Usuario{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+
+    <!-- Errores de validación -->
+    {% if errors %}
+    <div class="alert alert-danger alert-dismissible fade show">
+      <i class="bi bi-exclamation-triangle-fill me-1"></i>
+      <strong>Por favor corrige los siguientes errores:</strong>
+      <ul class="mb-0 mt-2">
+        {% for error in errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <div class="card shadow border-0 rounded-3">
+      <div class="card-header card-header-custom text-center py-3">
+        <h4 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Crear Cuenta</h4>
+      </div>
+
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('auth.registro') }}">
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="nombres" class="form-label fw-semibold">
+                <i class="bi bi-person me-1"></i> Nombres
+              </label>
+              <input type="text" name="nombres" id="nombres"
+                     class="form-control" value="{{ nombres }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="apellidos" class="form-label fw-semibold">
+                <i class="bi bi-person me-1"></i> Apellidos
+              </label>
+              <input type="text" name="apellidos" id="apellidos"
+                     class="form-control" value="{{ apellidos }}" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="correo" class="form-label fw-semibold">
+              <i class="bi bi-envelope me-1"></i> Correo electrónico
+            </label>
+            <input type="email" name="correo" id="correo"
+                   class="form-control" value="{{ correo }}" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label fw-semibold">
+              <i class="bi bi-key me-1"></i> Contraseña
+            </label>
+            <input type="password" name="password" id="password"
+                   class="form-control" minlength="6" required>
+            <div class="form-text">Mínimo 6 caracteres.</div>
+          </div>
+
+          <div class="mb-4">
+            <label for="rol" class="form-label fw-semibold">
+              <i class="bi bi-badge me-1"></i> Selecciona tu Rol *
+            </label>
+            <select name="rol" id="rol" class="form-select" required>
+              <option value="">-- Selecciona tu rol --</option>
+              <option value="aprendiz" {% if rol == 'aprendiz' %}selected{% endif %}>
+                <i class="bi bi-mortarboard me-1"></i> Aprendiz
+              </option>
+              <option value="instructor" {% if rol == 'instructor' %}selected{% endif %}>
+                <i class="bi bi-person-check me-1"></i> Instructor
+              </option>
+            </select>
+            <small class="form-text text-muted">
+              Nota: Solo el administrador puede crear, editar o eliminar equipos
+            </small>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-check-circle me-1"></i> Registrarme
+            </button>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left me-1"></i> Volver al login
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

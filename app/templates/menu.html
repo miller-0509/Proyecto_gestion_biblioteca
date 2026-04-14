@@ -1,0 +1,93 @@
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1a3a5c;">
+  <div class="container-fluid">
+
+    <a class="navbar-brand" href="{{ url_for('auth.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">
+      <i class="bi bi-boxes me-1"></i> Almacén &amp; Préstamos
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMain">
+
+      {% if current_user.is_authenticated %}
+      <ul class="navbar-nav me-auto">
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('auth.dashboard') }}">
+            <i class="bi bi-speedometer2 me-1"></i> Dashboard
+          </a>
+        </li>
+
+        <!-- Menú Equipos -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-pc-display me-1"></i> Equipos
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('equipos.lista_equipos') }}">
+              <i class="bi bi-list me-1"></i> {% if current_user.rol == 'administrador' %}Listado{% else %}Consultar{% endif %}
+            </a></li>
+            {% if current_user.rol == 'administrador' %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{ url_for('equipos.crear_equipo') }}">
+              <i class="bi bi-plus-circle me-1"></i> Nuevo Equipo
+            </a></li>
+            {% endif %}
+          </ul>
+        </li>
+
+        <!-- Menú Préstamos -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-arrow-left-right me-1"></i> Préstamos
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="{{ url_for('prestamos.lista_prestamos') }}">
+              <i class="bi bi-list me-1"></i> {% if current_user.rol == 'administrador' %}Gestionar{% else %}Mis Préstamos{% endif %}
+            </a></li>
+            {% if current_user.rol == 'administrador' or current_user.rol in ['aprendiz', 'instructor'] %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{ url_for('prestamos.crear_prestamo') }}">
+              <i class="bi bi-plus-circle me-1"></i> Nuevo Préstamo
+            </a></li>
+            {% endif %}
+          </ul>
+        </li>
+
+      </ul>
+
+      <!-- Usuario logueado -->
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-1"></i>
+            {{ current_user.nombre_completo() }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+              <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+            </a></li>
+          </ul>
+        </li>
+      </ul>
+
+      {% else %}
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('auth.login') }}">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('auth.registro') }}">
+            <i class="bi bi-person-plus me-1"></i> Registrarse
+          </a>
+        </li>
+      </ul>
+      {% endif %}
+
+    </div>
+  </div>
+</nav>

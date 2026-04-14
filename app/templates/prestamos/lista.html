@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block titulo_pagina %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col-md-8">
+    <h2>{{ titulo }}</h2>
+  </div>
+  {% if current_user.rol == 'administrador' or current_user.rol in ['aprendiz', 'instructor'] %}
+  <div class="col-md-4 text-end">
+    <a href="{{ url_for('prestamos.crear_prestamo') }}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i> Nuevo Préstamo
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% if prestamos %}
+<div class="table-responsive">
+  <table class="table table-hover">
+    <thead class="table-light">
+      <tr>
+        <th>Usuario</th>
+        <th>Equipo</th>
+        <th>Fecha Solicitud</th>
+        <th>Estado</th>
+        <th>Devolucion Esperada</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in prestamos %}
+      {% set prestamo = item.prestamo %}
+      <tr>
+        <td>
+          <strong>{{ prestamo.usuario.nombre_completo() }}</strong>
+          <br>
+          <small class="text-muted">{{ prestamo.usuario.rol }}</small>
+        </td>
+        <td>
+          <strong>{{ prestamo.equipo.nombre }}</strong>
+          <br>
+          <small class="text-muted">{{ prestamo.equipo.tipo_equipo }}</small>
+        </td>
+        <td>
+          {{ prestamo.fecha_solicitud.strftime('%d/%m/%Y %H:%M') }}
+        </td>
+        <td>
+          {% if prestamo.estado == 'pendiente' %}
+            <span class="badge bg-warning">Pendiente</span>
+          {% elif prestamo.estado == 'aceptado' %}
+            <span class="badge bg-success">Aceptado</span>
+          {% elif prestamo.estado == 'rechazado' %}
+            <span class="badge bg-danger">Rechazado</span>
+          {% elif prestamo.estado == 'devuelto' %}
+            <span class="badge bg-secondary">Devuelto</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if prestamo.fecha_devolucion_esperada %}
+            {{ prestamo.fecha_devolucion_esperada.strftime('%d/%m/%Y') }}
+            {% if prestamo.estado == 'aceptado' and item.dias_restantes is not none %}
+              {% if item.dias_restantes < 0 %}
+                <br><small class="text-danger"><strong>Vencido hace {{ -item.dias_restantes }} días</strong></small>
+              {% elif item.dias_restantes == 0 %}
+                <br><small class="text-warning"><strong>Vence hoy</strong></small>
+              {% else %}
+                <br><small class="text-info">Vence en {{ item.dias_restantes }} días</small>
+              {% endif %}
+            {% endif %}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          <a href="{{ url_for('prestamos.detalle_prestamo', id_prestamo=prestamo.id_prestamo) }}" class="btn btn-sm btn-info">
+            <i class="bi bi-eye"></i> Ver
+          </a>
+          
+          {% if current_user.rol == 'administrador' %}
+            {% if prestamo.estado == 'pendiente' %}
+              <!-- Botones para aceptar/rechazar -->
+              <div class="btn-group" role="group">
+                <form method="POST" action="{{ url_for('prestamos.aceptar_prestamo', id_prestamo=prestamo.id_prestamo) }}" style="display:inline;">
+                  <button type="submit" class="btn btn-sm btn-success" title="Aceptar">
+                    <i class="bi bi-check-circle"></i>
+                  </button>
+                </form>
+                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rechazarModal{{ prestamo.id_prestamo }}" title="Rechazar">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </div>
+              
+              <!-- Modal para rechazar -->
+              <div class="modal fade" id="rechazarModal{{ prestamo.id_prestamo }}" tabindex="-1">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Rechazar Préstamo</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('prestamos.rechazar_prestamo', id_prestamo=prestamo.id_prestamo) }}">
+                      <div class="modal-body">
+                        <div class="mb-3">
+                          <label for="razon{{ prestamo.id_prestamo }}" class="form-label">Razón del rechazo</label>
+                          <textarea class="form-control" id="razon{{ prestamo.id_prestamo }}" name="razon_rechazo" rows="3"></textarea>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Rechazar</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+            
+            {% if prestamo.estado == 'aceptado' %}
+              <form method="POST" action="{{ url_for('prestamos.devolver_prestamo', id_prestamo=prestamo.id_prestamo) }}" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-warning">
+                  <i class="bi bi-box-arrow-left"></i> Marcar Devuelto
+                </button>
+              </form>
+            {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+<div class="alert alert-info text-center">
+  <i class="bi bi-info-circle me-2"></i>
+  {% if current_user.rol == 'administrador' %}
+    No hay préstamos registrados en el sistema.
+  {% else %}
+    No tienes préstamos solicitados. 
+    <a href="{{ url_for('prestamos.crear_prestamo') }}">Solicita uno ahora</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
