@@ -55,21 +55,7 @@ with app.app_context():
             'tiempo_max_prestamo': 5,
             'descripcion': 'Teclado mecánico para préstamo'
         },
-        {
-            'nombre': 'Proyector Epson',
-            'tipo_equipo': 'Proyector',
-            'marca': 'Epson',
-            'modelo': 'EB-2250U',
-            'numero_serie': 'PROJ001-2024-0004',
-            'estado': 'mantenimiento',
-            'ubicacion': 'Almacén',
-            'fecha_compra': date(2022, 12, 5),
-            'proveedor': 'Epson Oficial',
-            'responsable': 'Mantenimiento',
-            'disponible_prestamo': False,
-            'tiempo_max_prestamo': None,
-            'descripcion': 'En mantenimiento - cambio de lámpara'
-        },
+
         {
             'nombre': 'Tablet Samsung Galaxy Tab S6',
             'tipo_equipo': 'Tablet',
