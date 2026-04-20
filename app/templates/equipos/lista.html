@@ -1,110 +1,164 @@
 {% extends "base.html" %}
-{% block titulo_pagina %}Gestión de Equipos{% endblock %}
+{% block titulo_card %}
+  {% if current_user.rol == 'administrador' %}
+    Gestión de Equipos
+  {% else %}
+    Catálogo de Equipos
+  {% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-  <!-- Header y Búsqueda -->
-  <div class="row mb-4">
-    <div class="col-md-8">
-      <h2 class="mb-0"><i class="bi bi-laptop me-2"></i>{% if current_user.rol == 'administrador' %}Gestión{% else %}Inventario{% endif %} de Equipos</h2>
+  
+  <!-- Header -->
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+      <h3 class="text-primary-sena mb-0">
+        <i class="bi bi-pc-display me-2"></i>
+        {% if current_user.rol == 'administrador' %}
+          Gestión de Equipos
+        {% else %}
+          Inventario de Equipos
+        {% endif %}
+      </h3>
     </div>
-    <div class="col-md-4 text-end">
+    <div class="col-md-6 text-end">
       {% if current_user.rol == 'administrador' %}
       <a href="{{ url_for('equipos.crear_equipo') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i> Nuevo Equipo
+        <i class="bi bi-plus-circle me-2"></i>Registrar Equipo
       </a>
       {% endif %}
     </div>
   </div>
 
-  <!-- Filtros y Búsqueda -->
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <form method="GET" class="row g-3">
-        <div class="col-md-6">
-          <input type="text" name="busqueda" class="form-control" placeholder="Buscar por nombre, serie o marca..." 
-                 value="{{ busqueda }}">
+  <!-- Filters Card -->
+  <div class="card-sena mb-4">
+    <div class="card-sena-body">
+      <form method="GET" class="row g-2">
+        <div class="col-md-5">
+          <label class="form-label small">Buscar Equipo</label>
+          <input type="text" name="busqueda" class="form-control" 
+                 placeholder="Nombre, serie o marca..." value="{{ busqueda }}">
         </div>
         <div class="col-md-3">
+          <label class="form-label small">Estado</label>
           <select name="estado" class="form-select">
-            <option value="">-- Estado --</option>
-            <option value="disponible" {% if estado == 'disponible' %}selected{% endif %}>Disponible</option>
-            <option value="prestado" {% if estado == 'prestado' %}selected{% endif %}>Prestado</option>
-            <option value="mantenimiento" {% if estado == 'mantenimiento' %}selected{% endif %}>En Mantenimiento</option>
-            <option value="dañado" {% if estado == 'dañado' %}selected{% endif %}>Dañado</option>
+            <option value="">Todos los estados</option>
+            <option value="disponible" {% if estado == 'disponible' %}selected{% endif %}>
+              <i class="bi bi-check-circle"></i> Disponible
+            </option>
+            <option value="prestado" {% if estado == 'prestado' %}selected{% endif %}>
+              <i class="bi bi-arrow-left-right"></i> Prestado
+            </option>
+            <option value="mantenimiento" {% if estado == 'mantenimiento' %}selected{% endif %}>
+              <i class="bi bi-gear"></i> Mantenimiento
+            </option>
+            <option value="dañado" {% if estado == 'dañado' %}selected{% endif %}>
+              <i class="bi bi-exclamation-triangle"></i> Dañado
+            </option>
           </select>
         </div>
         <div class="col-md-3">
+          <label class="form-label small">Tipo</label>
           <select name="tipo" class="form-select">
-            <option value="">-- Tipo de Equipo --</option>
+            <option value="">Todos los tipos</option>
             {% for t in tipos %}
               <option value="{{ t[0] }}" {% if tipo == t[0] %}selected{% endif %}>{{ t[0] }}</option>
             {% endfor %}
           </select>
         </div>
-        <div class="col-12">
-          <button type="submit" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-search me-1"></i> Filtrar
+        <div class="col-md-1 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-search"></i>
           </button>
+        </div>
+        {% if busqueda or estado or tipo %}
+        <div class="col-12">
           <a href="{{ url_for('equipos.lista_equipos') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar
+            <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
           </a>
         </div>
+        {% endif %}
       </form>
     </div>
   </div>
 
-  <!-- Tabla de Equipos -->
-  <div class="card shadow-sm">
+  <!-- Equipment Table -->
+  <div class="card-sena">
     <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="table-light">
+      <table class="table table-sena mb-0">
+        <thead>
           <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            <th>Número de Serie</th>
-            <th>Estado</th>
-            <th>Ubicación</th>
-            <th>Acciones</th>
+            <th style="width: 8%;">ID</th>
+            <th style="width: 20%;">Nombre</th>
+            <th style="width: 12%;">Tipo</th>
+            <th style="width: 18%;">Número de Serie</th>
+            <th style="width: 12%;">Estado</th>
+            <th style="width: 15%;">Ubicación</th>
+            <th style="width: 15%;">Acciones</th>
           </tr>
         </thead>
         <tbody>
           {% if equipos.items %}
             {% for equipo in equipos.items %}
               <tr>
-                <td><small class="text-muted">#{{ equipo.id_equipo }}</small></td>
                 <td>
-                  <strong>{{ equipo.nombre }}</strong>
-                  {% if equipo.marca %}<br><small class="text-muted">{{ equipo.marca }} {{ equipo.modelo or '' }}</small>{% endif %}
+                  <span class="badge bg-light text-primary-sena">#{{ equipo.id_equipo }}</span>
                 </td>
-                <td><span class="badge bg-info">{{ equipo.tipo_equipo }}</span></td>
-                <td><code>{{ equipo.numero_serie }}</code></td>
+                <td>
+                  <div>
+                    <strong>{{ equipo.nombre }}</strong>
+                    {% if equipo.marca %}
+                      <br>
+                      <small class="text-muted">{{ equipo.marca }} {% if equipo.modelo %}{{ equipo.modelo }}{% endif %}</small>
+                    {% endif %}
+                  </div>
+                </td>
+                <td>
+                  <span class="badge" style="background-color: var(--sena-light); color: var(--sena-primary);">
+                    {{ equipo.tipo_equipo }}
+                  </span>
+                </td>
+                <td>
+                  <code style="background-color: var(--sena-light); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
+                    {{ equipo.numero_serie }}
+                  </code>
+                </td>
                 <td>
                   {% if equipo.estado == 'disponible' %}
-                    <span class="badge bg-success">Disponible</span>
+                    <span class="badge bg-success">
+                      <i class="bi bi-check-circle me-1"></i>Disponible
+                    </span>
                   {% elif equipo.estado == 'prestado' %}
-                    <span class="badge bg-warning">Prestado</span>
+                    <span class="badge bg-warning text-dark">
+                      <i class="bi bi-arrow-left-right me-1"></i>Prestado
+                    </span>
                   {% elif equipo.estado == 'mantenimiento' %}
-                    <span class="badge bg-secondary">Mantenimiento</span>
+                    <span class="badge bg-secondary">
+                      <i class="bi bi-gear me-1"></i>Mantenimiento
+                    </span>
                   {% elif equipo.estado == 'dañado' %}
-                    <span class="badge bg-danger">Dañado</span>
+                    <span class="badge bg-danger">
+                      <i class="bi bi-exclamation-triangle me-1"></i>Dañado
+                    </span>
                   {% endif %}
                 </td>
-                <td>{{ equipo.ubicacion or '-' }}</td>
+                <td>
+                  {{ equipo.ubicacion or '—' }}
+                </td>
                 <td>
                   <div class="btn-group btn-group-sm" role="group">
                     <a href="{{ url_for('equipos.detalle_equipo', id_equipo=equipo.id_equipo) }}" 
                        class="btn btn-outline-primary" title="Ver detalles">
-                      <i class="bi bi-eye"></i>
+                      <i class="bi bi-eye"></i> Ver
                     </a>
                     {% if current_user.rol == 'administrador' %}
                     <a href="{{ url_for('equipos.editar_equipo', id_equipo=equipo.id_equipo) }}" 
-                       class="btn btn-outline-secondary" title="Editar">
+                       class="btn btn-outline-secondary" title="Editar equipo">
                       <i class="bi bi-pencil"></i>
                     </a>
                     <form method="POST" action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" 
-                          style="display:inline;" onsubmit="return confirm('¿Eliminar este equipo?')">
+                          style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este equipo?')">
                       <button type="submit" class="btn btn-outline-danger" title="Eliminar">
                         <i class="bi bi-trash"></i>
                       </button>
@@ -116,9 +170,16 @@
             {% endfor %}
           {% else %}
             <tr>
-              <td colspan="8" class="text-center py-4 text-muted">
-                <i class="bi bi-inbox me-2"></i>
-                No hay equipos registrados
+              <td colspan="7" class="text-center py-5 text-muted">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">
+                  <i class="bi bi-inbox"></i>
+                </div>
+                <p class="mb-0"><strong>No hay equipos registrados</strong></p>
+                <small>
+                  {% if current_user.rol == 'administrador' %}
+                    <a href="{{ url_for('equipos.crear_equipo') }}">Registra el primer equipo</a>
+                  {% endif %}
+                </small>
               </td>
             </tr>
           {% endif %}
@@ -127,16 +188,20 @@
     </div>
   </div>
 
-  <!-- Paginación -->
+  <!-- Pagination -->
   {% if equipos.pages > 1 %}
   <nav class="d-flex justify-content-center mt-4">
     <ul class="pagination">
       {% if equipos.has_prev %}
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=1, busqueda=busqueda, estado=estado, tipo=tipo) }}">Primera</a>
+          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=1, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+            <i class="bi bi-chevron-bar-left"></i>
+          </a>
         </li>
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=equipos.prev_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">Anterior</a>
+          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=equipos.prev_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+            <i class="bi bi-chevron-left"></i>
+          </a>
         </li>
       {% endif %}
 
@@ -147,15 +212,21 @@
               {{ page_num }}
             </a>
           </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
         {% endif %}
       {% endfor %}
 
       {% if equipos.has_next %}
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=equipos.next_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">Siguiente</a>
+          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=equipos.next_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+            <i class="bi bi-chevron-right"></i>
+          </a>
         </li>
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=equipos.pages, busqueda=busqueda, estado=estado, tipo=tipo) }}">Última</a>
+          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=equipos.pages, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+            <i class="bi bi-chevron-bar-right"></i>
+          </a>
         </li>
       {% endif %}
     </ul>

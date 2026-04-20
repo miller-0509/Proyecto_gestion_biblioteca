@@ -26,6 +26,18 @@ def create_app():
     def inject_now():
         return {'now': lambda: datetime.now(timezone.utc).replace(tzinfo=None)}
 
+    # Manejador para confirmar transacciones correctamente
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        """Cierra la sesión de BD de forma segura"""
+        if exception is None:
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error al confirmar transacción: {e}")
+        db.session.remove()
+
     #Blueprints
     from app.routes import auth, equipos, prestamos
     app.register_blueprint(auth.bp)

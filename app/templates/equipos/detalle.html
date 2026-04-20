@@ -1,171 +1,230 @@
 {% extends "base.html" %}
-{% block titulo_pagina %}Detalles del Equipo{% endblock %}
+{% block titulo_card %}Detalles del Equipo{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
+<div class="row justify-content-center">
+  <div class="col-lg-9">
 
-      <div class="card shadow border-0 rounded-3 mb-4">
-        <div class="card-header card-header-custom text-white py-3">
-          <div class="d-flex justify-content-between align-items-center">
-            <h3 class="mb-0">
-              <i class="bi bi-laptop me-2"></i>{{ equipo.nombre }}
-            </h3>
+    <!-- Equipment Header Card -->
+    <div class="card-sena mb-4">
+      <div class="card-sena-header">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h2 class="mb-1">
+              <i class="bi bi-pc-display me-2"></i>{{ equipo.nombre }}
+            </h2>
+            <p class="small opacity-75 mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              ID del Equipo: #{{ equipo.id_equipo }}
+            </p>
+          </div>
+          <div>
             {% if equipo.estado == 'disponible' %}
-              <span class="badge bg-success fs-6">Disponible</span>
+              <span class="badge bg-success fs-6">
+                <i class="bi bi-check-circle me-1"></i>Disponible
+              </span>
             {% elif equipo.estado == 'prestado' %}
-              <span class="badge bg-warning fs-6">Prestado</span>
+              <span class="badge bg-warning text-dark fs-6">
+                <i class="bi bi-arrow-left-right me-1"></i>Prestado
+              </span>
             {% elif equipo.estado == 'mantenimiento' %}
-              <span class="badge bg-secondary fs-6">Mantenimiento</span>
+              <span class="badge bg-secondary fs-6">
+                <i class="bi bi-gear me-1"></i>Mantenimiento
+              </span>
             {% elif equipo.estado == 'dañado' %}
-              <span class="badge bg-danger fs-6">Dañado</span>
+              <span class="badge bg-danger fs-6">
+                <i class="bi bi-exclamation-triangle me-1"></i>Dañado
+              </span>
             {% endif %}
           </div>
-        </div>
-
-        <div class="card-body p-4">
-          <!-- Información Básica -->
-          <div class="row mb-4">
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-tag me-2"></i>Nombre</h6>
-              <p class="fs-5"><strong>{{ equipo.nombre }}</strong></p>
-            </div>
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-boxes me-2"></i>Tipo de Equipo</h6>
-              <p class="fs-5"><strong>{{ equipo.tipo_equipo }}</strong></p>
-            </div>
-          </div>
-
-          <!-- Especificaciones -->
-          <div class="row mb-4">
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-building me-2"></i>Marca</h6>
-              <p class="fs-5"><strong>{{ equipo.marca or '-' }}</strong></p>
-            </div>
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-gear me-2"></i>Modelo</h6>
-              <p class="fs-5"><strong>{{ equipo.modelo or '-' }}</strong></p>
-            </div>
-          </div>
-
-          <!-- Número de Serie (Importante) -->
-          <div class="alert alert-info border-0 mb-4">
-            <h6 class="text-muted fw-semibold mb-2"><i class="bi bi-key me-2"></i>Número de Serie</h6>
-            <p class="mb-0 fs-5"><code class="bg-light p-2 rounded">{{ equipo.numero_serie }}</code></p>
-          </div>
-
-          <!-- Ubicación y Estado -->
-          <div class="row mb-4">
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-geo-alt me-2"></i>Ubicación</h6>
-              <p class="fs-5"><strong>{{ equipo.ubicacion or '-' }}</strong></p>
-            </div>
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-info-circle me-2"></i>Estado</h6>
-              <p class="fs-5">
-                {% if equipo.estado == 'disponible' %}
-                  <span class="badge bg-success">Disponible</span>
-                {% elif equipo.estado == 'prestado' %}
-                  <span class="badge bg-warning">Prestado</span>
-                {% elif equipo.estado == 'mantenimiento' %}
-                  <span class="badge bg-secondary">Mantenimiento</span>
-                {% elif equipo.estado == 'dañado' %}
-                  <span class="badge bg-danger">Dañado</span>
-                {% endif %}
-              </p>
-            </div>
-          </div>
-
-          <!-- Información Financiera -->
-          <div class="row mb-4">
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-calendar me-2"></i>Fecha de Compra</h6>
-              <p class="fs-5"><strong>{{ equipo.fecha_compra.strftime('%d/%m/%Y') if equipo.fecha_compra else '-' }}</strong></p>
-            </div>
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-shop me-2"></i>Proveedor</h6>
-              <p class="fs-5"><strong>{{ equipo.proveedor or '-' }}</strong></p>
-            </div>
-          </div>
-
-          <!-- Responsable -->
-          <div class="row mb-4">
-            <div class="col-12 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-person me-2"></i>Responsable del Equipo</h6>
-              <p class="fs-5"><strong>{{ equipo.responsable or '-' }}</strong></p>
-            </div>
-          </div>
-
-          <!-- Información de Préstamo -->
-          <div class="row mb-4">
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-share me-2"></i>Disponible para Préstamo</h6>
-              <p class="fs-5">
-                {% if equipo.disponible_prestamo %}
-                  <span class="badge bg-success">Sí</span>
-                {% else %}
-                  <span class="badge bg-danger">No</span>
-                {% endif %}
-              </p>
-            </div>
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-clock me-2"></i>Tiempo Máximo de Préstamo</h6>
-              <p class="fs-5"><strong>{{ equipo.tiempo_max_prestamo or '-' }} días</strong></p>
-            </div>
-          </div>
-
-          <!-- Fechas de Registro -->
-          <div class="row mb-4">
-            <div class="col-md-6 mb-3">
-              <h6 class="text-muted fw-semibold"><i class="bi bi-calendar-event me-2"></i>Fecha de Registro</h6>
-              <p class="fs-5"><small class="text-muted">{{ equipo.fecha_registro.strftime('%d/%m/%Y %H:%M') if equipo.fecha_registro else '-' }}</small></p>
-            </div>
-          </div>
-
-          <!-- Descripción -->
-          {% if equipo.descripcion %}
-          <div class="mb-4">
-            <h6 class="text-muted fw-semibold"><i class="bi bi-chat-left-text me-2"></i>Descripción</h6>
-            <p class="fs-5">{{ equipo.descripcion }}</p>
-          </div>
-          {% endif %}
-
-          <!-- Botones de Acción -->
-          <div class="d-grid gap-2 gap-md-3 d-md-flex justify-content-md-between">
-            <a href="{{ url_for('equipos.lista_equipos') }}" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left me-1"></i> Volver a la Lista
-            </a>
-            {% if current_user.rol == 'administrador' %}
-            <div>
-              <a href="{{ url_for('equipos.editar_equipo', id_equipo=equipo.id_equipo) }}" class="btn btn-primary">
-                <i class="bi bi-pencil me-1"></i> Editar
-              </a>
-              <form method="POST" action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" 
-                    style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este equipo?')">
-                <button type="submit" class="btn btn-danger">
-                  <i class="bi bi-trash me-1"></i> Eliminar
-                </button>
-              </form>
-            </div>
-            {% endif %}
-            {% if current_user.rol in ['aprendiz', 'instructor'] and equipo.disponible_prestamo and equipo.estado == 'disponible' %}
-            <a href="{{ url_for('prestamos.crear_prestamo', id_equipo=equipo.id_equipo) }}" class="btn btn-success">
-              <i class="bi bi-plus-circle me-1"></i> Solicitar Préstamo
-            </a>
-            {% endif %}
-          </div>
-
         </div>
       </div>
 
+      <div class="card-sena-body">
+        
+        <!-- Section 1: Basic Information -->
+        <div class="mb-4">
+          <h5 class="text-primary-sena mb-3">
+            <i class="bi bi-info-circle me-2"></i>Información Básica
+          </h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-tag me-1"></i>Nombre</small>
+                <p class="mb-0 fw-semibold">{{ equipo.nombre }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-boxes me-1"></i>Tipo</small>
+                <p class="mb-0 fw-semibold">{{ equipo.tipo_equipo }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-building me-1"></i>Marca</small>
+                <p class="mb-0 fw-semibold">{{ equipo.marca or '—' }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-gear me-1"></i>Modelo</small>
+                <p class="mb-0 fw-semibold">{{ equipo.modelo or '—' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Critical Information -->
+        <div class="alert alert-info alert-sena mb-4">
+          <div class="d-flex gap-2">
+            <i class="bi bi-key" style="font-size: 1.25rem; color: var(--sena-primary);"></i>
+            <div>
+              <strong>Número de Serie</strong>
+              <p class="mb-0 mt-1" style="font-family: monospace; background-color: var(--sena-light); padding: 0.5rem; border-radius: 0.25rem;">
+                {{ equipo.numero_serie }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Location and Status -->
+        <div class="mb-4">
+          <h5 class="text-primary-sena mb-3">
+            <i class="bi bi-geo-alt me-2"></i>Ubicación y Estado
+          </h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>Ubicación</small>
+                <p class="mb-0 fw-semibold">{{ equipo.ubicacion or '—' }}</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Estado</small>
+                <p class="mb-0 fw-semibold">
+                  {% if equipo.estado == 'disponible' %}
+                    <span class="badge bg-success">Disponible</span>
+                  {% elif equipo.estado == 'prestado' %}
+                    <span class="badge bg-warning text-dark">Prestado</span>
+                  {% elif equipo.estado == 'mantenimiento' %}
+                    <span class="badge bg-secondary">Mantenimiento</span>
+                  {% elif equipo.estado == 'dañado' %}
+                    <span class="badge bg-danger">Dañado</span>
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Acquisition Information -->
+        <div class="mb-4">
+          <h5 class="text-primary-sena mb-3">
+            <i class="bi bi-calendar me-2"></i>Información de Adquisición
+          </h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>Fecha de Compra</small>
+                <p class="mb-0 fw-semibold">
+                  {{ equipo.fecha_compra.strftime('%d/%m/%Y') if equipo.fecha_compra else '—' }}
+                </p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-shop me-1"></i>Proveedor</small>
+                <p class="mb-0 fw-semibold">{{ equipo.proveedor or '—' }}</p>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-person me-1"></i>Responsable</small>
+                <p class="mb-0 fw-semibold">{{ equipo.responsable or '—' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 5: Loan Information -->
+        <div class="mb-4">
+          <h5 class="text-primary-sena mb-3">
+            <i class="bi bi-share me-2"></i>Información de Préstamo
+          </h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-share me-1"></i>Disponible para Préstamo</small>
+                <p class="mb-0 fw-semibold">
+                  {% if equipo.disponible_prestamo %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Sí</span>
+                  {% else %}
+                    <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>No</span>
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="p-3 rounded" style="background-color: var(--sena-light);">
+                <small class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Tiempo Máximo</small>
+                <p class="mb-0 fw-semibold">{{ equipo.tiempo_max_prestamo or '—' }} días</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 6: Description -->
+        {% if equipo.descripcion %}
+        <div class="mb-4">
+          <h5 class="text-primary-sena mb-3">
+            <i class="bi bi-chat-left-text me-2"></i>Descripción
+          </h5>
+          <div class="p-3 rounded" style="background-color: var(--sena-light); border-left: 4px solid var(--sena-accent);">
+            {{ equipo.descripcion }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Section 7: Registration Date -->
+        <div class="text-center mb-4">
+          <small class="text-muted">
+            <i class="bi bi-calendar-event me-1"></i>
+            Registrado el: {{ equipo.fecha_registro.strftime('%d de %B de %Y') if equipo.fecha_registro else '—' }}
+          </small>
+        </div>
+
+      </div>
     </div>
+
+    <!-- Action Buttons -->
+    <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+      <a href="{{ url_for('equipos.lista_equipos') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Volver a la Lista
+      </a>
+      
+      <div class="d-flex gap-2">
+        {% if current_user.rol == 'administrador' %}
+        <a href="{{ url_for('equipos.editar_equipo', id_equipo=equipo.id_equipo) }}" class="btn btn-primary">
+          <i class="bi bi-pencil me-2"></i>Editar
+        </a>
+        <form method="POST" action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" 
+              style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.')">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash me-2"></i>Eliminar
+          </button>
+        </form>
+        {% endif %}
+
+        {% if current_user.rol in ['aprendiz', 'instructor'] and equipo.disponible_prestamo and equipo.estado == 'disponible' %}
+        <a href="{{ url_for('prestamos.crear_prestamo', id_equipo=equipo.id_equipo) }}" class="btn btn-success">
+          <i class="bi bi-plus-circle me-2"></i>Solicitar Préstamo
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
   </div>
 </div>
-
-<style>
-.card-header-custom {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-</style>
 {% endblock %}

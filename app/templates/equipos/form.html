@@ -1,188 +1,234 @@
 {% extends "base.html" %}
-{% block titulo_pagina %}{% if accion == 'crear' %}Nuevo Equipo{% else %}Editar Equipo{% endif %}{% endblock %}
+{% block titulo_card %}
+  {% if accion == 'crear' %}Registrar Nuevo Equipo{% else %}Editar Equipo{% endif %}
+{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
+<div class="row justify-content-center">
+  <div class="col-lg-8">
 
-      <!-- Errores -->
-      {% if errors %}
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-1"></i>
-        <strong>Por favor corrige los siguientes errores:</strong>
-        <ul class="mb-0 mt-2">
-          {% for error in errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <!-- Error Alerts -->
+    {% if errors %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <h5 class="mb-2">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Por favor corrige los errores
+      </h5>
+      <ul class="mb-0 small">
+        {% for error in errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Form Card -->
+    <div class="card-sena">
+      <div class="card-sena-header text-center">
+        <h3 class="mb-1">
+          <i class="bi bi-{% if accion == 'crear' %}plus-circle{% else %}pencil{% endif %} me-2"></i>
+          {% if accion == 'crear' %}Registrar Nuevo Equipo{% else %}Editar Equipo{% endif %}
+        </h3>
+        <p class="small opacity-75 mb-0">Sistema SENA de Almacén y Préstamos</p>
       </div>
-      {% endif %}
 
-      <div class="card shadow border-0 rounded-3">
-        <div class="card-header card-header-custom text-center py-3">
-          <h4 class="mb-0">
-            <i class="bi bi-{% if accion == 'crear' %}plus-circle{% else %}pencil{% endif %} me-2"></i>
-            {% if accion == 'crear' %}Registrar Nuevo Equipo{% else %}Editar Equipo{% endif %}
-          </h4>
-        </div>
+      <div class="card-sena-body">
+        <form method="POST">
 
-        <div class="card-body p-4">
-          <form method="POST">
+          <!-- Section 1: Basic Information -->
+          <div class="mb-4">
+            <h5 class="text-primary-sena mb-3">
+              <i class="bi bi-info-circle me-2"></i>Información Básica
+            </h5>
 
-            <!-- Fila 1: Nombre y Tipo -->
-            <div class="row mb-3">
+            <div class="row g-3">
               <div class="col-md-6">
-                <label for="nombre" class="form-label fw-semibold">
-                  <i class="bi bi-tag me-1"></i> Nombre del Equipo *
+                <label for="nombre" class="form-label">
+                  <i class="bi bi-tag me-1"></i>Nombre del Equipo *
                 </label>
                 <input type="text" name="nombre" id="nombre" class="form-control" 
-                       value="{{ equipo.nombre if equipo else '' }}" required>
-                <small class="form-text text-muted">Ej: Portátil Lenovo</small>
+                       value="{{ equipo.nombre if equipo else '' }}" 
+                       placeholder="Ej: Portátil Lenovo ThinkPad" required>
               </div>
+
               <div class="col-md-6">
-                <label for="tipo_equipo" class="form-label fw-semibold">
-                  <i class="bi bi-boxes me-1"></i> Tipo de Equipo *
+                <label for="tipo_equipo" class="form-label">
+                  <i class="bi bi-boxes me-1"></i>Tipo de Equipo *
                 </label>
                 <input type="text" name="tipo_equipo" id="tipo_equipo" class="form-control" 
-                       value="{{ equipo.tipo_equipo if equipo else '' }}" required placeholder="Laptop, Monitor, Teclado...">
+                       value="{{ equipo.tipo_equipo if equipo else '' }}" 
+                       placeholder="Laptop, Monitor, Teclado..." required>
               </div>
-            </div>
 
-            <!-- Fila 2: Marca y Modelo -->
-            <div class="row mb-3">
               <div class="col-md-6">
-                <label for="marca" class="form-label fw-semibold">
-                  <i class="bi bi-building me-1"></i> Marca
+                <label for="marca" class="form-label">
+                  <i class="bi bi-building me-1"></i>Marca
                 </label>
                 <input type="text" name="marca" id="marca" class="form-control" 
-                       value="{{ equipo.marca if equipo else '' }}">
+                       value="{{ equipo.marca if equipo else '' }}" 
+                       placeholder="Lenovo, Dell, HP...">
               </div>
+
               <div class="col-md-6">
-                <label for="modelo" class="form-label fw-semibold">
-                  <i class="bi bi-gear me-1"></i> Modelo
+                <label for="modelo" class="form-label">
+                  <i class="bi bi-gear me-1"></i>Modelo
                 </label>
                 <input type="text" name="modelo" id="modelo" class="form-control" 
-                       value="{{ equipo.modelo if equipo else '' }}">
+                       value="{{ equipo.modelo if equipo else '' }}" 
+                       placeholder="ThinkPad E15, XPS 13...">
               </div>
             </div>
+          </div>
 
-            <!-- Fila 3: Número de Serie (MUY IMPORTANTE) -->
-            <div class="row mb-3">
-              <div class="col-12">
-                <label for="numero_serie" class="form-label fw-semibold">
-                  <i class="bi bi-key me-1" style="color: #dc3545;"></i> Número de Serie *
-                </label>
-                <input type="text" name="numero_serie" id="numero_serie" class="form-control form-control-lg" 
-                       value="{{ equipo.numero_serie if equipo else '' }}" required>
-                <small class="form-text text-danger"><strong>⚠ Este campo es único y no se puede duplicar</strong></small>
-              </div>
+          <!-- Section 2: Serial and Critical Info -->
+          <div class="alert alert-info alert-sena mb-4">
+            <strong>
+              <i class="bi bi-shield-exclamation me-2"></i>Información Crítica
+            </strong>
+            <p class="mb-0 small mt-2">El número de serie es único y no puede repetirse en el sistema</p>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <label for="numero_serie" class="form-label">
+                <i class="bi bi-key me-1" style="color: var(--sena-accent);"></i>
+                <strong>Número de Serie *</strong>
+              </label>
+              <input type="text" name="numero_serie" id="numero_serie" class="form-control form-control-lg" 
+                     value="{{ equipo.numero_serie if equipo else '' }}" 
+                     placeholder="ABC123456" required>
             </div>
+          </div>
 
-            <!-- Fila 4: Estado y Ubicación -->
-            <div class="row mb-3">
+          <!-- Section 3: Status and Location -->
+          <div class="mb-4">
+            <h5 class="text-primary-sena mb-3">
+              <i class="bi bi-map me-2"></i>Estado y Ubicación
+            </h5>
+
+            <div class="row g-3">
               <div class="col-md-6">
-                <label for="estado" class="form-label fw-semibold">
-                  <i class="bi bi-info-circle me-1"></i> Estado
+                <label for="estado" class="form-label">
+                  <i class="bi bi-info-circle me-1"></i>Estado del Equipo
                 </label>
                 <select name="estado" id="estado" class="form-select">
-                  <option value="disponible" {% if equipo and equipo.estado == 'disponible' %}selected{% elif not equipo %}selected{% endif %}>Disponible</option>
-                  <option value="prestado" {% if equipo and equipo.estado == 'prestado' %}selected{% endif %}>Prestado</option>
-                  <option value="mantenimiento" {% if equipo and equipo.estado == 'mantenimiento' %}selected{% endif %}>En Mantenimiento</option>
-                  <option value="dañado" {% if equipo and equipo.estado == 'dañado' %}selected{% endif %}>Dañado</option>
+                  <option value="disponible" {% if equipo and equipo.estado == 'disponible' %}selected{% elif not equipo %}selected{% endif %}>
+                    ✓ Disponible
+                  </option>
+                  <option value="prestado" {% if equipo and equipo.estado == 'prestado' %}selected{% endif %}>
+                    ↔ Prestado
+                  </option>
+                  <option value="mantenimiento" {% if equipo and equipo.estado == 'mantenimiento' %}selected{% endif %}>
+                    ⚙ En Mantenimiento
+                  </option>
+                  <option value="dañado" {% if equipo and equipo.estado == 'dañado' %}selected{% endif %}>
+                    ⚠ Dañado
+                  </option>
                 </select>
               </div>
+
               <div class="col-md-6">
-                <label for="ubicacion" class="form-label fw-semibold">
-                  <i class="bi bi-geo-alt me-1"></i> Ubicación
+                <label for="ubicacion" class="form-label">
+                  <i class="bi bi-geo-alt me-1"></i>Ubicación
                 </label>
                 <input type="text" name="ubicacion" id="ubicacion" class="form-control" 
-                       value="{{ equipo.ubicacion if equipo else '' }}" placeholder="Biblioteca, Almacén, Aula X...">
+                       value="{{ equipo.ubicacion if equipo else '' }}" 
+                       placeholder="Biblioteca, Almacén, Aula...">
               </div>
             </div>
+          </div>
 
-            <!-- Fila 5: Fecha de Compra y Proveedor -->
-            <div class="row mb-3">
+          <!-- Section 4: Acquisition Info -->
+          <div class="mb-4">
+            <h5 class="text-primary-sena mb-3">
+              <i class="bi bi-calendar me-2"></i>Información de Adquisición
+            </h5>
+
+            <div class="row g-3">
               <div class="col-md-6">
-                <label for="fecha_compra" class="form-label fw-semibold">
-                  <i class="bi bi-calendar me-1"></i> Fecha de Compra
+                <label for="fecha_compra" class="form-label">
+                  <i class="bi bi-calendar-event me-1"></i>Fecha de Compra
                 </label>
                 <input type="date" name="fecha_compra" id="fecha_compra" class="form-control" 
                        value="{% if equipo and equipo.fecha_compra %}{{ equipo.fecha_compra.isoformat() }}{% endif %}">
               </div>
+
               <div class="col-md-6">
-                <label for="proveedor" class="form-label fw-semibold">
-                  <i class="bi bi-shop me-1"></i> Proveedor
+                <label for="proveedor" class="form-label">
+                  <i class="bi bi-shop me-1"></i>Proveedor
                 </label>
                 <input type="text" name="proveedor" id="proveedor" class="form-control" 
-                       value="{{ equipo.proveedor if equipo else '' }}">
+                       value="{{ equipo.proveedor if equipo else '' }}" 
+                       placeholder="Distribuidor o proveedor">
               </div>
-            </div>
 
-            <!-- Fila 6: Responsable -->
-            <div class="row mb-3">
               <div class="col-12">
-                <label for="responsable" class="form-label fw-semibold">
-                  <i class="bi bi-person me-1"></i> Responsable del Equipo
+                <label for="responsable" class="form-label">
+                  <i class="bi bi-person me-1"></i>Responsable del Equipo
                 </label>
                 <input type="text" name="responsable" id="responsable" class="form-control" 
-                       value="{{ equipo.responsable if equipo else '' }}" placeholder="Persona o área responsable">
+                       value="{{ equipo.responsable if equipo else '' }}" 
+                       placeholder="Persona o área responsable del mantenimiento">
               </div>
             </div>
+          </div>
 
-            <!-- Fila 7: Préstamo -->
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <div class="form-check form-switch">
+          <!-- Section 5: Loan Settings -->
+          <div class="mb-4">
+            <h5 class="text-primary-sena mb-3">
+              <i class="bi bi-share me-2"></i>Configuración de Préstamo
+            </h5>
+
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="form-check form-switch p-3" style="background-color: var(--sena-light); border-radius: 0.375rem;">
                   <input class="form-check-input" type="checkbox" name="disponible_prestamo" 
                          id="disponible_prestamo" {% if not equipo or equipo.disponible_prestamo %}checked{% endif %}>
-                  <label class="form-check-label" for="disponible_prestamo">
-                    <strong><i class="bi bi-share me-1"></i> Disponible para Préstamo</strong>
+                  <label class="form-check-label fw-semibold" for="disponible_prestamo">
+                    Permitir préstamo de este equipo
                   </label>
                 </div>
               </div>
+
               <div class="col-md-6">
-                <label for="tiempo_max_prestamo" class="form-label fw-semibold">
-                  <i class="bi bi-clock me-1"></i> Tiempo Máximo de Préstamo (días)
+                <label for="tiempo_max_prestamo" class="form-label">
+                  <i class="bi bi-hourglass-split me-1"></i>Tiempo Máximo de Préstamo (días)
                 </label>
-                <input type="number" name="tiempo_max_prestamo" id="tiempo_max_prestamo" class="form-control" 
-                       min="1" value="{{ equipo.tiempo_max_prestamo if equipo else '' }}">
+                <input type="number" name="tiempo_max_prestamo" id="tiempo_max_prestamo" 
+                       class="form-control" min="1" max="365"
+                       value="{{ equipo.tiempo_max_prestamo if equipo else '7' }}"
+                       placeholder="7">
+                <small class="form-text text-muted">Duración máxima de un préstamo</small>
               </div>
             </div>
+          </div>
 
-            <!-- Fila 8: Descripción -->
-            <div class="mb-4">
-              <label for="descripcion" class="form-label fw-semibold">
-                <i class="bi bi-chat-left-text me-1"></i> Descripción Adicional
-              </label>
-              <textarea name="descripcion" id="descripcion" class="form-control" rows="3" 
-                        placeholder="Notas o características especiales...">{{ equipo.descripcion if equipo else '' }}</textarea>
-            </div>
+          <!-- Section 6: Additional Description -->
+          <div class="mb-4">
+            <label for="descripcion" class="form-label">
+              <i class="bi bi-chat-left-text me-1"></i>Descripción Adicional
+            </label>
+            <textarea name="descripcion" id="descripcion" class="form-control" rows="3" 
+                      placeholder="Notas, características especiales, condiciones de uso, etc.">{{ equipo.descripcion if equipo else '' }}</textarea>
+            <small class="form-text text-muted">Información adicional que consideres relevante</small>
+          </div>
 
-            <!-- Botones -->
-            <div class="d-grid gap-2 gap-md-3 d-md-flex justify-content-md-end">
-              <a href="{{ url_for('equipos.lista_equipos') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Cancelar
-              </a>
-              <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bi bi-check-circle me-1"></i> 
-                {% if accion == 'crear' %}Registrar Equipo{% else %}Guardar Cambios{% endif %}
-              </button>
-            </div>
+          <!-- Action Buttons -->
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('equipos.lista_equipos') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left me-2"></i>Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-check-circle me-2"></i>
+              {% if accion == 'crear' %}Registrar Equipo{% else %}Guardar Cambios{% endif %}
+            </button>
+          </div>
 
-          </form>
-        </div>
+        </form>
       </div>
-
     </div>
+
   </div>
 </div>
-
-<style>
-.card-header-custom {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-</style>
 {% endblock %}

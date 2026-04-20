@@ -1,48 +1,116 @@
 {% extends "base.html" %}
-{% block titulo_pagina %}Iniciar Sesión{% endblock %}
+{% block titulo_card %}Iniciar Sesión{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-5">
-
-    <div class="card shadow border-0 rounded-3">
-      <div class="card-header card-header-custom text-center py-3">
-        <h4 class="mb-0"><i class="bi bi-lock-fill me-2"></i>Bienvenido</h4>
-        <small class="opacity-75">Sistema de Almacén y Préstamos</small>
+<div class="row justify-content-center min-vh-100 d-flex align-items-center" style="background-color: var(--sena-light); margin: -2rem -1.75rem 0 -1.75rem; padding: 2rem 0;">
+  <div class="col-md-5 col-lg-4">
+    <div class="login-box mx-auto">
+      <!-- Header con Logo -->
+      <div class="login-header mb-4 text-center">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA" style="width: 100px; height: auto; margin-bottom: 1.5rem;">
+        <h3 style="font-weight: 700; color: var(--sena-dark);">Control de<br>Préstamos y Almacén</h3>
+        <p class="text-muted">Plataforma de Gestión de Equipos</p>
       </div>
 
-      <div class="card-body p-4">
+      <!-- Login Form -->
+      <div class="login-body">
+        <!-- Error Messages -->
+        {% if errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <div>
+            {% for error in errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
         <form method="POST" action="{{ url_for('auth.login') }}">
-
-          <div class="mb-3">
-            <label for="correo" class="form-label fw-semibold">
-              <i class="bi bi-envelope me-1"></i> Correo electrónico
+          <!-- Email Input -->
+          <div class="form-group">
+            <label for="correo" class="form-label">
+              <i class="bi bi-envelope me-2"></i>Correo Electrónico
             </label>
-            <input type="email" name="correo" id="correo"
-                   class="form-control" value="{{ correo }}" required autofocus>
+            <input type="email" name="correo" id="correo" class="form-control form-control-lg" 
+                   value="{{ correo }}" placeholder="tu@correo.com" required autofocus>
           </div>
 
-          <div class="mb-4">
-            <label for="password" class="form-label fw-semibold">
-              <i class="bi bi-key me-1"></i> Contraseña
+          <!-- Password Input -->
+          <div class="form-group mb-3">
+            <label for="password" class="form-label">
+              <i class="bi bi-key me-2"></i>Contraseña
             </label>
-            <input type="password" name="password" id="password"
-                   class="form-control" required>
+            <div class="input-group">
+              <input type="password" name="password" id="password" class="form-control form-control-lg" 
+                     placeholder="••••••••" required>
+              <button class="btn btn-outline-secondary toggle-password" type="button" aria-label="Mostrar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
           </div>
 
-          <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary btn-lg">
-              <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
-            </button>
-            <a href="{{ url_for('auth.registro') }}" class="btn btn-outline-secondary">
-              <i class="bi bi-person-plus me-1"></i> Crear cuenta nueva
-            </a>
-          </div>
+          <!-- Login Button -->
+          <button type="submit" class="btn btn-primary btn-lg w-100 mt-4 mb-2">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+          </button>
 
+          <!-- Register Link -->
+          <a href="{{ url_for('auth.registro') }}" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-person-plus me-2"></i>Crear Cuenta Nueva
+          </a>
         </form>
+
+        <!-- Info Text -->
+        <div class="text-center mt-4">
+          <small class="text-muted">
+            <i class="bi bi-shield-check me-1"></i>
+            Acceso seguro y restringido a usuarios autorizados
+          </small>
+        </div>
       </div>
     </div>
-
   </div>
 </div>
+
+<style>
+  body {
+    overflow-x: hidden;
+    background-color: var(--sena-light);
+  }
+  .login-box {
+    border-top: 4px solid var(--sena-green);
+  }
+  .input-group .form-control {
+    border-right: none;
+  }
+  .input-group .btn {
+    border-color: var(--sena-border);
+    background-color: transparent;
+    color: var(--sena-gray);
+  }
+  .input-group .btn:hover {
+    background-color: transparent;
+    color: var(--sena-dark);
+    border-color: var(--sena-green);
+  }
+</style>
+<script>
+document.querySelectorAll('.toggle-password').forEach(button => {
+  button.addEventListener('click', function() {
+    const input = this.previousElementSibling;
+    const icon = this.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('bi-eye');
+      icon.classList.add('bi-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('bi-eye-slash');
+      icon.classList.add('bi-eye');
+    }
+  });
+});
+</script>
 {% endblock %}

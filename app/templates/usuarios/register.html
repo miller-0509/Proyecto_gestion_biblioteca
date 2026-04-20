@@ -1,91 +1,118 @@
 {% extends "base.html" %}
-{% block titulo_pagina %}Registro de Usuario{% endblock %}
+{% block titulo_card %}Crear Cuenta{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-7">
+  <div class="col-md-6 col-lg-5">
 
-    <!-- Errores de validación -->
+    <!-- Validation Errors -->
     {% if errors %}
-    <div class="alert alert-danger alert-dismissible fade show">
-      <i class="bi bi-exclamation-triangle-fill me-1"></i>
-      <strong>Por favor corrige los siguientes errores:</strong>
-      <ul class="mb-0 mt-2">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <h5 class="mb-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Por favor corrige los siguientes errores:
+      </h5>
+      <ul class="mb-0">
         {% for error in errors %}
-          <li>{{ error }}</li>
+          <li class="mb-1">{{ error }}</li>
         {% endfor %}
       </ul>
       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     {% endif %}
 
-    <div class="card shadow border-0 rounded-3">
-      <div class="card-header card-header-custom text-center py-3">
-        <h4 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Crear Cuenta</h4>
+    <!-- Registration Card -->
+    <div class="card-sena">
+      <div class="card-sena-header text-center">
+        <div class="mb-3">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo" style="width: 80px; height: auto;">
+        </div>
+        <h3 class="mb-2">Crear Cuenta</h3>
+        <p class="mb-0 small opacity-75">Únete al Sistema SENA de Almacén y Préstamos</p>
       </div>
 
-      <div class="card-body p-4">
+      <div class="card-sena-body">
         <form method="POST" action="{{ url_for('auth.registro') }}">
 
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="nombres" class="form-label fw-semibold">
-                <i class="bi bi-person me-1"></i> Nombres
+          <!-- Names Row -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="nombres" class="form-label">
+                <i class="bi bi-person me-2"></i>Nombres
               </label>
-              <input type="text" name="nombres" id="nombres"
-                     class="form-control" value="{{ nombres }}" required>
+              <input type="text" name="nombres" id="nombres" class="form-control" 
+                     value="{{ nombres }}" placeholder="Juan" required>
             </div>
-            <div class="col-md-6 mb-3">
-              <label for="apellidos" class="form-label fw-semibold">
-                <i class="bi bi-person me-1"></i> Apellidos
+            <div class="col-md-6">
+              <label for="apellidos" class="form-label">
+                <i class="bi bi-person me-2"></i>Apellidos
               </label>
-              <input type="text" name="apellidos" id="apellidos"
-                     class="form-control" value="{{ apellidos }}" required>
+              <input type="text" name="apellidos" id="apellidos" class="form-control" 
+                     value="{{ apellidos }}" placeholder="Pérez García" required>
             </div>
           </div>
 
-          <div class="mb-3">
-            <label for="correo" class="form-label fw-semibold">
-              <i class="bi bi-envelope me-1"></i> Correo electrónico
+          <!-- Email -->
+          <div class="form-group">
+            <label for="correo" class="form-label">
+              <i class="bi bi-envelope me-2"></i>Correo Electrónico
             </label>
-            <input type="email" name="correo" id="correo"
-                   class="form-control" value="{{ correo }}" required>
+            <input type="email" name="correo" id="correo" class="form-control" 
+                   value="{{ correo }}" placeholder="tu@correo.com" required>
+            <small class="form-text text-muted">Usa tu correo institucional si es posible</small>
           </div>
 
-          <div class="mb-3">
-            <label for="password" class="form-label fw-semibold">
-              <i class="bi bi-key me-1"></i> Contraseña
+          <!-- Password -->
+          <div class="form-group mb-3">
+            <label for="password" class="form-label">
+              <i class="bi bi-key me-2"></i>Contraseña
             </label>
-            <input type="password" name="password" id="password"
-                   class="form-control" minlength="6" required>
-            <div class="form-text">Mínimo 6 caracteres.</div>
+            <div class="input-group">
+              <input type="password" name="password" id="password" class="form-control" 
+                     minlength="6" placeholder="••••••••" required>
+              <button class="btn btn-outline-secondary toggle-password" type="button" aria-label="Mostrar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <small class="form-text text-muted mt-1 d-block">Mínimo 6 caracteres</small>
           </div>
 
-          <div class="mb-4">
-            <label for="rol" class="form-label fw-semibold">
-              <i class="bi bi-badge me-1"></i> Selecciona tu Rol *
+          <!-- Role Selection -->
+          <div class="form-group">
+            <label for="rol" class="form-label">
+              <i class="bi bi-badge me-2"></i>Selecciona Tu Rol *
             </label>
             <select name="rol" id="rol" class="form-select" required>
               <option value="">-- Selecciona tu rol --</option>
               <option value="aprendiz" {% if rol == 'aprendiz' %}selected{% endif %}>
-                <i class="bi bi-mortarboard me-1"></i> Aprendiz
+                <i class="bi bi-mortarboard me-1"></i> Aprendiz SENA
               </option>
               <option value="instructor" {% if rol == 'instructor' %}selected{% endif %}>
-                <i class="bi bi-person-check me-1"></i> Instructor
+                <i class="bi bi-person-check me-1"></i> Instructor SENA
               </option>
             </select>
-            <small class="form-text text-muted">
-              Nota: Solo el administrador puede crear, editar o eliminar equipos
+            <small class="form-text text-muted d-block mt-2">
+              <i class="bi bi-info-circle me-1"></i>
+              Solo los administradores pueden crear, editar o eliminar equipos
             </small>
           </div>
 
-          <div class="d-grid gap-2">
+          <!-- Submit Buttons -->
+          <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-primary btn-lg">
-              <i class="bi bi-check-circle me-1"></i> Registrarme
+              <i class="bi bi-check-circle me-2"></i>Registrarme
             </button>
             <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left me-1"></i> Volver al login
+              <i class="bi bi-arrow-left me-2"></i>Volver al login
             </a>
+          </div>
+
+          <!-- Terms -->
+          <div class="text-center mt-3">
+            <small class="text-muted">
+              <i class="bi bi-shield-check me-1"></i>
+              Al registrarte, aceptas los términos del sistema SENA
+            </small>
           </div>
 
         </form>
@@ -94,4 +121,36 @@
 
   </div>
 </div>
+<style>
+  .input-group .form-control {
+    border-right: none;
+  }
+  .input-group .btn {
+    border-color: var(--sena-border);
+    background-color: transparent;
+    color: var(--sena-gray);
+  }
+  .input-group .btn:hover {
+    background-color: transparent;
+    color: var(--sena-dark);
+    border-color: var(--sena-green);
+  }
+</style>
+<script>
+document.querySelectorAll('.toggle-password').forEach(button => {
+  button.addEventListener('click', function() {
+    const input = this.previousElementSibling;
+    const icon = this.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('bi-eye');
+      icon.classList.add('bi-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('bi-eye-slash');
+      icon.classList.add('bi-eye');
+    }
+  });
+});
+</script>
 {% endblock %}
