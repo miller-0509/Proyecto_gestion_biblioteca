@@ -28,13 +28,13 @@ def lista_prestamos():
     
     if current_user.rol == 'administrador':
         # Admin ve todos los préstamos
-        prestamos = Prestamo.query.order_by(Prestamo.fecha_solicitud.desc()).all()
+        prestamos = Prestamo.query.order_by(Prestamo.fecha_solicitud.desc()).limit(100).all()
         titulo = 'Gestión de Préstamos'
     else:
         # Usuario ve solo sus préstamos
         prestamos = Prestamo.query.filter_by(id_usuario=current_user.id_usuario).order_by(
             Prestamo.fecha_solicitud.desc()
-        ).all()
+        ).limit(100).all()
         titulo = 'Mis Préstamos'
     
     # Precalcular días restantes para cada préstamo (sin timezone)
@@ -73,8 +73,8 @@ def crear_prestamo():
     if current_user.rol == 'administrador':
         # Admin puede seleccionar equipo y usuario
         if request.method == 'GET':
-            equipos = Equipo.query.filter_by(disponible_prestamo=True, estado='disponible').all()
-            usuarios = Usuario.query.filter(Usuario.rol.in_(['aprendiz', 'instructor'])).all()
+            equipos = Equipo.query.filter_by(disponible_prestamo=True, estado='disponible').limit(100).all()
+            usuarios = Usuario.query.filter(Usuario.rol.in_(['aprendiz', 'instructor'])).limit(100).all()
             return render_template('prestamos/crear.html', equipos=equipos, usuarios=usuarios, modo='admin')
         
         else:  # POST
@@ -110,7 +110,7 @@ def crear_prestamo():
         # Usuario (aprendiz/instructor) puede solicitar préstamo desde aquí o desde equipos
         if request.method == 'GET':
             id_equipo = request.args.get('id_equipo', type=int)
-            equipos = Equipo.query.filter_by(disponible_prestamo=True, estado='disponible').all()
+            equipos = Equipo.query.filter_by(disponible_prestamo=True, estado='disponible').limit(100).all()
             
             equipo_seleccionado = None
             if id_equipo:
@@ -165,6 +165,7 @@ def aceptar_prestamo(id_prestamo):
     prestamo.estado = 'aceptado'
     prestamo.fecha_aprobacion = datetime.now(timezone.utc)
     prestamo.id_administrador = current_user.id_usuario
+    prestamo.equipo.estado = 'prestado'
     prestamo.save()
     
     flash(f'Préstamo del usuario {prestamo.usuario.nombre_completo()} aceptado.', 'success')
@@ -208,6 +209,7 @@ def devolver_prestamo(id_prestamo):
     
     prestamo.estado = 'devuelto'
     prestamo.fecha_devolucion_real = datetime.now(timezone.utc)
+    prestamo.equipo.estado = 'disponible'
     prestamo.save()
     
     flash(f'Préstamo del usuario {prestamo.usuario.nombre_completo()} marcado como devuelto.', 'success')

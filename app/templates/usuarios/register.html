@@ -33,6 +33,7 @@
 
       <div class="card-sena-body">
         <form method="POST" action="{{ url_for('auth.registro') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
           <!-- Names Row -->
           <div class="row g-3 mb-3">

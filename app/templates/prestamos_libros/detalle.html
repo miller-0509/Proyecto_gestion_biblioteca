@@ -223,6 +223,7 @@
           {% if prestamo.estado == 'pendiente' %}
             <!-- Accept Button -->
             <form method="POST" action="{{ url_for('prestamos_libros.aceptar_prestamo', id_prestamo=prestamo.id_prestamo) }}" style="display:inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <button type="submit" class="btn btn-success">
                 <i class="bi bi-check-circle me-2"></i>Aceptar
               </button>
@@ -236,6 +237,7 @@
           {% elif prestamo.estado == 'aceptado' %}
             <!-- Return Button -->
             <form method="POST" action="{{ url_for('prestamos_libros.devolver_prestamo', id_prestamo=prestamo.id_prestamo) }}" style="display:inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
               <button type="submit" class="btn btn-warning">
                 <i class="bi bi-box-arrow-left me-2"></i>Marcar Devuelto
               </button>
@@ -260,6 +262,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form method="POST" action="{{ url_for('prestamos_libros.rechazar_prestamo', id_prestamo=prestamo.id_prestamo) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="modal-body">
           <div class="form-group">
             <label for="razon_rechazo" class="form-label">

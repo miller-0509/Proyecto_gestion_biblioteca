@@ -40,6 +40,7 @@
 
       <div class="card-sena-body">
         <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
           {% if modo == 'admin' %}
             <!-- ========== ADMIN MODE ========== -->

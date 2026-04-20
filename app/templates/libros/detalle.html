@@ -212,6 +212,7 @@
         </a>
         <form method="POST" action="{{ url_for('libros.eliminar_libro', id_libro=libro.id_libro) }}" 
               style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este libro? Esta acción no se puede deshacer.')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <button type="submit" class="btn btn-danger">
             <i class="bi bi-trash me-2"></i>Eliminar
           </button>

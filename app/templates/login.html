@@ -28,6 +28,7 @@
         {% endif %}
 
         <form method="POST" action="{{ url_for('auth.login') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <!-- Email Input -->
           <div class="form-group">
             <label for="correo" class="form-label">

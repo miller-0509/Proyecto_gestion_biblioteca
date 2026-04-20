@@ -22,12 +22,12 @@ def admin_required(f):
 @login_required
 def lista_prestamos():
     if current_user.rol == 'administrador':
-        prestamos = PrestamoLibro.query.order_by(PrestamoLibro.fecha_solicitud.desc()).all()
+        prestamos = PrestamoLibro.query.order_by(PrestamoLibro.fecha_solicitud.desc()).limit(100).all()
         titulo = 'Gestión de Préstamos de Libros'
     else:
         prestamos = PrestamoLibro.query.filter_by(id_usuario=current_user.id_usuario).order_by(
             PrestamoLibro.fecha_solicitud.desc()
-        ).all()
+        ).limit(100).all()
         titulo = 'Mis Préstamos de Libros'
     
     from datetime import datetime as dt
@@ -56,8 +56,8 @@ def lista_prestamos():
 def crear_prestamo():
     if current_user.rol == 'administrador':
         if request.method == 'GET':
-            libros = Libro.query.filter_by(disponible_prestamo=True, estado='disponible').all()
-            usuarios = Usuario.query.filter(Usuario.rol.in_(['aprendiz', 'instructor'])).all()
+            libros = Libro.query.filter_by(disponible_prestamo=True, estado='disponible').limit(100).all()
+            usuarios = Usuario.query.filter(Usuario.rol.in_(['aprendiz', 'instructor'])).limit(100).all()
             return render_template('prestamos_libros/crear.html', libros=libros, usuarios=usuarios, modo='admin')
         else:
             id_libro = request.form.get('id_libro', type=int)
@@ -87,7 +87,7 @@ def crear_prestamo():
     else:
         if request.method == 'GET':
             id_libro = request.args.get('id_libro', type=int)
-            libros = Libro.query.filter_by(disponible_prestamo=True, estado='disponible').all()
+            libros = Libro.query.filter_by(disponible_prestamo=True, estado='disponible').limit(100).all()
             libro_seleccionado = Libro.query.get(id_libro) if id_libro else None
             return render_template('prestamos_libros/crear.html', libros=libros, libro_seleccionado=libro_seleccionado, modo='usuario')
         else:
@@ -126,6 +126,7 @@ def aceptar_prestamo(id_prestamo):
     prestamo.estado = 'aceptado'
     prestamo.fecha_aprobacion = datetime.now(timezone.utc)
     prestamo.id_administrador = current_user.id_usuario
+    prestamo.libro.estado = 'prestado'
     prestamo.save()
     flash('Préstamo aceptado.', 'success')
     return redirect(url_for('prestamos_libros.lista_prestamos'))
@@ -159,6 +160,7 @@ def devolver_prestamo(id_prestamo):
     
     prestamo.estado = 'devuelto'
     prestamo.fecha_devolucion_real = datetime.now(timezone.utc)
+    prestamo.libro.estado = 'disponible'
     prestamo.save()
     flash('Préstamo marcado como devuelto.', 'success')
     return redirect(url_for('prestamos_libros.lista_prestamos'))
