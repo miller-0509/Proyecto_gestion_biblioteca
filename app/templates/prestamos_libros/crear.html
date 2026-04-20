@@ -34,7 +34,7 @@
           <h3 class="mb-1">
             <i class="bi bi-hand-thumbs-up me-2"></i>Solicitar Préstamo
           </h3>
-          <p class="small opacity-75 mb-0">Selecciona el equipo que necesitas</p>
+          <p class="small opacity-75 mb-0">Selecciona el libro que necesitas</p>
         {% endif %}
       </div>
 
@@ -61,14 +61,14 @@
 
             <!-- Select Equipment -->
             <div class="form-group mb-4">
-              <label for="id_equipo" class="form-label">
-                <i class="bi bi-pc-display me-2"></i>Equipo
+              <label for="id_libro" class="form-label">
+                <i class="bi bi-pc-display me-2"></i>Libro
               </label>
-              <select class="form-select form-select-lg" id="id_equipo" name="id_equipo" required>
-                <option value="">-- Selecciona un equipo --</option>
-                {% for equipo in equipos %}
-                  <option value="{{ equipo.id_equipo }}" {% if equipo.tiene_prestamo_activo %}disabled{% endif %}>
-                    {{ equipo.nombre }} ({{ equipo.tipo_equipo }}) {% if equipo.tiene_prestamo_activo %}- Ya solicitado/prestado{% endif %}
+              <select class="form-select form-select-lg" id="id_libro" name="id_libro" required>
+                <option value="">-- Selecciona un libro --</option>
+                {% for libro in libros %}
+                  <option value="{{ libro.id_libro }}" {% if libro.tiene_prestamo_activo %}disabled{% endif %}>
+                    {{ libro.titulo }} ({{ libro.genero }}) {% if libro.tiene_prestamo_activo %}- Ya solicitado/prestado{% endif %}
                   </option>
                 {% endfor %}
               </select>
@@ -91,26 +91,26 @@
               <i class="bi bi-info-circle me-2"></i>
               <strong>Proceso:</strong>
               <p class="mb-0 small mt-2">
-                Selecciona el equipo que necesitas. El administrador revisará tu solicitud y la aprobará o rechazará en breve.
+                Selecciona el libro que necesitas. El administrador revisará tu solicitud y la aprobará o rechazará en breve.
               </p>
             </div>
 
             <!-- Select Equipment -->
             <div class="form-group mb-4">
-              <label for="id_equipo" class="form-label">
-                <i class="bi bi-pc-display me-2"></i>Equipo a Solicitar
+              <label for="id_libro" class="form-label">
+                <i class="bi bi-pc-display me-2"></i>Libro a Solicitar
               </label>
-              <select class="form-select form-select-lg" id="id_equipo" name="id_equipo" required>
-                <option value="">-- Selecciona un equipo disponible --</option>
-                {% for equipo in equipos %}
-                  <option value="{{ equipo.id_equipo }}" 
-                          {% if equipo.tiene_prestamo_activo %}disabled{% endif %}
-                          {% if equipo_seleccionado and equipo.id_equipo == equipo_seleccionado.id_equipo %}selected{% endif %}>
-                    {{ equipo.nombre }} ({{ equipo.tipo_equipo }}) {% if equipo.tiene_prestamo_activo %}- Ya solicitado/prestado{% endif %}
+              <select class="form-select form-select-lg" id="id_libro" name="id_libro" required>
+                <option value="">-- Selecciona un libro disponible --</option>
+                {% for libro in libros %}
+                  <option value="{{ libro.id_libro }}" 
+                          {% if libro.tiene_prestamo_activo %}disabled{% endif %}
+                          {% if libro_seleccionado and libro.id_libro == libro_seleccionado.id_libro %}selected{% endif %}>
+                    {{ libro.titulo }} ({{ libro.genero }}) {% if libro.tiene_prestamo_activo %}- Ya solicitado/prestado{% endif %}
                   </option>
                 {% endfor %}
               </select>
-              <small class="form-text text-muted d-block mt-2">Solo se muestran equipos disponibles para préstamo</small>
+              <small class="form-text text-muted d-block mt-2">Solo se muestran libros disponibles para préstamo</small>
             </div>
 
           {% endif %}
@@ -127,7 +127,7 @@
 
           <!-- Buttons -->
           <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <a href="{{ url_for('prestamos.lista_prestamos') }}" class="btn btn-outline-secondary">
+            <a href="{{ url_for('prestamos_libros.lista_prestamos') }}" class="btn btn-outline-secondary">
               <i class="bi bi-arrow-left me-2"></i>Cancelar
             </a>
             <button type="submit" class="btn btn-primary btn-lg">

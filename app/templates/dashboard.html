@@ -36,7 +36,7 @@
 
   <!-- Equipos Card -->
   {% if current_user.rol == 'administrador' %}
-  <div class="col-md-6 col-lg-4">
+  <div class="col-md-6 col-lg-3">
     <a href="{{ url_for('equipos.lista_equipos') }}" class="dashboard-card">
       <div class="card-icon">
         <i class="bi bi-pc-display"></i>
@@ -49,7 +49,7 @@
     </a>
   </div>
   {% else %}
-  <div class="col-md-6 col-lg-4">
+  <div class="col-md-6 col-lg-3">
     <a href="{{ url_for('equipos.lista_equipos') }}" class="dashboard-card">
       <div class="card-icon">
         <i class="bi bi-pc-display"></i>
@@ -64,7 +64,7 @@
   {% endif %}
 
   <!-- Préstamos Card -->
-  <div class="col-md-6 col-lg-4">
+  <div class="col-md-6 col-lg-3">
     {% if current_user.rol == 'administrador' %}
     <a href="{{ url_for('prestamos.lista_prestamos') }}" class="dashboard-card">
       <div class="dashboard-card-icon" style="color: #F59E0B;">
@@ -90,19 +90,61 @@
     {% endif %}
   </div>
 
-  <!-- Libros Card (Próximamente) -->
-  <div class="col-md-6 col-lg-4">
-    <div class="dashboard-card opacity-50">
-      <div class="dashboard-card-icon" style="color: #6B7280;">
+  <!-- Préstamos Libros Card -->
+  <div class="col-md-6 col-lg-3">
+    {% if current_user.rol == 'administrador' %}
+    <a href="{{ url_for('prestamos_libros.lista_prestamos') }}" class="dashboard-card border-sena-green hover-shadow">
+      <div class="dashboard-card-icon" style="color: var(--sena-green);">
+        <i class="bi bi-journal-check"></i>
+      </div>
+      <h4>Revisar Préstamos de Libros</h4>
+      <p>Revisa y gestiona las solicitudes de libros.</p>
+      <div>
+        <span class="badge bg-success">Administrar</span>
+      </div>
+    </a>
+    {% else %}
+    <a href="{{ url_for('prestamos_libros.lista_prestamos') }}" class="dashboard-card border-sena-green hover-shadow">
+      <div class="dashboard-card-icon" style="color: var(--sena-green);">
+        <i class="bi bi-journal-check"></i>
+      </div>
+      <h4>Revisar Préstamos de Libros</h4>
+      <p>Consulta el estado de tus solicitudes.</p>
+      <div>
+        <span class="badge bg-success">Ver Mis Préstamos</span>
+      </div>
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Libros Card -->
+  {% if current_user.rol == 'administrador' %}
+  <div class="col-md-6 col-lg-3">
+    <a href="{{ url_for('libros.lista_libros') }}" class="dashboard-card">
+      <div class="dashboard-card-icon" style="color: var(--sena-green);">
+        <i class="bi bi-book"></i>
+      </div>
+      <h4>Gestión de Libros</h4>
+      <p>Administra el inventario completo de libros de la biblioteca.</p>
+      <div>
+        <span class="badge bg-primary">Administrar</span>
+      </div>
+    </a>
+  </div>
+  {% else %}
+  <div class="col-md-6 col-lg-3">
+    <a href="{{ url_for('libros.lista_libros') }}" class="dashboard-card">
+      <div class="dashboard-card-icon" style="color: var(--sena-green);">
         <i class="bi bi-book"></i>
       </div>
       <h4>Catálogo de Libros</h4>
-      <p>Gestiona el inventario de libros disponibles en el sistema.</p>
+      <p>Consulta los libros disponibles para solicitar en préstamo.</p>
       <div>
-        <span class="badge bg-secondary">Próximamente</span>
+        <span class="badge bg-info">Consultar</span>
       </div>
-    </div>
+    </a>
   </div>
+  {% endif %}
 
 </div>
 
@@ -157,13 +199,17 @@
             <i class="bi bi-plus-circle me-2" style="color: var(--sena-accent);"></i>
             Registrar Nuevo Equipo
           </a>
+          <a href="{{ url_for('libros.crear_libro') }}" class="list-group-item list-group-item-action">
+            <i class="bi bi-plus-circle me-2" style="color: var(--sena-accent);"></i>
+            Registrar Nuevo Libro
+          </a>
           <a href="{{ url_for('prestamos.crear_prestamo') }}" class="list-group-item list-group-item-action">
             <i class="bi bi-plus-circle me-2" style="color: var(--sena-accent);"></i>
-            Crear Préstamo Manual
+            Crear Préstamo Manual (Eq.)
           </a>
-          <a href="{{ url_for('equipos.lista_equipos') }}" class="list-group-item list-group-item-action">
-            <i class="bi bi-list me-2" style="color: var(--sena-accent);"></i>
-            Ver Todos los Equipos
+          <a href="{{ url_for('prestamos_libros.crear_prestamo') }}" class="list-group-item list-group-item-action">
+            <i class="bi bi-plus-circle me-2" style="color: var(--sena-accent);"></i>
+            Crear Préstamo Manual (Lib.)
           </a>
         </div>
       </div>

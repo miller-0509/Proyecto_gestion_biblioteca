@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block titulo_card %}
   {% if current_user.rol == 'administrador' %}
-    Gestión de Equipos
+    Gestión de Libros
   {% else %}
-    Catálogo de Equipos
+    Catálogo de Libros
   {% endif %}
 {% endblock %}
 
@@ -16,16 +16,16 @@
       <h3 class="text-primary-sena mb-0">
         <i class="bi bi-pc-display me-2"></i>
         {% if current_user.rol == 'administrador' %}
-          Gestión de Equipos
+          Gestión de Libros
         {% else %}
-          Inventario de Equipos
+          Inventario de Libros
         {% endif %}
       </h3>
     </div>
     <div class="col-md-6 text-end">
       {% if current_user.rol == 'administrador' %}
-      <a href="{{ url_for('equipos.crear_equipo') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>Registrar Equipo
+      <a href="{{ url_for('libros.crear_libro') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Registrar Libro
       </a>
       {% endif %}
     </div>
@@ -36,9 +36,9 @@
     <div class="card-sena-body">
       <form method="GET" class="row g-2">
         <div class="col-md-5">
-          <label class="form-label small">Buscar Equipo</label>
+          <label class="form-label small">Buscar Libro</label>
           <input type="text" name="busqueda" class="form-control" 
-                 placeholder="Nombre, serie o marca..." value="{{ busqueda }}">
+                 placeholder="Nombre, serie o autor..." value="{{ busqueda }}">
         </div>
         <div class="col-md-3">
           <label class="form-label small">Estado</label>
@@ -59,7 +59,7 @@
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label small">Tipo</label>
+          <label class="form-label small">Género</label>
           <select name="tipo" class="form-select">
             <option value="">Todos los tipos</option>
             {% for t in tipos %}
@@ -74,7 +74,7 @@
         </div>
         {% if busqueda or estado or tipo %}
         <div class="col-12">
-          <a href="{{ url_for('equipos.lista_equipos') }}" class="btn btn-outline-secondary btn-sm">
+          <a href="{{ url_for('libros.lista_libros') }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
           </a>
         </div>
@@ -90,79 +90,79 @@
         <thead>
           <tr>
             <th style="width: 8%;">ID</th>
-            <th style="width: 20%;">Nombre</th>
-            <th style="width: 12%;">Tipo</th>
-            <th style="width: 18%;">Número de Serie</th>
+            <th style="width: 20%;">Título</th>
+            <th style="width: 12%;">Género</th>
+            <th style="width: 18%;">Código Único</th>
             <th style="width: 12%;">Estado</th>
             <th style="width: 15%;">Ubicación</th>
             <th style="width: 15%;">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {% if equipos.items %}
-            {% for equipo in equipos.items %}
+          {% if libros.items %}
+            {% for libro in libros.items %}
               <tr>
                 <td>
-                  <span class="badge bg-light text-primary-sena">#{{ equipo.id_equipo }}</span>
+                  <span class="badge bg-light text-primary-sena">#{{ libro.id_libro }}</span>
                 </td>
                 <td>
                   <div>
-                    <strong>{{ equipo.nombre }}</strong>
-                    {% if equipo.marca %}
+                    <strong>{{ libro.titulo }}</strong>
+                    {% if libro.autor %}
                       <br>
-                      <small class="text-muted">{{ equipo.marca }} {% if equipo.modelo %}{{ equipo.modelo }}{% endif %}</small>
+                      <small class="text-muted">{{ libro.autor }} {% if False %}{% endif %}</small>
                     {% endif %}
                   </div>
                 </td>
                 <td>
                   <span class="badge" style="background-color: var(--sena-light); color: var(--sena-primary);">
-                    {{ equipo.tipo_equipo }}
+                    {{ libro.genero }}
                   </span>
                 </td>
                 <td>
                   <code style="background-color: var(--sena-light); padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
-                    {{ equipo.numero_serie }}
+                    {{ libro.codigo_unico }}
                   </code>
                 </td>
                 <td>
-                  {% if equipo.tiene_prestamo_activo %}
+                  {% if libro.tiene_prestamo_activo %}
                     <span class="badge bg-warning text-dark">
                       <i class="bi bi-clock-history me-1"></i>En préstamo/solicitado
                     </span>
-                  {% elif equipo.estado == 'disponible' %}
+                  {% elif libro.estado == 'disponible' %}
                     <span class="badge bg-success">
                       <i class="bi bi-check-circle me-1"></i>Disponible
                     </span>
-                  {% elif equipo.estado == 'prestado' %}
+                  {% elif libro.estado == 'prestado' %}
                     <span class="badge bg-warning text-dark">
                       <i class="bi bi-arrow-left-right me-1"></i>Prestado
                     </span>
-                  {% elif equipo.estado == 'mantenimiento' %}
+                  {% elif libro.estado == 'mantenimiento' %}
                     <span class="badge bg-secondary">
                       <i class="bi bi-gear me-1"></i>Mantenimiento
                     </span>
-                  {% elif equipo.estado == 'dañado' %}
+                  {% elif libro.estado == 'dañado' %}
                     <span class="badge bg-danger">
                       <i class="bi bi-exclamation-triangle me-1"></i>Dañado
                     </span>
                   {% endif %}
                 </td>
                 <td>
-                  {{ equipo.ubicacion or '—' }}
+                  {{ libro.ubicacion or '—' }}
                 </td>
                 <td>
                   <div class="btn-group btn-group-sm" role="group">
-                    <a href="{{ url_for('equipos.detalle_equipo', id_equipo=equipo.id_equipo) }}" 
+                    <a href="{{ url_for('libros.detalle_libro', id_libro=libro.id_libro) }}" 
                        class="btn btn-outline-primary" title="Ver detalles">
                       <i class="bi bi-eye"></i> Ver
                     </a>
                     {% if current_user.rol == 'administrador' %}
-                    <a href="{{ url_for('equipos.editar_equipo', id_equipo=equipo.id_equipo) }}" 
-                       class="btn btn-outline-secondary" title="Editar equipo">
+                    <a href="{{ url_for('libros.editar_libro', id_libro=libro.id_libro) }}" 
+                       class="btn btn-outline-secondary" title="Editar libro">
                       <i class="bi bi-pencil"></i>
                     </a>
-                    <form method="POST" action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" 
-                          style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este equipo?')">
+                    <form method="POST" action="{{ url_for('libros.eliminar_libro', id_libro=libro.id_libro) }}" 
+                          style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este libro?')">
                       <button type="submit" class="btn btn-outline-danger" title="Eliminar">
                         <i class="bi bi-trash"></i>
                       </button>
@@ -178,10 +178,10 @@
                 <div style="font-size: 2.5rem; margin-bottom: 1rem;">
                   <i class="bi bi-inbox"></i>
                 </div>
-                <p class="mb-0"><strong>No hay equipos registrados</strong></p>
+                <p class="mb-0"><strong>No hay libros registrados</strong></p>
                 <small>
                   {% if current_user.rol == 'administrador' %}
-                    <a href="{{ url_for('equipos.crear_equipo') }}">Registra el primer equipo</a>
+                    <a href="{{ url_for('libros.crear_libro') }}">Registra el primer libro</a>
                   {% endif %}
                 </small>
               </td>
@@ -193,26 +193,26 @@
   </div>
 
   <!-- Pagination -->
-  {% if equipos.pages > 1 %}
+  {% if libros.pages > 1 %}
   <nav class="d-flex justify-content-center mt-4">
     <ul class="pagination">
-      {% if equipos.has_prev %}
+      {% if libros.has_prev %}
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=1, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+          <a class="page-link" href="{{ url_for('libros.lista_libros', page=1, busqueda=busqueda, estado=estado, tipo=tipo) }}">
             <i class="bi bi-chevron-bar-left"></i>
           </a>
         </li>
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=equipos.prev_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+          <a class="page-link" href="{{ url_for('libros.lista_libros', page=libros.prev_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
             <i class="bi bi-chevron-left"></i>
           </a>
         </li>
       {% endif %}
 
-      {% for page_num in equipos.iter_pages(left_edge=1, left_margin=1, right_margin=1, right_edge=1) %}
+      {% for page_num in libros.iter_pages(left_edge=1, left_margin=1, right_margin=1, right_edge=1) %}
         {% if page_num %}
-          <li class="page-item {% if page_num == equipos.page %}active{% endif %}">
-            <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=page_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+          <li class="page-item {% if page_num == libros.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('libros.lista_libros', page=page_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
               {{ page_num }}
             </a>
           </li>
@@ -221,14 +221,14 @@
         {% endif %}
       {% endfor %}
 
-      {% if equipos.has_next %}
+      {% if libros.has_next %}
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=equipos.next_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+          <a class="page-link" href="{{ url_for('libros.lista_libros', page=libros.next_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
             <i class="bi bi-chevron-right"></i>
           </a>
         </li>
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=equipos.pages, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+          <a class="page-link" href="{{ url_for('libros.lista_libros', page=libros.pages, busqueda=busqueda, estado=estado, tipo=tipo) }}">
             <i class="bi bi-chevron-bar-right"></i>
           </a>
         </li>

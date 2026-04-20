@@ -54,6 +54,26 @@
           </ul>
         </li>
 
+        <!-- Libros Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {{ 'active' if 'libros' in request.endpoint else '' }}" href="#" id="librosMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-book me-1"></i>
+            <span>Libros</span>
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="librosMenu">
+            <li><a class="dropdown-item" href="{{ url_for('libros.lista_libros') }}">
+              <i class="bi bi-list-ul me-2"></i>
+              {% if current_user.rol == 'administrador' %}Ver Todos{% else %}Consultar{% endif %} Libros
+            </a></li>
+            {% if current_user.rol == 'administrador' %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{ url_for('libros.crear_libro') }}">
+              <i class="bi bi-plus-circle me-2"></i>Registrar Libro
+            </a></li>
+            {% endif %}
+          </ul>
+        </li>
+
         <!-- Préstamos Dropdown -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle {{ 'active' if 'prestamos' in request.endpoint else '' }}" href="#" id="prestamosMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -63,12 +83,19 @@
           <ul class="dropdown-menu" aria-labelledby="prestamosMenu">
             <li><a class="dropdown-item" href="{{ url_for('prestamos.lista_prestamos') }}">
               <i class="bi bi-list-check me-2"></i>
-              {% if current_user.rol == 'administrador' %}Ver Todos{% else %}Mis{% endif %} Préstamos
+              {% if current_user.rol == 'administrador' %}Ver Todos{% else %}Mis{% endif %} Préstamos de Equipos
+            </a></li>
+            <li><a class="dropdown-item" href="{{ url_for('prestamos_libros.lista_prestamos') }}">
+              <i class="bi bi-book-half me-2"></i>
+              {% if current_user.rol == 'administrador' %}Ver Todos{% else %}Mis{% endif %} Préstamos de Libros
             </a></li>
             {% if current_user.rol == 'administrador' or current_user.rol in ['aprendiz', 'instructor'] %}
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{{ url_for('prestamos.crear_prestamo') }}">
-              <i class="bi bi-plus-circle me-2"></i>Solicitar Préstamo
+              <i class="bi bi-plus-circle me-2"></i>Solicitar Préstamo de Equipo
+            </a></li>
+            <li><a class="dropdown-item" href="{{ url_for('prestamos_libros.crear_prestamo') }}">
+              <i class="bi bi-plus-circle me-2"></i>Solicitar Préstamo de Libro
             </a></li>
             {% endif %}
           </ul>

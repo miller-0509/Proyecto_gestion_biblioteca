@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block titulo_card %}Detalles del Equipo{% endblock %}
+{% block titulo_card %}Detalles del Libro{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -11,31 +11,31 @@
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <h2 class="mb-1">
-              <i class="bi bi-pc-display me-2"></i>{{ equipo.nombre }}
+              <i class="bi bi-pc-display me-2"></i>{{ libro.titulo }}
             </h2>
             <p class="small opacity-75 mb-0">
               <i class="bi bi-info-circle me-1"></i>
-              ID del Equipo: #{{ equipo.id_equipo }}
+              ID del Libro: #{{ libro.id_libro }}
             </p>
           </div>
           <div>
-            {% if equipo.tiene_prestamo_activo %}
+            {% if libro.tiene_prestamo_activo %}
               <span class="badge bg-warning text-dark fs-6">
                 <i class="bi bi-clock-history me-1"></i>En préstamo
               </span>
-            {% elif equipo.estado == 'disponible' %}
+            {% elif libro.estado == 'disponible' %}
               <span class="badge bg-success fs-6">
                 <i class="bi bi-check-circle me-1"></i>Disponible
               </span>
-            {% elif equipo.estado == 'prestado' %}
+            {% elif libro.estado == 'prestado' %}
               <span class="badge bg-warning text-dark fs-6">
                 <i class="bi bi-arrow-left-right me-1"></i>Prestado
               </span>
-            {% elif equipo.estado == 'mantenimiento' %}
+            {% elif libro.estado == 'mantenimiento' %}
               <span class="badge bg-secondary fs-6">
                 <i class="bi bi-gear me-1"></i>Mantenimiento
               </span>
-            {% elif equipo.estado == 'dañado' %}
+            {% elif libro.estado == 'dañado' %}
               <span class="badge bg-danger fs-6">
                 <i class="bi bi-exclamation-triangle me-1"></i>Dañado
               </span>
@@ -54,28 +54,23 @@
           <div class="row g-3">
             <div class="col-md-6">
               <div class="p-3 rounded" style="background-color: var(--sena-light);">
-                <small class="text-muted"><i class="bi bi-tag me-1"></i>Nombre</small>
-                <p class="mb-0 fw-semibold">{{ equipo.nombre }}</p>
+                <small class="text-muted"><i class="bi bi-tag me-1"></i>Título</small>
+                <p class="mb-0 fw-semibold">{{ libro.titulo }}</p>
               </div>
             </div>
             <div class="col-md-6">
               <div class="p-3 rounded" style="background-color: var(--sena-light);">
-                <small class="text-muted"><i class="bi bi-boxes me-1"></i>Tipo</small>
-                <p class="mb-0 fw-semibold">{{ equipo.tipo_equipo }}</p>
+                <small class="text-muted"><i class="bi bi-boxes me-1"></i>Género</small>
+                <p class="mb-0 fw-semibold">{{ libro.genero }}</p>
               </div>
             </div>
             <div class="col-md-6">
               <div class="p-3 rounded" style="background-color: var(--sena-light);">
-                <small class="text-muted"><i class="bi bi-building me-1"></i>Marca</small>
-                <p class="mb-0 fw-semibold">{{ equipo.marca or '—' }}</p>
+                <small class="text-muted"><i class="bi bi-building me-1"></i>Autor</small>
+                <p class="mb-0 fw-semibold">{{ libro.autor or '—' }}</p>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="p-3 rounded" style="background-color: var(--sena-light);">
-                <small class="text-muted"><i class="bi bi-gear me-1"></i>Modelo</small>
-                <p class="mb-0 fw-semibold">{{ equipo.modelo or '—' }}</p>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -84,9 +79,9 @@
           <div class="d-flex gap-2">
             <i class="bi bi-key" style="font-size: 1.25rem; color: var(--sena-primary);"></i>
             <div>
-              <strong>Número de Serie</strong>
+              <strong>Código Único</strong>
               <p class="mb-0 mt-1" style="font-family: monospace; background-color: var(--sena-light); padding: 0.5rem; border-radius: 0.25rem;">
-                {{ equipo.numero_serie }}
+                {{ libro.codigo_unico }}
               </p>
             </div>
           </div>
@@ -101,22 +96,22 @@
             <div class="col-md-6">
               <div class="p-3 rounded" style="background-color: var(--sena-light);">
                 <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>Ubicación</small>
-                <p class="mb-0 fw-semibold">{{ equipo.ubicacion or '—' }}</p>
+                <p class="mb-0 fw-semibold">{{ libro.ubicacion or '—' }}</p>
               </div>
             </div>
             <div class="col-md-6">
               <div class="p-3 rounded" style="background-color: var(--sena-light);">
                 <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Estado</small>
                 <p class="mb-0 fw-semibold">
-                  {% if equipo.tiene_prestamo_activo %}
+                  {% if libro.tiene_prestamo_activo %}
                     <span class="badge bg-warning text-dark">En préstamo</span>
-                  {% elif equipo.estado == 'disponible' %}
+                  {% elif libro.estado == 'disponible' %}
                     <span class="badge bg-success">Disponible</span>
-                  {% elif equipo.estado == 'prestado' %}
+                  {% elif libro.estado == 'prestado' %}
                     <span class="badge bg-warning text-dark">Prestado</span>
-                  {% elif equipo.estado == 'mantenimiento' %}
+                  {% elif libro.estado == 'mantenimiento' %}
                     <span class="badge bg-secondary">Mantenimiento</span>
-                  {% elif equipo.estado == 'dañado' %}
+                  {% elif libro.estado == 'dañado' %}
                     <span class="badge bg-danger">Dañado</span>
                   {% endif %}
                 </p>
@@ -135,20 +130,20 @@
               <div class="p-3 rounded" style="background-color: var(--sena-light);">
                 <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>Fecha de Compra</small>
                 <p class="mb-0 fw-semibold">
-                  {{ equipo.fecha_compra.strftime('%d/%m/%Y') if equipo.fecha_compra else '—' }}
+                  {{ libro.fecha_compra.strftime('%d/%m/%Y') if libro.fecha_compra else '—' }}
                 </p>
               </div>
             </div>
             <div class="col-md-6">
               <div class="p-3 rounded" style="background-color: var(--sena-light);">
                 <small class="text-muted"><i class="bi bi-shop me-1"></i>Proveedor</small>
-                <p class="mb-0 fw-semibold">{{ equipo.proveedor or '—' }}</p>
+                <p class="mb-0 fw-semibold">{{ libro.proveedor or '—' }}</p>
               </div>
             </div>
             <div class="col-md-12">
               <div class="p-3 rounded" style="background-color: var(--sena-light);">
                 <small class="text-muted"><i class="bi bi-person me-1"></i>Responsable</small>
-                <p class="mb-0 fw-semibold">{{ equipo.responsable or '—' }}</p>
+                <p class="mb-0 fw-semibold">{{ libro.responsable or '—' }}</p>
               </div>
             </div>
           </div>
@@ -164,7 +159,7 @@
               <div class="p-3 rounded" style="background-color: var(--sena-light);">
                 <small class="text-muted"><i class="bi bi-share me-1"></i>Disponible para Préstamo</small>
                 <p class="mb-0 fw-semibold">
-                  {% if equipo.disponible_prestamo %}
+                  {% if libro.disponible_prestamo %}
                     <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Sí</span>
                   {% else %}
                     <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>No</span>
@@ -175,20 +170,20 @@
             <div class="col-md-6">
               <div class="p-3 rounded" style="background-color: var(--sena-light);">
                 <small class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Tiempo Máximo</small>
-                <p class="mb-0 fw-semibold">{{ equipo.tiempo_max_prestamo or '—' }} días</p>
+                <p class="mb-0 fw-semibold">{{ libro.tiempo_max_prestamo or '—' }} días</p>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Section 6: Description -->
-        {% if equipo.descripcion %}
+        {% if libro.descripcion %}
         <div class="mb-4">
           <h5 class="text-primary-sena mb-3">
             <i class="bi bi-chat-left-text me-2"></i>Descripción
           </h5>
           <div class="p-3 rounded" style="background-color: var(--sena-light); border-left: 4px solid var(--sena-accent);">
-            {{ equipo.descripcion }}
+            {{ libro.descripcion }}
           </div>
         </div>
         {% endif %}
@@ -197,7 +192,7 @@
         <div class="text-center mb-4">
           <small class="text-muted">
             <i class="bi bi-calendar-event me-1"></i>
-            Registrado el: {{ equipo.fecha_registro.strftime('%d de %B de %Y') if equipo.fecha_registro else '—' }}
+            Registrado el: {{ libro.fecha_registro.strftime('%d de %B de %Y') if libro.fecha_registro else '—' }}
           </small>
         </div>
 
@@ -206,30 +201,30 @@
 
     <!-- Action Buttons -->
     <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-      <a href="{{ url_for('equipos.lista_equipos') }}" class="btn btn-outline-secondary">
+      <a href="{{ url_for('libros.lista_libros') }}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-2"></i>Volver a la Lista
       </a>
       
       <div class="d-flex gap-2">
         {% if current_user.rol == 'administrador' %}
-        <a href="{{ url_for('equipos.editar_equipo', id_equipo=equipo.id_equipo) }}" class="btn btn-primary">
+        <a href="{{ url_for('libros.editar_libro', id_libro=libro.id_libro) }}" class="btn btn-primary">
           <i class="bi bi-pencil me-2"></i>Editar
         </a>
-        <form method="POST" action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" 
-              style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.')">
+        <form method="POST" action="{{ url_for('libros.eliminar_libro', id_libro=libro.id_libro) }}" 
+              style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este libro? Esta acción no se puede deshacer.')">
           <button type="submit" class="btn btn-danger">
             <i class="bi bi-trash me-2"></i>Eliminar
           </button>
         </form>
         {% endif %}
 
-        {% if current_user.rol in ['aprendiz', 'instructor'] and equipo.disponible_prestamo and equipo.estado == 'disponible' %}
-          {% if equipo.tiene_prestamo_activo %}
+        {% if current_user.rol in ['aprendiz', 'instructor'] and libro.disponible_prestamo and libro.estado == 'disponible' %}
+          {% if libro.tiene_prestamo_activo %}
             <button class="btn btn-secondary" disabled>
               <i class="bi bi-x-circle me-2"></i>Ya solicitado/prestado
             </button>
           {% else %}
-            <a href="{{ url_for('prestamos.crear_prestamo', id_equipo=equipo.id_equipo) }}" class="btn btn-success">
+            <a href="{{ url_for('prestamos_libros.crear_prestamo', id_libro=libro.id_libro) }}" class="btn btn-success">
               <i class="bi bi-plus-circle me-2"></i>Solicitar Préstamo
             </a>
           {% endif %}

@@ -39,10 +39,12 @@ def create_app():
         db.session.remove()
 
     #Blueprints
-    from app.routes import auth, equipos, prestamos
+    from app.routes import auth, equipos, prestamos, libros, prestamos_libros
     app.register_blueprint(auth.bp)
     app.register_blueprint(equipos.bp)
     app.register_blueprint(prestamos.bp)
+    app.register_blueprint(libros.bp)
+    app.register_blueprint(prestamos_libros.bp)
 
 
     @app.errorhandler(404)

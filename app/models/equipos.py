@@ -21,6 +21,14 @@ class Equipo(db.Model):
     tiempo_max_prestamo = db.Column(db.Integer)  # Tiempo máximo de préstamo en días
     descripcion         = db.Column(db.Text)  # Descripción adicional
 
+    @property
+    def tiene_prestamo_activo(self):
+        from app.models.prestamos import Prestamo
+        return Prestamo.query.filter(
+            Prestamo.id_equipo == self.id_equipo,
+            Prestamo.estado.in_(['pendiente', 'aceptado'])
+        ).first() is not None
+
     def __repr__(self):
         return f'<Equipo {self.nombre}>'
 
