@@ -12,11 +12,11 @@
           ¡Hola, {{ current_user.nombre_completo() }}!
         </h4>
         <p class="mb-0 text-muted">
-          Bienvenido a 
+          Bienvenido a
           {% if current_user.rol == 'administrador' %}
-            <strong>Control de elementos de almacén y préstamo de equipos de biblioteca</strong>
+          <strong>Control de elementos de almacén y préstamo de equipos de biblioteca</strong>
           {% else %}
-            <strong>Prestamos Biblioteca y almacén</strong>
+          <strong>Prestamos Biblioteca y almacén</strong>
           {% endif %}
           - Tu plataforma de gestión de equipos y préstamos.
         </p>
@@ -162,7 +162,8 @@
       <div class="card-sena-body">
         <div class="row g-3">
           <div class="col-md-6">
-            <div class="p-3 rounded" style="background-color: var(--sena-light); border-left: 4px solid var(--sena-accent);">
+            <div class="p-3 rounded"
+              style="background-color: var(--sena-light); border-left: 4px solid var(--sena-accent);">
               <h6 class="text-primary-sena mb-2">
                 <i class="bi bi-gear me-2"></i>Gestión de Equipos
               </h6>
@@ -172,7 +173,8 @@
             </div>
           </div>
           <div class="col-md-6">
-            <div class="p-3 rounded" style="background-color: var(--sena-light); border-left: 4px solid var(--sena-accent);">
+            <div class="p-3 rounded"
+              style="background-color: var(--sena-light); border-left: 4px solid var(--sena-accent);">
               <h6 class="text-primary-sena mb-2">
                 <i class="bi bi-check-circle me-2"></i>Aprobación de Préstamos
               </h6>
