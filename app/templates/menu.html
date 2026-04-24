@@ -106,7 +106,7 @@
       <ul class="navbar-nav ms-auto">
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <div class="bg-primary-sena text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.875rem; font-weight: 600;">
+            <div class="avatar-circle" style="width: 34px; height: 34px; font-size: 0.875rem;">
               {{ current_user.nombre_completo().split()[0][0] }}{{ current_user.nombre_completo().split()[-1][0] if current_user.nombre_completo().split()|length > 1 else '' }}
             </div>
             <span class="ms-2 d-none d-lg-inline">{{ current_user.nombre_completo() }}</span>

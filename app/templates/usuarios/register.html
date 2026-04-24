@@ -17,7 +17,7 @@
           <li class="mb-1">{{ error }}</li>
         {% endfor %}
       </ul>
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
     </div>
     {% endif %}
 
@@ -25,10 +25,12 @@
     <div class="card-sena">
       <div class="card-sena-header text-center">
         <div class="mb-3">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo" style="width: 80px; height: auto;">
+          <div style="display:inline-block; padding: 0.75rem; border-radius: 16px; background: rgba(34, 197, 94, 0.08);">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo" style="width: 60px; height: auto; filter: brightness(1.2);">
+          </div>
         </div>
-        <h3 class="mb-2">Crear Cuenta</h3>
-        <p class="mb-0 small opacity-75">Únete al Sistema SENA de Almacén y Préstamos</p>
+        <h3 class="mb-2" style="color: var(--neutral-50);">Crear Cuenta</h3>
+        <p class="mb-0 small text-muted">Únete al Sistema SENA de Almacén y Préstamos</p>
       </div>
 
       <div class="card-sena-body">
@@ -127,14 +129,14 @@
     border-right: none;
   }
   .input-group .btn {
-    border-color: var(--sena-border);
-    background-color: transparent;
-    color: var(--sena-gray);
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.5);
+    color: var(--neutral-500);
   }
   .input-group .btn:hover {
-    background-color: transparent;
-    color: var(--sena-dark);
-    border-color: var(--sena-green);
+    background: rgba(15, 23, 42, 0.7);
+    color: var(--neutral-300);
+    border-color: var(--mint-500);
   }
 </style>
 <script>

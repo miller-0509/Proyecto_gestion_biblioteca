@@ -19,7 +19,7 @@
     
     <!-- SENA Custom Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='sena-style.css') }}">
-    
+
     <style>
         html, body {
             height: 100%;
@@ -27,6 +27,7 @@
         body {
             display: flex;
             flex-direction: column;
+            background-color: var(--neutral-950);
         }
         main {
             flex: 1;
@@ -35,6 +36,9 @@
 </head>
 
 <body>
+    <!-- Background shapes -->
+    <div class="bg-shapes"></div>
+
     <!-- Navigation -->
     {% include 'menu.html' %}
 
@@ -48,7 +52,7 @@
                         <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show {% if category == 'success' %}alert-sena{% endif %}" role="alert">
                             <i class="bi bi-info-circle"></i>
                             <span>{{ message }}</span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                         </div>
                     {% endfor %}
                 {% endif %}
@@ -78,9 +82,9 @@
             <div class="row align-items-center">
                 <div class="col-md-6">
                     <div class="d-flex align-items-center">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo" class="me-3" style="width: 40px; height: auto;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo" class="me-3" style="width: 40px; height: auto; filter: brightness(1.2);">
                         <div>
-                            <strong style="color: var(--sena-dark);">
+                            <strong style="color: var(--neutral-300);">
                                 {% if current_user.is_authenticated %}
                                     {% if current_user.rol == 'administrador' %}
                                         Control de elementos de almacén y préstamo de equipos de biblioteca
