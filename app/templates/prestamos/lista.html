@@ -99,20 +99,17 @@
             {% endif %}
           </td>
           <td>
-            <div class="dropdown">
-              <button class="btn btn-action-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-three-dots-vertical"></i>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-actions shadow-sm">
-                <li>
-                  <a href="{{ url_for('prestamos.detalle_prestamo', id_prestamo=prestamo.id_prestamo) }}" class="dropdown-item text-primary">
-                    <i class="bi bi-eye me-2"></i>Ver detalles
-                  </a>
-                </li>
-                
-                {% if current_user.rol == 'administrador' %}
+            <div class="d-flex align-items-center gap-2">
+              <a href="{{ url_for('prestamos.detalle_prestamo', id_prestamo=prestamo.id_prestamo) }}" class="btn btn-sm btn-outline-primary" title="Ver detalles">
+                <i class="bi bi-eye"></i>
+              </a>
+              {% if current_user.rol == 'administrador' and (prestamo.estado == 'pendiente' or prestamo.estado == 'aceptado') %}
+              <div class="dropdown">
+                <button class="btn btn-action-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-actions shadow-sm">
                   {% if prestamo.estado == 'pendiente' %}
-                    <li><hr class="dropdown-divider"></li>
                     <li>
                       <form method="POST" action="{{ url_for('prestamos.aceptar_prestamo', id_prestamo=prestamo.id_prestamo) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -121,15 +118,13 @@
                         </button>
                       </form>
                     </li>
+                    <li><hr class="dropdown-divider"></li>
                     <li>
                       <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#rechazarModal{{ prestamo.id_prestamo }}">
                         <i class="bi bi-x-circle me-2"></i>Rechazar
                       </button>
                     </li>
-                  {% endif %}
-                  
-                  {% if prestamo.estado == 'aceptado' %}
-                    <li><hr class="dropdown-divider"></li>
+                  {% elif prestamo.estado == 'aceptado' %}
                     <li>
                       <form method="POST" action="{{ url_for('prestamos.devolver_prestamo', id_prestamo=prestamo.id_prestamo) }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -139,16 +134,17 @@
                       </form>
                     </li>
                   {% endif %}
-                {% endif %}
-              </ul>
+                </ul>
+              </div>
+              {% endif %}
             </div>
             
             {% if current_user.rol == 'administrador' and prestamo.estado == 'pendiente' %}
             <!-- Reject Modal -->
             <div class="modal fade" id="rechazarModal{{ prestamo.id_prestamo }}" tabindex="-1">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                  <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title">
                       <i class="bi bi-x-circle me-2" style="color: var(--sena-primary);"></i>
                       Rechazar Préstamo
@@ -167,7 +163,7 @@
                                   placeholder="Explicar el motivo del rechazo..."></textarea>
                       </div>
                     </div>
-                    <div class="modal-footer">
+                    <div class="modal-footer border-0 pt-0">
                       <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                         Cancelar
                       </button>

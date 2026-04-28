@@ -34,44 +34,20 @@
           </a>
         </li>
 
-        <!-- Equipos Dropdown -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle {{ 'active' if 'equipos' in request.endpoint else '' }}" href="#" id="equiposMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <!-- Equipos -->
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if 'equipos' in request.endpoint else '' }}" href="{{ url_for('equipos.lista_equipos') }}">
             <i class="bi bi-pc-display me-1"></i>
             <span>Equipos</span>
           </a>
-          <ul class="dropdown-menu" aria-labelledby="equiposMenu">
-            <li><a class="dropdown-item" href="{{ url_for('equipos.lista_equipos') }}">
-              <i class="bi bi-list-ul me-2"></i>
-              {% if current_user.rol == 'administrador' %}Ver Todos{% else %}Consultar{% endif %} Equipos
-            </a></li>
-            {% if current_user.rol == 'administrador' %}
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{{ url_for('equipos.crear_equipo') }}">
-              <i class="bi bi-plus-circle me-2"></i>Registrar Equipo
-            </a></li>
-            {% endif %}
-          </ul>
         </li>
 
-        <!-- Libros Dropdown -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle {{ 'active' if 'libros' in request.endpoint else '' }}" href="#" id="librosMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <!-- Libros -->
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if 'libros' in request.endpoint else '' }}" href="{{ url_for('libros.lista_libros') }}">
             <i class="bi bi-book me-1"></i>
             <span>Libros</span>
           </a>
-          <ul class="dropdown-menu" aria-labelledby="librosMenu">
-            <li><a class="dropdown-item" href="{{ url_for('libros.lista_libros') }}">
-              <i class="bi bi-list-ul me-2"></i>
-              {% if current_user.rol == 'administrador' %}Ver Todos{% else %}Consultar{% endif %} Libros
-            </a></li>
-            {% if current_user.rol == 'administrador' %}
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{{ url_for('libros.crear_libro') }}">
-              <i class="bi bi-plus-circle me-2"></i>Registrar Libro
-            </a></li>
-            {% endif %}
-          </ul>
         </li>
 
         <!-- Préstamos Dropdown -->

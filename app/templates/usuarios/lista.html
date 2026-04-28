@@ -62,45 +62,49 @@
                             </span>
                         </td>
                         <td class="text-end px-4">
-                            <div class="dropdown">
-                                <button class="btn btn-action-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-actions shadow-sm">
-                                    <li>
-                                        <a href="{{ url_for('usuarios.editar_usuario', id_usuario=usuario.id_usuario) }}" class="dropdown-item">
-                                            <i class="bi bi-pencil me-2"></i>Editar
-                                        </a>
-                                    </li>
-                                    {% if current_user.id_usuario != usuario.id_usuario %}
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ usuario.id_usuario }}">
-                                            <i class="bi bi-trash me-2"></i>Eliminar
-                                        </button>
-                                    </li>
-                                    {% endif %}
-                                </ul>
+                            <div class="d-flex align-items-center justify-content-end gap-2">
+                                <a href="{{ url_for('usuarios.editar_usuario', id_usuario=usuario.id_usuario) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if current_user.id_usuario != usuario.id_usuario %}
+                                <div class="dropdown">
+                                    <button class="btn btn-action-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-actions shadow-sm">
+                                        <li>
+                                            <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ usuario.id_usuario }}">
+                                                <i class="bi bi-trash me-2"></i>Eliminar
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                {% endif %}
                             </div>
 
                             <!-- Modal de Confirmación de Eliminación -->
                             {% if current_user.id_usuario != usuario.id_usuario %}
                             <div class="modal fade" id="deleteModal{{ usuario.id_usuario }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ usuario.id_usuario }}" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="deleteModalLabel{{ usuario.id_usuario }}">Confirmar Eliminación</h5>
+                                    <div class="modal-content border-0 shadow">
+                                        <div class="modal-header border-0 pb-0">
+                                            <h5 class="modal-title" id="deleteModalLabel{{ usuario.id_usuario }}">
+                                                <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar Eliminación
+                                            </h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
-                                        <div class="modal-body text-start">
+                                        <div class="modal-body text-start pt-3">
                                             <p>¿Estás seguro de que deseas eliminar al usuario <strong>{{ usuario.nombres }} {{ usuario.apellidos }}</strong>?</p>
-                                            <p class="text-danger mb-0"><small><i class="bi bi-exclamation-triangle me-1"></i> Esta acción no se puede deshacer.</small></p>
+                                            <p class="text-muted small mb-0">Esta acción no se puede deshacer.</p>
                                         </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <div class="modal-footer border-0 pt-0">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                                             <form action="{{ url_for('usuarios.eliminar_usuario', id_usuario=usuario.id_usuario) }}" method="POST" class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                <button type="submit" class="btn btn-danger">Eliminar</button>
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="bi bi-trash me-1"></i>Eliminar Usuario
+                                                </button>
                                             </form>
                                         </div>
                                     </div>

@@ -18,27 +18,50 @@
               ID del Equipo: #{{ equipo.id_equipo }}
             </p>
           </div>
-          <div>
-            {% if equipo.tiene_prestamo_activo %}
-              <span class="badge bg-warning text-dark fs-6">
-                <i class="bi bi-clock-history me-1"></i>En préstamo
-              </span>
-            {% elif equipo.estado == 'disponible' %}
-              <span class="badge bg-success fs-6">
-                <i class="bi bi-check-circle me-1"></i>Disponible
-              </span>
-            {% elif equipo.estado == 'prestado' %}
-              <span class="badge bg-warning text-dark fs-6">
-                <i class="bi bi-arrow-left-right me-1"></i>Prestado
-              </span>
-            {% elif equipo.estado == 'mantenimiento' %}
-              <span class="badge bg-secondary fs-6">
-                <i class="bi bi-gear me-1"></i>Mantenimiento
-              </span>
-            {% elif equipo.estado == 'dañado' %}
-              <span class="badge bg-danger fs-6">
-                <i class="bi bi-exclamation-triangle me-1"></i>Dañado
-              </span>
+          <div class="d-flex align-items-center gap-3">
+            <div>
+              {% if equipo.tiene_prestamo_activo %}
+                <span class="badge bg-warning text-dark fs-6">
+                  <i class="bi bi-clock-history me-1"></i>En préstamo
+                </span>
+              {% elif equipo.estado == 'disponible' %}
+                <span class="badge bg-success fs-6">
+                  <i class="bi bi-check-circle me-1"></i>Disponible
+                </span>
+              {% elif equipo.estado == 'prestado' %}
+                <span class="badge bg-warning text-dark fs-6">
+                  <i class="bi bi-arrow-left-right me-1"></i>Prestado
+                </span>
+              {% elif equipo.estado == 'mantenimiento' %}
+                <span class="badge bg-secondary fs-6">
+                  <i class="bi bi-gear me-1"></i>Mantenimiento
+                </span>
+              {% elif equipo.estado == 'dañado' %}
+                <span class="badge bg-danger fs-6">
+                  <i class="bi bi-exclamation-triangle me-1"></i>Dañado
+                </span>
+              {% endif %}
+            </div>
+            
+            {% if current_user.rol == 'administrador' %}
+            <div class="dropdown">
+              <button class="btn btn-action-dropdown dropdown-toggle bg-white border shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-gear"></i> Opciones
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li>
+                  <a href="{{ url_for('equipos.editar_equipo', id_equipo=equipo.id_equipo) }}" class="dropdown-item">
+                    <i class="bi bi-pencil me-2"></i>Editar equipo
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModalEquipo">
+                    <i class="bi bi-trash me-2"></i>Eliminar equipo
+                  </button>
+                </li>
+              </ul>
+            </div>
             {% endif %}
           </div>
         </div>
@@ -211,18 +234,6 @@
       </a>
       
       <div class="d-flex gap-2">
-        {% if current_user.rol == 'administrador' %}
-        <a href="{{ url_for('equipos.editar_equipo', id_equipo=equipo.id_equipo) }}" class="btn btn-primary">
-          <i class="bi bi-pencil me-2"></i>Editar
-        </a>
-        <form method="POST" action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" 
-              style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.')">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn btn-danger">
-            <i class="bi bi-trash me-2"></i>Eliminar
-          </button>
-        </form>
-        {% endif %}
 
         {% if current_user.rol in ['aprendiz', 'instructor'] and equipo.disponible_prestamo and equipo.estado == 'disponible' %}
           {% if equipo.tiene_prestamo_activo %}
@@ -240,4 +251,33 @@
 
   </div>
 </div>
+
+{% if current_user.rol == 'administrador' %}
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="deleteModalEquipo" tabindex="-1" aria-labelledby="deleteModalLabelEquipo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="deleteModalLabelEquipo">
+                  <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-start pt-3">
+                <p>¿Estás seguro de que deseas eliminar el equipo <strong>{{ equipo.nombre }}</strong>?</p>
+                <p class="text-muted small mb-0">Esta acción no se puede deshacer y podría afectar el historial si tiene préstamos.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-danger">
+                      <i class="bi bi-trash me-1"></i>Eliminar Equipo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
