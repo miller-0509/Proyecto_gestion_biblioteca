@@ -100,6 +100,16 @@
             {% endif %}
           </ul>
         </li>
+
+        <!-- Usuarios Menu (Admin only) -->
+        {% if current_user.rol == 'administrador' %}
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if 'usuarios' in request.endpoint else '' }}" href="{{ url_for('usuarios.lista_usuarios') }}">
+            <i class="bi bi-people me-1"></i>
+            <span>Usuarios</span>
+          </a>
+        </li>
+        {% endif %}
       </ul>
 
       <!-- User Menu (Right Side) -->

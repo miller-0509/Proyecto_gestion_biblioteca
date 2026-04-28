@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuario{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2 class="mb-0">
+            <i class="bi bi-person-lines-fill me-2"></i>Editar Usuario
+        </h2>
+        <p class="text-muted mt-1">Actualiza los datos y permisos de {{ usuario.nombres }} {{ usuario.apellidos }}</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <a href="{{ url_for('usuarios.lista_usuarios') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Volver a la Lista
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        {% if errors %}
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <h5 class="mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Errores:</h5>
+            <ul class="mb-0">
+                {% for error in errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('usuarios.editar_usuario', id_usuario=usuario.id_usuario) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <div class="row mb-3 g-3">
+                        <div class="col-md-6">
+                            <label for="nombres" class="form-label fw-bold">Nombres *</label>
+                            <input type="text" class="form-control bg-light border-0" id="nombres" name="nombres" value="{{ request.form.get('nombres', usuario.nombres) }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="apellidos" class="form-label fw-bold">Apellidos *</label>
+                            <input type="text" class="form-control bg-light border-0" id="apellidos" name="apellidos" value="{{ request.form.get('apellidos', usuario.apellidos) }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="correo" class="form-label fw-bold">Correo Electrónico *</label>
+                        <input type="email" class="form-control bg-light border-0" id="correo" name="correo" value="{{ request.form.get('correo', usuario.correo) }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-bold">Nueva Contraseña <small class="text-muted fw-normal">(Opcional)</small></label>
+                        <input type="password" class="form-control bg-light border-0" id="password" name="password" placeholder="Dejar en blanco para mantener la actual">
+                        <div class="form-text">Si ingresas una contraseña, se actualizará para este usuario.</div>
+                    </div>
+
+                    <div class="row mb-4 g-3">
+                        <div class="col-md-6">
+                            <label for="rol" class="form-label fw-bold">Rol *</label>
+                            <select class="form-select bg-light border-0" id="rol" name="rol" required>
+                                {% set current_rol = request.form.get('rol', usuario.rol) %}
+                                <option value="aprendiz" {% if current_rol == 'aprendiz' %}selected{% endif %}>Aprendiz</option>
+                                <option value="instructor" {% if current_rol == 'instructor' %}selected{% endif %}>Instructor</option>
+                                <option value="administrador" {% if current_rol == 'administrador' %}selected{% endif %}>Administrador</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="estado" class="form-label fw-bold">Estado del Usuario *</label>
+                            <select class="form-select bg-light border-0" id="estado" name="estado" required>
+                                {% set current_estado = request.form.get('estado', usuario.estado) %}
+                                <option value="activo" {% if current_estado == 'activo' %}selected{% endif %}>Activo</option>
+                                <option value="inactivo" {% if current_estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                                <option value="bloqueado" {% if current_estado == 'bloqueado' %}selected{% endif %}>Bloqueado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">ID de usuario: {{ usuario.id_usuario }}</span>
+                        <button type="submit" class="btn btn-primary px-4 py-2 shadow-sm">
+                            <i class="bi bi-save me-2"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

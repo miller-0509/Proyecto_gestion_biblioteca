@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Usuarios{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h2 class="mb-0">
+            <i class="bi bi-people me-2"></i>Gestión de Usuarios
+        </h2>
+        <p class="text-muted mt-1">Administración de aprendices, instructores y administradores</p>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <a href="{{ url_for('usuarios.crear_usuario') }}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-person-plus me-1"></i> Nuevo Usuario
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4">Nombre Completo</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th class="text-end px-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td class="px-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+                                    {{ usuario.nombres[0] }}{{ usuario.apellidos[0] if usuario.apellidos else '' }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ usuario.nombres }} {{ usuario.apellidos }}</div>
+                                    <small class="text-muted">ID: {{ usuario.id_usuario }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ usuario.correo }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if usuario.rol == 'administrador' %}bg-danger
+                                {% elif usuario.rol == 'instructor' %}bg-primary
+                                {% else %}bg-info text-dark{% endif %}">
+                                {{ usuario.rol | capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if usuario.estado == 'activo' %}bg-success
+                                {% elif usuario.estado == 'inactivo' %}bg-secondary
+                                {% else %}bg-warning text-dark{% endif %}">
+                                {{ usuario.estado | capitalize }}
+                            </span>
+                        </td>
+                        <td class="text-end px-4">
+                            <div class="btn-group">
+                                <a href="{{ url_for('usuarios.editar_usuario', id_usuario=usuario.id_usuario) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if current_user.id_usuario != usuario.id_usuario %}
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ usuario.id_usuario }}" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% else %}
+                                <button type="button" class="btn btn-sm btn-outline-secondary disabled" title="No puedes eliminarte a ti mismo">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+
+                            <!-- Modal de Confirmación de Eliminación -->
+                            {% if current_user.id_usuario != usuario.id_usuario %}
+                            <div class="modal fade" id="deleteModal{{ usuario.id_usuario }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ usuario.id_usuario }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel{{ usuario.id_usuario }}">Confirmar Eliminación</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-start">
+                                            <p>¿Estás seguro de que deseas eliminar al usuario <strong>{{ usuario.nombres }} {{ usuario.apellidos }}</strong>?</p>
+                                            <p class="text-danger mb-0"><small><i class="bi bi-exclamation-triangle me-1"></i> Esta acción no se puede deshacer.</small></p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <form action="{{ url_for('usuarios.eliminar_usuario', id_usuario=usuario.id_usuario) }}" method="POST" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-danger">Eliminar</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                No hay usuarios registrados.
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

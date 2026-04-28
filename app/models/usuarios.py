@@ -44,7 +44,7 @@ class Usuario(db.Model, UserMixin):
 
     # ── Validaciones ───────────────────────────────
     @staticmethod
-    def validate_registro(nombres, apellidos, correo, password, rol):
+    def validate_registro(nombres, apellidos, correo, password, rol, is_admin=False):
         errors = []
         if not nombres or not nombres.strip():
             errors.append('El nombre es obligatorio.')
@@ -58,6 +58,29 @@ class Usuario(db.Model, UserMixin):
             errors.append('La contraseña es obligatoria.')
         elif len(password) < 6:
             errors.append('La contraseña debe tener al menos 6 caracteres.')
-        if rol not in ['aprendiz', 'instructor']:
-            errors.append('Debes seleccionar un rol válido (aprendiz o instructor).')
+            
+        roles_permitidos = ['aprendiz', 'instructor']
+        if is_admin:
+            roles_permitidos.append('administrador')
+            
+        if rol not in roles_permitidos:
+            errors.append(f"Debes seleccionar un rol válido ({', '.join(roles_permitidos)}).")
+        return errors
+
+    @staticmethod
+    def validate_edicion(nombres, apellidos, correo, rol, estado, current_correo=None):
+        errors = []
+        if not nombres or not nombres.strip():
+            errors.append('El nombre es obligatorio.')
+        if not apellidos or not apellidos.strip():
+            errors.append('Los apellidos son obligatorios.')
+        if not correo or not correo.strip():
+            errors.append('El correo es obligatorio.')
+        elif correo != current_correo and Usuario.query.filter_by(correo=correo).first():
+            errors.append('El correo ya está registrado por otro usuario.')
+        
+        if rol not in ['administrador', 'aprendiz', 'instructor']:
+            errors.append('Debes seleccionar un rol válido.')
+        if estado not in ['activo', 'inactivo', 'bloqueado']:
+            errors.append('Debes seleccionar un estado válido.')
         return errors

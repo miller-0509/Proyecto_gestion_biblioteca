@@ -42,12 +42,13 @@ def create_app():
         db.session.remove()
 
     #Blueprints
-    from app.routes import auth, equipos, prestamos, libros, prestamos_libros
+    from app.routes import auth, equipos, prestamos, libros, prestamos_libros, usuarios
     app.register_blueprint(auth.bp)
     app.register_blueprint(equipos.bp)
     app.register_blueprint(prestamos.bp)
     app.register_blueprint(libros.bp)
     app.register_blueprint(prestamos_libros.bp)
+    app.register_blueprint(usuarios.bp)
 
 
     @app.errorhandler(404)
