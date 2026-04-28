@@ -98,13 +98,23 @@
             <span class="ms-2 d-none d-lg-inline">{{ current_user.nombre_completo() }}</span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-            <li class="dropdown-header">
-              <small class="text-muted">Rol: {{ current_user.rol | capitalize }}</small>
+            <li class="px-3 py-2 text-muted text-center border-bottom mb-1" style="font-size: 0.85rem;">
+              <div class="fw-bold text-dark">{{ current_user.rol | capitalize }}</div>
+              <div>{{ current_user.correo }}</div>
+            </li>
+            {% if current_user.rol != 'administrador' %}
+            <li>
+              <a class="dropdown-item py-2" href="{{ url_for('usuarios.historial_prestamos', id_usuario=current_user.id_usuario) }}">
+                <i class="bi bi-clock-history text-primary me-2"></i>Mi Historial
+              </a>
             </li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
-              <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
-            </a></li>
+            {% endif %}
+            <li>
+              <a class="dropdown-item text-danger py-2" href="{{ url_for('auth.logout') }}">
+                <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+              </a>
+            </li>
           </ul>
         </li>
       </ul>

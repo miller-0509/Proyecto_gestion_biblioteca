@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block titulo_card %}Historial de Préstamos{% endblock %}
+
+{% block content %}
+
+<!-- ---- ENCABEZADO ---- -->
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h2 class="mb-0" style="color: #1F2937;">
+            <i class="bi bi-clock-history text-primary me-2"></i>
+            Historial de Préstamos
+        </h2>
+        <p class="text-muted mb-0 mt-1">
+            <i class="bi bi-person me-1"></i>
+            <strong>{{ usuario_obj.nombres }} {{ usuario_obj.apellidos }}</strong>
+            <span class="badge bg-secondary ms-2">{{ usuario_obj.rol | capitalize }}</span>
+        </p>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<!-- ---- TARJETAS DE RESUMEN ---- -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card-sena text-center py-3 mb-0">
+            <div style="font-size:2rem; color:#22C55E;"><i class="bi bi-journal-check"></i></div>
+            <div class="fs-3 fw-bold mt-1" style="color:#1F2937;">{{ stats.total }}</div>
+            <div class="text-muted small">Total préstamos</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card-sena text-center py-3 mb-0">
+            <div style="font-size:2rem; color:#3B82F6;"><i class="bi bi-hourglass-split"></i></div>
+            <div class="fs-3 fw-bold mt-1" style="color:#1F2937;">{{ stats.activos }}</div>
+            <div class="text-muted small">Activos</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card-sena text-center py-3 mb-0">
+            <div style="font-size:2rem; color:#EF4444;"><i class="bi bi-exclamation-octagon"></i></div>
+            <div class="fs-3 fw-bold mt-1" style="color:#1F2937;">{{ stats.atrasados }}</div>
+            <div class="text-muted small">Atrasados</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card-sena text-center py-3 mb-0">
+            <div style="font-size:2rem; color:#22C55E;"><i class="bi bi-check2-circle"></i></div>
+            <div class="fs-3 fw-bold mt-1" style="color:#1F2937;">{{ stats.devueltos }}</div>
+            <div class="text-muted small">Devueltos</div>
+        </div>
+    </div>
+</div>
+
+<!-- ---- FILTROS ---- -->
+<div class="card-sena mb-3">
+    <div class="card-sena-body py-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label for="filtro-tipo" class="form-label mb-1" style="font-size:0.8rem;">Filtrar por tipo</label>
+                <select id="filtro-tipo" class="form-select form-select-sm">
+                    <option value="">Todos los tipos</option>
+                    <option value="Equipo">Equipos</option>
+                    <option value="Libro">Libros</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label for="filtro-estado" class="form-label mb-1" style="font-size:0.8rem;">Filtrar por estado</label>
+                <select id="filtro-estado" class="form-select form-select-sm">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="aceptado">Aceptado</option>
+                    <option value="devuelto">Devuelto</option>
+                    <option value="rechazado">Rechazado</option>
+                    <option value="atrasado">Atrasado</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button id="btn-limpiar" class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="bi bi-x-circle me-1"></i>Limpiar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ---- TABLA ---- -->
+<div class="card-sena">
+    <div class="card-sena-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="tabla-historial">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Tipo</th>
+                        <th>Recurso Prestado</th>
+                        <th>Fecha Solicitud</th>
+                        <th>Devolución Esperada / Real</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in historial %}
+                    <tr data-tipo="{{ item.tipo }}" data-estado="{{ item.estado }}">
+                        <td class="ps-4">
+                            {% if item.tipo == 'Equipo' %}
+                                <span class="badge bg-info"><i class="bi bi-pc-display me-1"></i>Equipo</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="bi bi-book me-1"></i>Libro</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong style="color:#1F2937;">{{ item.recurso }}</strong>
+                            {% if item.observaciones %}
+                                <div class="text-muted" style="font-size:0.8rem;"><i class="bi bi-chat-text me-1"></i>{{ item.observaciones }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="text-muted" style="font-size:0.875rem;">
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ item.fecha_solicitud.strftime('%d/%m/%Y %H:%M') if item.fecha_solicitud else 'N/A' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if item.estado == 'devuelto' and item.fecha_devolucion_real %}
+                                <span class="text-success" style="font-size:0.875rem;">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    {{ item.fecha_devolucion_real.strftime('%d/%m/%Y %H:%M') }}
+                                </span>
+                            {% elif item.fecha_devolucion_esperada %}
+                                <span class="{% if item.estado == 'atrasado' %}text-danger{% else %}text-muted{% endif %}" style="font-size:0.875rem;">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ item.fecha_devolucion_esperada.strftime('%d/%m/%Y %H:%M') }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">Sin asignar</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge
+                                {% if item.estado == 'pendiente' %}bg-warning
+                                {% elif item.estado == 'aceptado' %}bg-primary
+                                {% elif item.estado == 'rechazado' %}bg-danger
+                                {% elif item.estado == 'devuelto' %}bg-success
+                                {% elif item.estado == 'atrasado' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {% if item.estado == 'atrasado' %}
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Atrasado
+                                {% else %}
+                                    {{ item.estado | capitalize }}
+                                {% endif %}
+                            </span>
+                            {% if item.estado == 'rechazado' and item.razon_rechazo %}
+                                <div class="text-danger mt-1" style="font-size:0.78rem;">
+                                    <i class="bi bi-info-circle me-1"></i>{{ item.razon_rechazo }}
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-3"></i>
+                            No hay historial de préstamos para este usuario.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- Mensaje sin resultados de filtro -->
+        <div id="sin-resultados" class="text-center py-5 text-muted d-none">
+            <i class="bi bi-funnel fs-2 d-block mb-2"></i>
+            No hay registros que coincidan con los filtros seleccionados.
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    const filtroTipo   = document.getElementById('filtro-tipo');
+    const filtroEstado = document.getElementById('filtro-estado');
+    const btnLimpiar   = document.getElementById('btn-limpiar');
+    const tabla        = document.getElementById('tabla-historial');
+    const sinResultados = document.getElementById('sin-resultados');
+
+    function aplicarFiltros() {
+        const tipo   = filtroTipo.value;
+        const estado = filtroEstado.value;
+        let visibles = 0;
+
+        tabla.querySelectorAll('tbody tr[data-tipo]').forEach(function(row) {
+            const matchTipo   = !tipo   || row.dataset.tipo   === tipo;
+            const matchEstado = !estado || row.dataset.estado === estado;
+            const visible = matchTipo && matchEstado;
+            row.style.display = visible ? '' : 'none';
+            if (visible) visibles++;
+        });
+
+        sinResultados.classList.toggle('d-none', visibles > 0);
+    }
+
+    filtroTipo.addEventListener('change', aplicarFiltros);
+    filtroEstado.addEventListener('change', aplicarFiltros);
+    btnLimpiar.addEventListener('click', function() {
+        filtroTipo.value   = '';
+        filtroEstado.value = '';
+        aplicarFiltros();
+    });
+})();
+</script>
+
+{% endblock %}

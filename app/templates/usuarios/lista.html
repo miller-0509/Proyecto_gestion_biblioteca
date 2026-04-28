@@ -74,6 +74,12 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-actions shadow-sm">
                                         <li>
+                                            <a class="dropdown-item" href="{{ url_for('usuarios.historial_prestamos', id_usuario=usuario.id_usuario) }}">
+                                                <i class="bi bi-clock-history text-primary me-2"></i>Ver Historial
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
                                             <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ usuario.id_usuario }}">
                                                 <i class="bi bi-trash me-2"></i>Eliminar
                                             </button>

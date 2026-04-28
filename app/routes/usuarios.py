@@ -1,8 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, abort
 from flask_login import login_required, current_user
 from app.models.usuarios import Usuario
+from app.models.prestamos import Prestamo
+from app.models.prestamos_libros import PrestamoLibro
 from app.decorators import admin_required
 from app import db
+from datetime import datetime
 
 bp = Blueprint('usuarios', __name__, url_prefix='/usuarios')
 
@@ -101,3 +104,71 @@ def eliminar_usuario(id_usuario):
     db.session.commit()
     flash(f'Usuario {usuario.nombres} eliminado exitosamente.', 'success')
     return redirect(url_for('usuarios.lista_usuarios'))
+
+@bp.route('/historial/<int:id_usuario>')
+@login_required
+def historial_prestamos(id_usuario):
+    # Seguridad: Solo admin o el propio usuario pueden ver este historial
+    if current_user.rol != 'administrador' and current_user.id_usuario != id_usuario:
+        flash('No tienes permiso para ver este historial.', 'danger')
+        return redirect(url_for('auth.dashboard'))
+        
+    usuario = Usuario.query.get_or_404(id_usuario)
+    now = datetime.now()
+    
+    # Obtener préstamos de equipos
+    prestamos_equipos = Prestamo.query.filter_by(id_usuario=id_usuario).all()
+    # Obtener préstamos de libros
+    prestamos_libros = PrestamoLibro.query.filter_by(id_usuario=id_usuario).all()
+    
+    historial = []
+    
+    def calcular_estado(prestamo):
+        """Determina si un préstamo activo está atrasado."""
+        if prestamo.estado in ('pendiente', 'aceptado') and prestamo.fecha_devolucion_esperada:
+            fecha_esp = prestamo.fecha_devolucion_esperada
+            # Hacer timezone-naive para comparación segura
+            if fecha_esp.tzinfo is not None:
+                fecha_esp = fecha_esp.replace(tzinfo=None)
+            if fecha_esp < now:
+                return 'atrasado'
+        return prestamo.estado
+
+    # Unificar equipos
+    for p in prestamos_equipos:
+        historial.append({
+            'tipo': 'Equipo',
+            'recurso': p.equipo.nombre if p.equipo else 'Equipo Eliminado',
+            'fecha_solicitud': p.fecha_solicitud,
+            'fecha_devolucion_esperada': p.fecha_devolucion_esperada,
+            'fecha_devolucion_real': p.fecha_devolucion_real,
+            'estado': calcular_estado(p),
+            'observaciones': p.observaciones,
+            'razon_rechazo': p.razon_rechazo
+        })
+        
+    # Unificar libros
+    for p in prestamos_libros:
+        historial.append({
+            'tipo': 'Libro',
+            'recurso': p.libro.titulo if p.libro else 'Libro Eliminado',
+            'fecha_solicitud': p.fecha_solicitud,
+            'fecha_devolucion_esperada': p.fecha_devolucion_esperada,
+            'fecha_devolucion_real': p.fecha_devolucion_real,
+            'estado': calcular_estado(p),
+            'observaciones': p.observaciones,
+            'razon_rechazo': p.razon_rechazo
+        })
+        
+    # Ordenar por fecha de solicitud (más recientes primero)
+    historial.sort(key=lambda x: x['fecha_solicitud'] if x['fecha_solicitud'] else datetime.min, reverse=True)
+    
+    # Calcular estadísticas
+    stats = {
+        'total': len(historial),
+        'activos': sum(1 for h in historial if h['estado'] in ('pendiente', 'aceptado')),
+        'atrasados': sum(1 for h in historial if h['estado'] == 'atrasado'),
+        'devueltos': sum(1 for h in historial if h['estado'] == 'devuelto'),
+    }
+    
+    return render_template('usuarios/historial.html', historial=historial, usuario_obj=usuario, stats=stats)
