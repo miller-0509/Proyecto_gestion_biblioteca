@@ -2,8 +2,8 @@
   <div class="container-sena">
     <!-- Logo -->
     <a class="navbar-brand" href="{{ url_for('auth.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo" class="sena-logo-img me-2">
-      <span style="font-weight: 600; color: var(--sena-dark); font-size: 0.95rem; max-width: 300px; white-space: normal; line-height: 1.2;">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo" class="sena-logo-img me-2" style="max-height: 55px;">
+      <span style="font-weight: 600; color: var(--sena-dark); font-size: 1.15rem; max-width: 400px; white-space: normal; line-height: 1.2;">
         {% if current_user.is_authenticated %}
             {% if current_user.rol == 'administrador' %}
                 Control de elementos de almacén y préstamo de equipos de biblioteca

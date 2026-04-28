@@ -29,7 +29,7 @@
             <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo" style="width: 60px; height: auto; filter: brightness(1.2);">
           </div>
         </div>
-        <h3 class="mb-2" style="color: var(--neutral-50);">Crear Cuenta</h3>
+        <h3 class="mb-2" style="color: #000000; background: none;">Crear Cuenta</h3>
         <p class="mb-0 small text-muted">Únete al Sistema SENA de Almacén y Préstamos</p>
       </div>
 
@@ -125,18 +125,31 @@
   </div>
 </div>
 <style>
-  .input-group .form-control {
+  .input-group-text {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
     border-right: none;
+    color: #6B7280;
+    transition: all 0.2s ease;
+  }
+  .input-group:focus-within .input-group-text,
+  .input-group:focus-within .toggle-password {
+    color: #22C55E;
+    border-color: #22C55E;
+  }
+  .input-group:focus-within .form-control {
+    border-color: #22C55E;
+    box-shadow: none;
   }
   .input-group .btn {
-    border-color: rgba(255, 255, 255, 0.08);
-    background: rgba(15, 23, 42, 0.5);
-    color: var(--neutral-500);
+    border-color: #E5E7EB;
+    background: #FFFFFF;
+    color: #6B7280;
+    transition: all 0.2s ease;
   }
   .input-group .btn:hover {
-    background: rgba(15, 23, 42, 0.7);
-    color: var(--neutral-300);
-    border-color: var(--mint-500);
+    background: #F9FAFB;
+    color: #1F2937;
   }
 </style>
 <script>
