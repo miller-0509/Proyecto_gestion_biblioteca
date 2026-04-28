@@ -467,10 +467,11 @@ h1, h2, h3, h4, h5, h6 {
   padding: 1rem;
 }
 .table tbody tr {
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
-.table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+.table tbody tr:hover, .table-hover tbody tr:hover {
+  background: rgba(34, 197, 94, 0.04);
+  box-shadow: inset 3px 0 0 var(--mint-500);
 }
 .table tbody td {
   padding: 1rem;
@@ -511,19 +512,24 @@ h1, h2, h3, h4, h5, h6 {
 .navbar-sena .nav-link:after {
   content: '';
   position: absolute;
-  bottom: 5px; left: 50%;
-  width: 0; height: 2px;
+  bottom: 0px; left: 50%;
+  width: 0; height: 3px;
   background: linear-gradient(90deg, var(--mint-500), var(--mint-300));
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   transform: translateX(-50%);
   opacity: 0;
-  border-radius: 2px;
+  border-radius: 3px 3px 0 0;
 }
-.navbar-sena .nav-link:hover, .navbar-sena .nav-link.active {
+.navbar-sena .nav-link:hover {
+  color: var(--mint-300);
+}
+.navbar-sena .nav-link.active {
   color: var(--mint-400);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px 8px 0 0;
 }
 .navbar-sena .nav-link:hover:after, .navbar-sena .nav-link.active:after {
-  width: calc(100% - 2rem);
+  width: 100%;
   opacity: 1;
 }
 
@@ -786,4 +792,31 @@ code {
   .dashboard-card {
     padding: 1.25rem;
   }
+}
+
+/* ---- TABLE ACTIONS DROPDOWN ---- */
+.btn-action-dropdown {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--neutral-300);
+  border-radius: 8px;
+  padding: 0.25rem 0.6rem;
+  transition: all 0.2s ease;
+}
+.btn-action-dropdown:hover, .btn-action-dropdown:focus, .show > .btn-action-dropdown {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--mint-400);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+.btn-action-dropdown::after {
+  display: none;
+}
+.dropdown-menu-actions {
+  min-width: 120px;
+  padding: 0.5rem;
+}
+.dropdown-menu-actions .dropdown-item {
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.875rem;
 }

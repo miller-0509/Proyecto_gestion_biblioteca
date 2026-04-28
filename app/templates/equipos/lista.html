@@ -86,7 +86,7 @@
   <!-- Equipment Table -->
   <div class="card-sena">
     <div class="table-responsive">
-      <table class="table table-sena mb-0">
+      <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
             <th style="width: 8%;">ID</th>
@@ -151,24 +151,34 @@
                   {{ equipo.ubicacion or '—' }}
                 </td>
                 <td>
-                  <div class="btn-group btn-group-sm" role="group">
-                    <a href="{{ url_for('equipos.detalle_equipo', id_equipo=equipo.id_equipo) }}" 
-                       class="btn btn-outline-primary" title="Ver detalles">
-                      <i class="bi bi-eye"></i> Ver
-                    </a>
-                    {% if current_user.rol == 'administrador' %}
-                    <a href="{{ url_for('equipos.editar_equipo', id_equipo=equipo.id_equipo) }}" 
-                       class="btn btn-outline-secondary" title="Editar equipo">
-                      <i class="bi bi-pencil"></i>
-                    </a>
-                    <form method="POST" action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" 
-                          style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este equipo?')">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                      <button type="submit" class="btn btn-outline-danger" title="Eliminar">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
-                    {% endif %}
+                  <div class="dropdown">
+                    <button class="btn btn-action-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-actions shadow-sm">
+                      <li>
+                        <a href="{{ url_for('equipos.detalle_equipo', id_equipo=equipo.id_equipo) }}" class="dropdown-item text-primary">
+                          <i class="bi bi-eye me-2"></i>Ver detalles
+                        </a>
+                      </li>
+                      {% if current_user.rol == 'administrador' %}
+                      <li>
+                        <a href="{{ url_for('equipos.editar_equipo', id_equipo=equipo.id_equipo) }}" class="dropdown-item">
+                          <i class="bi bi-pencil me-2"></i>Editar equipo
+                        </a>
+                      </li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li>
+                        <form method="POST" action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" 
+                              onsubmit="return confirm('¿Estás seguro de que deseas eliminar este equipo?')">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                          <button type="submit" class="dropdown-item text-danger">
+                            <i class="bi bi-trash me-2"></i>Eliminar
+                          </button>
+                        </form>
+                      </li>
+                      {% endif %}
+                    </ul>
                   </div>
                 </td>
               </tr>

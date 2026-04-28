@@ -101,13 +101,13 @@
           </div>
 
           <!-- Submit Buttons -->
-          <div class="d-grid gap-2 mt-4">
-            <button type="submit" class="btn btn-primary btn-lg">
-              <i class="bi bi-check-circle me-2"></i>Registrarme
-            </button>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
             <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left me-2"></i>Volver al login
+              <i class="bi bi-arrow-left me-2"></i>Cancelar
             </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-person-plus me-2"></i>Registrarme
+            </button>
           </div>
 
           <!-- Terms -->

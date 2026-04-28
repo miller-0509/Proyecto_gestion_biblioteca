@@ -62,21 +62,25 @@
                             </span>
                         </td>
                         <td class="text-end px-4">
-                            <div class="btn-group">
-                                <a href="{{ url_for('usuarios.editar_usuario', id_usuario=usuario.id_usuario) }}" 
-                                   class="btn btn-sm btn-outline-primary" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                {% if current_user.id_usuario != usuario.id_usuario %}
-                                <button type="button" class="btn btn-sm btn-outline-danger" 
-                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ usuario.id_usuario }}" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
+                            <div class="dropdown">
+                                <button class="btn btn-action-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                {% else %}
-                                <button type="button" class="btn btn-sm btn-outline-secondary disabled" title="No puedes eliminarte a ti mismo">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                {% endif %}
+                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-actions shadow-sm">
+                                    <li>
+                                        <a href="{{ url_for('usuarios.editar_usuario', id_usuario=usuario.id_usuario) }}" class="dropdown-item">
+                                            <i class="bi bi-pencil me-2"></i>Editar
+                                        </a>
+                                    </li>
+                                    {% if current_user.id_usuario != usuario.id_usuario %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ usuario.id_usuario }}">
+                                            <i class="bi bi-trash me-2"></i>Eliminar
+                                        </button>
+                                    </li>
+                                    {% endif %}
+                                </ul>
                             </div>
 
                             <!-- Modal de Confirmación de Eliminación -->
