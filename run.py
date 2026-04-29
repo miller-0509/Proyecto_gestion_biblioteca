@@ -14,3 +14,5 @@ if __name__ == '__main__':
     print(f"🚀 Iniciando servidor en http://0.0.0.0:81 (debug={'ON' if debug_mode else 'OFF'})")
     app.run(debug=debug_mode, host='0.0.0.0', port=81)
 
+
+
