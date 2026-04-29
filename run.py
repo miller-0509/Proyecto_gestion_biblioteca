@@ -4,15 +4,10 @@ app = create_app()
 
 with app.app_context():
     db.create_all()
-    print("✓ Base de datos inicializada correctamente.")
-
-
+    print("[OK] Base de datos inicializada correctamente.")
 
 if __name__ == '__main__':
     import os
-    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
-    print(f"🚀 Iniciando servidor en http://0.0.0.0:81 (debug={'ON' if debug_mode else 'OFF'})")
-    app.run(debug=debug_mode, host='0.0.0.0', port=81)
-
-
-
+    is_prod = os.environ.get('FLASK_ENV') == 'production'
+    print(f"[START] Iniciando servidor en http://0.0.0.0:81 ({'produccion' if is_prod else 'desarrollo'})")
+    app.run(debug=not is_prod, host='0.0.0.0', port=81)

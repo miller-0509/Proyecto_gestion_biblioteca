@@ -1,14 +1,14 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from datetime import datetime, timezone, timedelta
+from sqlalchemy.orm import joinedload
 from app import db
 from app.models.prestamos import Prestamo
 from app.models.equipos import Equipo
 from app.models.usuarios import Usuario
-from app.decorators import admin_required
+from app.decorators import admin_required, calcular_dias_restantes
 
 bp = Blueprint('prestamos', __name__, url_prefix='/prestamos')
-
 
 
 @bp.route('/lista')
@@ -17,40 +17,28 @@ def lista_prestamos():
     """Lista de préstamos del usuario o todos si es admin"""
     
     if current_user.rol == 'administrador':
-        # Admin ve todos los préstamos
-        prestamos = Prestamo.query.order_by(Prestamo.fecha_solicitud.desc()).limit(100).all()
+        # Admin ve todos los préstamos (con joinedload para evitar N+1)
+        prestamos = Prestamo.query.options(
+            joinedload(Prestamo.usuario),
+            joinedload(Prestamo.equipo)
+        ).order_by(Prestamo.fecha_solicitud.desc()).limit(100).all()
         titulo = 'Gestión de Préstamos'
     else:
         # Usuario ve solo sus préstamos
-        prestamos = Prestamo.query.filter_by(id_usuario=current_user.id_usuario).order_by(
+        prestamos = Prestamo.query.options(
+            joinedload(Prestamo.equipo)
+        ).filter_by(id_usuario=current_user.id_usuario).order_by(
             Prestamo.fecha_solicitud.desc()
         ).limit(100).all()
         titulo = 'Mis Préstamos'
     
-    # Precalcular días restantes para cada préstamo (sin timezone)
-    from datetime import datetime as dt
-    ahora = dt.now()  # Naive datetime
+    # Precalcular días restantes usando función compartida
     prestamos_con_dias = []
     for prestamo in prestamos:
-        datos_prestamo = {
+        prestamos_con_dias.append({
             'prestamo': prestamo,
-            'dias_restantes': None
-        }
-        
-        if prestamo.estado == 'aceptado' and prestamo.fecha_devolucion_esperada:
-            try:
-                # Asegurar que ambos son naive (sin timezone)
-                fecha_dev = prestamo.fecha_devolucion_esperada
-                if fecha_dev.tzinfo is not None:
-                    fecha_dev = fecha_dev.replace(tzinfo=None)
-                
-                dias_restantes = (fecha_dev - ahora).days
-                datos_prestamo['dias_restantes'] = dias_restantes
-            except Exception:
-                # Si hay error en el cálculo, dejar como None
-                pass
-        
-        prestamos_con_dias.append(datos_prestamo)
+            'dias_restantes': calcular_dias_restantes(prestamo)
+        })
     
     return render_template('prestamos/lista.html', prestamos=prestamos_con_dias, titulo=titulo)
 
@@ -80,7 +68,14 @@ def crear_prestamo():
                     flash(error, 'danger')
                 return redirect(url_for('prestamos.crear_prestamo'))
             
-            # Crear préstamo
+            # Re-verificar disponibilidad del equipo (protección contra race condition)
+            equipo = Equipo.query.get(id_equipo)
+            if not equipo or equipo.estado != 'disponible':
+                flash('El equipo ya no está disponible. Otro usuario pudo haberlo solicitado.', 'danger')
+                return redirect(url_for('prestamos.crear_prestamo'))
+            
+            # Crear préstamo y marcar equipo como prestado
+            equipo.estado = 'prestado'
             fecha_devolucion_esperada = datetime.now(timezone.utc) + timedelta(days=dias_prestamo)
             prestamo = Prestamo(
                 id_usuario=id_usuario,
@@ -91,8 +86,10 @@ def crear_prestamo():
                 fecha_aprobacion=datetime.now(timezone.utc),
                 observaciones=observaciones
             )
-            prestamo.save()
+            db.session.add(prestamo)
+            db.session.commit()
             
+            current_app.logger.info('Préstamo equipo creado (admin): equipo_id=%s, usuario_id=%s, admin_id=%s', id_equipo, id_usuario, current_user.id_usuario)
             flash(f'Préstamo creado exitosamente por {dias_prestamo} días.', 'success')
             return redirect(url_for('prestamos.lista_prestamos'))
     
@@ -152,12 +149,19 @@ def aceptar_prestamo(id_prestamo):
         flash('Este préstamo no está en estado pendiente.', 'warning')
         return redirect(url_for('prestamos.lista_prestamos'))
     
+    # Re-verificar estado actual del equipo (protección contra race condition)
+    equipo = Equipo.query.get(prestamo.id_equipo)
+    if not equipo or equipo.estado != 'disponible':
+        flash('El equipo ya no está disponible. Puede haber sido prestado a otro usuario.', 'danger')
+        return redirect(url_for('prestamos.lista_prestamos'))
+    
     prestamo.estado = 'aceptado'
     prestamo.fecha_aprobacion = datetime.now(timezone.utc)
     prestamo.id_administrador = current_user.id_usuario
-    prestamo.equipo.estado = 'prestado'
-    prestamo.save()
+    equipo.estado = 'prestado'
+    db.session.commit()
     
+    current_app.logger.info('Préstamo aceptado: id=%s, equipo=%s, por admin=%s', id_prestamo, equipo.nombre, current_user.id_usuario)
     flash(f'Préstamo del usuario {prestamo.usuario.nombre_completo()} aceptado.', 'success')
     return redirect(url_for('prestamos.lista_prestamos'))
 
@@ -181,6 +185,7 @@ def rechazar_prestamo(id_prestamo):
     prestamo.id_administrador = current_user.id_usuario
     prestamo.save()
     
+    current_app.logger.info('Préstamo rechazado: id=%s, razón=%s', id_prestamo, razon)
     flash(f'Préstamo rechazado.', 'success')
     return redirect(url_for('prestamos.lista_prestamos'))
 
@@ -202,6 +207,7 @@ def devolver_prestamo(id_prestamo):
     prestamo.equipo.estado = 'disponible'
     prestamo.save()
     
+    current_app.logger.info('Préstamo devuelto: id=%s, equipo=%s', id_prestamo, prestamo.equipo.nombre)
     flash(f'Préstamo del usuario {prestamo.usuario.nombre_completo()} marcado como devuelto.', 'success')
     return redirect(url_for('prestamos.lista_prestamos'))
 
@@ -218,17 +224,6 @@ def detalle_prestamo(id_prestamo):
         flash('No tienes permiso para ver este préstamo.', 'danger')
         return redirect(url_for('prestamos.lista_prestamos'))
     
-    # Calcular días restantes (sin timezone)
-    dias_restantes = None
-    if prestamo.estado == 'aceptado' and prestamo.fecha_devolucion_esperada:
-        try:
-            from datetime import datetime as dt
-            ahora = dt.now()  # Naive datetime
-            fecha_dev = prestamo.fecha_devolucion_esperada
-            if fecha_dev.tzinfo is not None:
-                fecha_dev = fecha_dev.replace(tzinfo=None)
-            dias_restantes = (fecha_dev - ahora).days
-        except Exception:
-            pass
+    dias_restantes = calcular_dias_restantes(prestamo)
     
     return render_template('prestamos/detalle.html', prestamo=prestamo, dias_restantes=dias_restantes)

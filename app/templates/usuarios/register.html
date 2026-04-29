@@ -37,6 +37,11 @@
         <form method="POST" action="{{ url_for('auth.registro') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
+          <!-- Honeypot anti-bot (invisible para usuarios reales) -->
+          <div style="position:absolute;left:-9999px;" aria-hidden="true">
+            <input type="text" name="website" tabindex="-1" autocomplete="off" value="">
+          </div>
+
           <!-- Names Row -->
           <div class="row g-3 mb-3">
             <div class="col-md-6">
