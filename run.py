@@ -17,10 +17,3 @@ if __name__ == '__main__':
     print("🚀 Iniciando servidor en http://0.0.0.0:81")
     app.run(debug=True, host='0.0.0.0', port=81)
 
-
-
-
-
-
-
-
