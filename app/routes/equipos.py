@@ -2,20 +2,10 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from app.models.equipos import Equipo
 from app import db
-from functools import wraps
+from app.decorators import admin_required
 
 bp = Blueprint('equipos', __name__, url_prefix='/equipos')
 
-
-def admin_required(f):
-    """Decorador para requerer permisos de administrador"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.rol != 'administrador':
-            flash('No tienes permisos para acceder a esta sección. Solo administrador.', 'danger')
-            return redirect(url_for('auth.dashboard'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 # ── Lista de Equipos ────────────────────────────────────────────────────────
@@ -98,14 +88,17 @@ def crear_equipo():
             try:
                 from datetime import datetime
                 equipo.fecha_compra = datetime.strptime(fecha_compra, '%Y-%m-%d').date()
-            except:
-                pass
+            except ValueError:
+                flash('Formato de fecha invalido. Use el selector de fecha del formulario.', 'warning')
 
         if tiempo_max_prestamo:
             try:
-                equipo.tiempo_max_prestamo = int(tiempo_max_prestamo)
-            except:
-                pass
+                val = int(tiempo_max_prestamo)
+                if val <= 0:
+                    raise ValueError
+                equipo.tiempo_max_prestamo = val
+            except ValueError:
+                flash('Tiempo maximo de prestamo invalido: debe ser un numero entero positivo.', 'warning')
 
         equipo.save()
         flash(f'Equipo "{equipo.nombre}" registrado exitosamente.', 'success')
@@ -165,14 +158,17 @@ def editar_equipo(id_equipo):
             try:
                 from datetime import datetime
                 equipo.fecha_compra = datetime.strptime(fecha_compra, '%Y-%m-%d').date()
-            except:
-                pass
+            except ValueError:
+                flash('Formato de fecha invalido. Use el selector de fecha del formulario.', 'warning')
 
         if tiempo_max_prestamo:
             try:
-                equipo.tiempo_max_prestamo = int(tiempo_max_prestamo)
-            except:
-                pass
+                val = int(tiempo_max_prestamo)
+                if val <= 0:
+                    raise ValueError
+                equipo.tiempo_max_prestamo = val
+            except ValueError:
+                flash('Tiempo maximo de prestamo invalido: debe ser un numero entero positivo.', 'warning')
 
         db.session.commit()
         flash(f'Equipo "{equipo.nombre}" actualizado exitosamente.', 'success')
@@ -191,6 +187,12 @@ def editar_equipo(id_equipo):
 def eliminar_equipo(id_equipo):
     """Eliminar un equipo"""
     equipo = Equipo.query.get_or_404(id_equipo)
+
+    # Fix 6: No eliminar si tiene préstamos activos
+    if equipo.tiene_prestamo_activo:
+        flash(f'No se puede eliminar "{equipo.nombre}": tiene préstamos activos en curso.', 'danger')
+        return redirect(url_for('equipos.lista_equipos'))
+
     nombre = equipo.nombre
     db.session.delete(equipo)
     db.session.commit()

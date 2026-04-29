@@ -13,8 +13,8 @@ bp = Blueprint('usuarios', __name__, url_prefix='/usuarios')
 @login_required
 @admin_required
 def lista_usuarios():
-    # Obtener todos los usuarios de la base de datos
-    usuarios = Usuario.query.all()
+    page = request.args.get('page', 1, type=int)
+    usuarios = Usuario.query.paginate(page=page, per_page=20, error_out=False)
     return render_template('usuarios/lista.html', usuarios=usuarios)
 
 @bp.route('/crear', methods=['GET', 'POST'])

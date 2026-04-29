@@ -5,20 +5,10 @@ from app import db
 from app.models.prestamos import Prestamo
 from app.models.equipos import Equipo
 from app.models.usuarios import Usuario
+from app.decorators import admin_required
 
 bp = Blueprint('prestamos', __name__, url_prefix='/prestamos')
 
-
-def admin_required(f):
-    """Decorator para rutas que requieren ser administrador"""
-    from functools import wraps
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.rol != 'administrador':
-            flash('No tienes permisos para acceder a esta sección.', 'danger')
-            return redirect(url_for('auth.dashboard'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 @bp.route('/lista')

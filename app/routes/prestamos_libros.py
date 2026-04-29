@@ -5,18 +5,9 @@ from app import db
 from app.models.prestamos_libros import PrestamoLibro
 from app.models.libros import Libro
 from app.models.usuarios import Usuario
+from app.decorators import admin_required
 
 bp = Blueprint('prestamos_libros', __name__, url_prefix='/prestamos-libros')
-
-def admin_required(f):
-    from functools import wraps
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.rol != 'administrador':
-            flash('No tienes permisos para acceder a esta sección.', 'danger')
-            return redirect(url_for('auth.dashboard'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 @bp.route('/lista')
 @login_required
@@ -100,7 +91,8 @@ def crear_prestamo():
                     flash(error, 'danger')
                 return redirect(url_for('prestamos_libros.crear_prestamo'))
             
-            dias_prestamo = Libro.query.get(id_libro).tiempo_max_prestamo or 15
+            libro_obj = Libro.query.get(id_libro)
+            dias_prestamo = (libro_obj.tiempo_max_prestamo if libro_obj and libro_obj.tiempo_max_prestamo and libro_obj.tiempo_max_prestamo > 0 else 15)
             fecha_devolucion_esperada = datetime.now(timezone.utc) + timedelta(days=dias_prestamo)
             prestamo = PrestamoLibro(
                 id_usuario=current_user.id_usuario,

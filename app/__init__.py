@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from datetime import datetime, timezone
@@ -53,11 +53,17 @@ def create_app():
 
     @app.errorhandler(404)
     def not_found(e):
-        return {"error": "Página no encontrada"}, 404
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def server_error(e):
+        db.session.rollback()
+        return render_template('errors/500.html'), 500
 
     @app.errorhandler(Exception)
     def handle_error(e):
-        print(f"Error: {str(e)}")
-        return {"error": str(e)}, 500
+        db.session.rollback()
+        print(f"Error no controlado: {str(e)}")
+        return render_template('errors/500.html'), 500
 
     return app

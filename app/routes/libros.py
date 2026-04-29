@@ -2,19 +2,9 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from app.models.libros import Libro
 from app import db
-from functools import wraps
+from app.decorators import admin_required
 
 bp = Blueprint('libros', __name__, url_prefix='/libros')
-
-def admin_required(f):
-    """Decorador para requerer permisos de administrador"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.rol != 'administrador':
-            flash('No tienes permisos para acceder a esta sección. Solo administrador.', 'danger')
-            return redirect(url_for('auth.dashboard'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 # ── Lista de Libros ────────────────────────────────────────────────────────
 @bp.route('/', methods=['GET'])
@@ -86,9 +76,12 @@ def crear_libro():
 
         if tiempo_max_prestamo:
             try:
-                libro.tiempo_max_prestamo = int(tiempo_max_prestamo)
-            except:
-                pass
+                val = int(tiempo_max_prestamo)
+                if val <= 0:
+                    raise ValueError('El tiempo debe ser mayor a 0')
+                libro.tiempo_max_prestamo = val
+            except ValueError:
+                flash('Tiempo máximo de préstamo inválido: debe ser un número entero positivo.', 'warning')
 
         libro.save()
         flash(f'Libro "{libro.titulo}" registrado exitosamente.', 'success')
@@ -138,9 +131,12 @@ def editar_libro(id_libro):
 
         if tiempo_max_prestamo:
             try:
-                libro.tiempo_max_prestamo = int(tiempo_max_prestamo)
-            except:
-                pass
+                val = int(tiempo_max_prestamo)
+                if val <= 0:
+                    raise ValueError('El tiempo debe ser mayor a 0')
+                libro.tiempo_max_prestamo = val
+            except ValueError:
+                flash('Tiempo máximo de préstamo inválido: debe ser un número entero positivo.', 'warning')
 
         db.session.commit()
         flash(f'Libro "{libro.titulo}" actualizado exitosamente.', 'success')
@@ -158,6 +154,12 @@ def editar_libro(id_libro):
 def eliminar_libro(id_libro):
     """Eliminar un libro"""
     libro = Libro.query.get_or_404(id_libro)
+
+    # Fix 6: No eliminar si tiene préstamos activos
+    if libro.tiene_prestamo_activo:
+        flash(f'No se puede eliminar "{libro.titulo}": tiene préstamos activos en curso.', 'danger')
+        return redirect(url_for('libros.lista_libros'))
+
     titulo = libro.titulo
     db.session.delete(libro)
     db.session.commit()
