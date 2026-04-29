@@ -14,19 +14,24 @@ bp = Blueprint('prestamos_libros', __name__, url_prefix='/prestamos-libros')
 @bp.route('/lista')
 @login_required
 def lista_prestamos():
+    page = request.args.get('page', 1, type=int)
+    
     if current_user.rol == 'administrador':
-        prestamos = PrestamoLibro.query.options(
+        query = PrestamoLibro.query.options(
             joinedload(PrestamoLibro.usuario),
             joinedload(PrestamoLibro.libro)
-        ).order_by(PrestamoLibro.fecha_solicitud.desc()).limit(100).all()
+        ).order_by(PrestamoLibro.fecha_solicitud.desc())
         titulo = 'Gestión de Préstamos de Libros'
     else:
-        prestamos = PrestamoLibro.query.options(
+        query = PrestamoLibro.query.options(
             joinedload(PrestamoLibro.libro)
         ).filter_by(id_usuario=current_user.id_usuario).order_by(
             PrestamoLibro.fecha_solicitud.desc()
-        ).limit(100).all()
+        )
         titulo = 'Mis Préstamos de Libros'
+        
+    pagination = query.paginate(page=page, per_page=15)
+    prestamos = pagination.items
     
     # Usar función compartida para calcular días restantes
     prestamos_con_dias = []
@@ -36,7 +41,7 @@ def lista_prestamos():
             'dias_restantes': calcular_dias_restantes(prestamo)
         })
     
-    return render_template('prestamos_libros/lista.html', prestamos=prestamos_con_dias, titulo=titulo)
+    return render_template('prestamos_libros/lista.html', prestamos=prestamos_con_dias, titulo=titulo, pagination=pagination)
 
 
 @bp.route('/crear', methods=['GET', 'POST'])

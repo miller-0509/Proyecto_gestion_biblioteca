@@ -184,6 +184,51 @@
   </div>
 </div>
 
+<!-- Pagination -->
+{% if pagination and pagination.pages > 1 %}
+<nav class="d-flex justify-content-center mt-4">
+  <ul class="pagination">
+    {% if pagination.has_prev %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('prestamos.lista_prestamos', page=1) }}">
+          <i class="bi bi-chevron-bar-left"></i>
+        </a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('prestamos.lista_prestamos', page=pagination.prev_num) }}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+    {% endif %}
+
+    {% for page_num in pagination.iter_pages(left_edge=1, left_margin=1, right_margin=1, right_edge=1) %}
+      {% if page_num %}
+        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('prestamos.lista_prestamos', page=page_num) }}">
+            {{ page_num }}
+          </a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if pagination.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('prestamos.lista_prestamos', page=pagination.next_num) }}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="{{ url_for('prestamos.lista_prestamos', page=pagination.pages) }}">
+          <i class="bi bi-chevron-bar-right"></i>
+        </a>
+      </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+
 {% else %}
 <div class="alert alert-info alert-sena text-center" style="border-left: 4px solid var(--sena-accent);">
   <i class="bi bi-info-circle" style="font-size: 2rem; display: block; margin-bottom: 1rem; color: var(--sena-primary);"></i>

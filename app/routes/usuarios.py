@@ -100,6 +100,13 @@ def eliminar_usuario(id_usuario):
         flash('No puedes eliminar tu propia cuenta.', 'danger')
         return redirect(url_for('usuarios.lista_usuarios'))
         
+    prestamos_activos = Prestamo.query.filter_by(id_usuario=id_usuario).first()
+    libros_activos = PrestamoLibro.query.filter_by(id_usuario=id_usuario).first()
+    
+    if prestamos_activos or libros_activos:
+        flash('No puedes eliminar al usuario porque tiene un historial de préstamos. Cambia su estado a inactivo.', 'danger')
+        return redirect(url_for('usuarios.lista_usuarios'))
+
     db.session.delete(usuario)
     db.session.commit()
     flash(f'Usuario {usuario.nombres} eliminado exitosamente.', 'success')
