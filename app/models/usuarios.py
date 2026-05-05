@@ -60,14 +60,21 @@ class Usuario(db.Model, UserMixin):
             errors.append('Los apellidos son obligatorios.')
         if not correo or not correo.strip():
             errors.append('El correo es obligatorio.')
-        elif not _EMAIL_RE.match(correo):
-            errors.append('El formato del correo electrónico no es válido.')
-        elif Usuario.query.filter_by(correo=correo).first():
-            errors.append('El correo ya está registrado.')
+        else:
+            correo_normalizado = correo.strip().lower()
+            if not _EMAIL_RE.match(correo_normalizado):
+                errors.append('El formato del correo electrónico no es válido.')
+            elif Usuario.query.filter_by(correo=correo_normalizado).first():
+                errors.append('El correo ya está registrado.')
         if not password:
             errors.append('La contraseña es obligatoria.')
-        elif len(password) < 6:
-            errors.append('La contraseña debe tener al menos 6 caracteres.')
+        else:
+            if len(password) < 8:
+                errors.append('La contraseña debe tener al menos 8 caracteres.')
+            if not any(c.isupper() for c in password):
+                errors.append('La contraseña debe contener al menos una letra mayúscula.')
+            if not any(c.isdigit() for c in password):
+                errors.append('La contraseña debe contener al menos un número.')
             
         roles_permitidos = ['aprendiz', 'instructor']
         if is_admin:

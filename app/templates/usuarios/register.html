@@ -14,7 +14,7 @@
       </h5>
       <ul class="mb-0">
         {% for error in errors %}
-          <li class="mb-1">{{ error }}</li>
+        <li class="mb-1">{{ error }}</li>
         {% endfor %}
       </ul>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
@@ -25,8 +25,10 @@
     <div class="card-sena">
       <div class="card-sena-header text-center">
         <div class="mb-3">
-          <div style="display:inline-block; padding: 0.75rem; border-radius: 16px; background: rgba(34, 197, 94, 0.08);">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo" style="width: 60px; height: auto; filter: brightness(1.2);">
+          <div
+            style="display:inline-block; padding: 0.75rem; border-radius: 16px; background: rgba(34, 197, 94, 0.08);">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA Logo"
+              style="width: 60px; height: auto; filter: brightness(1.2);">
           </div>
         </div>
         <h3 class="mb-2" style="color: #000000; background: none;">Crear Cuenta</h3>
@@ -35,7 +37,7 @@
 
       <div class="card-sena-body">
         <form method="POST" action="{{ url_for('auth.registro') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
           <!-- Honeypot anti-bot (invisible para usuarios reales) -->
           <div style="position:absolute;left:-9999px;" aria-hidden="true">
@@ -48,15 +50,15 @@
               <label for="nombres" class="form-label">
                 <i class="bi bi-person me-2"></i>Nombres
               </label>
-              <input type="text" name="nombres" id="nombres" class="form-control" 
-                     value="{{ nombres }}" placeholder="Juan" required>
+              <input type="text" name="nombres" id="nombres" class="form-control" value="{{ nombres }}"
+                placeholder="Juan" required>
             </div>
             <div class="col-md-6">
               <label for="apellidos" class="form-label">
                 <i class="bi bi-person me-2"></i>Apellidos
               </label>
-              <input type="text" name="apellidos" id="apellidos" class="form-control" 
-                     value="{{ apellidos }}" placeholder="Pérez García" required>
+              <input type="text" name="apellidos" id="apellidos" class="form-control" value="{{ apellidos }}"
+                placeholder="Pérez García" required>
             </div>
           </div>
 
@@ -65,8 +67,8 @@
             <label for="correo" class="form-label">
               <i class="bi bi-envelope me-2"></i>Correo Electrónico
             </label>
-            <input type="email" name="correo" id="correo" class="form-control" 
-                   value="{{ correo }}" placeholder="tu@correo.com" required>
+            <input type="email" name="correo" id="correo" class="form-control" value="{{ correo }}"
+              placeholder="tu@correo.com" required>
             <small class="form-text text-muted">Usa tu correo institucional si es posible</small>
           </div>
 
@@ -76,13 +78,13 @@
               <i class="bi bi-key me-2"></i>Contraseña
             </label>
             <div class="input-group">
-              <input type="password" name="password" id="password" class="form-control" 
-                     minlength="6" placeholder="••••••••" required>
+              <input type="password" name="password" id="password" class="form-control" minlength="6"
+                placeholder="••••••••" required>
               <button class="btn btn-outline-secondary toggle-password" type="button" aria-label="Mostrar contraseña">
                 <i class="bi bi-eye"></i>
               </button>
             </div>
-            <small class="form-text text-muted mt-1 d-block">Mínimo 6 caracteres</small>
+            <small class="form-text text-muted mt-1 d-block">Mínimo 8 caracteres y una letra mayúscula</small>
           </div>
 
           <!-- Role Selection -->
@@ -92,10 +94,10 @@
             </label>
             <select name="rol" id="rol" class="form-select" required>
               <option value="">-- Selecciona tu rol --</option>
-              <option value="aprendiz" {% if rol == 'aprendiz' %}selected{% endif %}>
+              <option value="aprendiz" {% if rol=='aprendiz' %}selected{% endif %}>
                 <i class="bi bi-mortarboard me-1"></i> Aprendiz SENA
               </option>
-              <option value="instructor" {% if rol == 'instructor' %}selected{% endif %}>
+              <option value="instructor" {% if rol=='instructor' %}selected{% endif %}>
                 <i class="bi bi-person-check me-1"></i> Instructor SENA
               </option>
             </select>
@@ -137,41 +139,45 @@
     color: #6B7280;
     transition: all 0.2s ease;
   }
+
   .input-group:focus-within .input-group-text,
   .input-group:focus-within .toggle-password {
     color: #22C55E;
     border-color: #22C55E;
   }
+
   .input-group:focus-within .form-control {
     border-color: #22C55E;
     box-shadow: none;
   }
+
   .input-group .btn {
     border-color: #E5E7EB;
     background: #FFFFFF;
     color: #6B7280;
     transition: all 0.2s ease;
   }
+
   .input-group .btn:hover {
     background: #F9FAFB;
     color: #1F2937;
   }
 </style>
 <script>
-document.querySelectorAll('.toggle-password').forEach(button => {
-  button.addEventListener('click', function() {
-    const input = this.previousElementSibling;
-    const icon = this.querySelector('i');
-    if (input.type === 'password') {
-      input.type = 'text';
-      icon.classList.remove('bi-eye');
-      icon.classList.add('bi-eye-slash');
-    } else {
-      input.type = 'password';
-      icon.classList.remove('bi-eye-slash');
-      icon.classList.add('bi-eye');
-    }
+  document.querySelectorAll('.toggle-password').forEach(button => {
+    button.addEventListener('click', function () {
+      const input = this.previousElementSibling;
+      const icon = this.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+      }
+    });
   });
-});
 </script>
 {% endblock %}

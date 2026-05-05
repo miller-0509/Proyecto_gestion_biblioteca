@@ -30,6 +30,10 @@ def create_app(config_class=None):
     csrf.init_app(app)
     limiter.init_app(app)
 
+    # Eximir /logout de CSRF para sendBeacon (POST al cerrar pestaña)
+    from app.routes.auth import bp as auth_bp
+    csrf.exempt(auth_bp)
+
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Debes iniciar sesión para acceder.'
     login_manager.login_message_category = 'warning'
@@ -57,12 +61,12 @@ def create_app(config_class=None):
             flash('Tu cuenta ha sido desactivada. Contacta al administrador.', 'warning')
             return redirect(url_for('auth.login'))
 
-    # Sesión permanente con duración controlada (Fix #12)
+    # Sesión NO permanente — expira al cerrar navegador + timeout de 30 min como respaldo
     @app.before_request
-    def make_session_permanent():
+    def configure_session():
         from flask import session
-        session.permanent = True
-        app.permanent_session_lifetime = timedelta(hours=2)
+        session.permanent = False
+        app.permanent_session_lifetime = timedelta(minutes=30)
 
     # Limpieza de sesión de BD al finalizar request (sin commit automático)
     @app.teardown_appcontext

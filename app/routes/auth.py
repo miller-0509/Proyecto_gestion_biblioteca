@@ -14,23 +14,18 @@ def login():
         return redirect(url_for('auth.dashboard'))
 
     if request.method == 'POST':
-        correo   = request.form.get('correo', '').strip()
+        correo   = request.form.get('correo', '').strip().lower()
         password = request.form.get('password', '')
 
         usuario = Usuario.query.filter_by(correo=correo).first()
 
-        if usuario is None or not usuario.check_password(password):
+        # Validación unificada: no revelar qué falló (anti-enumeración)
+        if usuario is None or not usuario.check_password(password) or usuario.estado != 'activo':
             current_app.logger.warning('Intento de login fallido para correo: %s desde IP: %s', correo, request.remote_addr)
-            # Mensaje genérico para evitar enumeración de usuarios
-            flash('Credenciales incorrectas. Verifica tus datos e intenta de nuevo.', 'danger')
+            flash('Credenciales inválidas.', 'danger')
             return render_template('login.html', correo=correo)
 
-        if usuario.estado != 'activo':
-            current_app.logger.warning('Login bloqueado (cuenta %s) para: %s', usuario.estado, correo)
-            flash('Tu cuenta no está activa. Contacta al administrador.', 'warning')
-            return render_template('login.html', correo=correo)
-
-        login_user(usuario)
+        login_user(usuario, remember=False)
         current_app.logger.info('Login exitoso: %s (ID: %s)', usuario.correo, usuario.id_usuario)
         flash(f'¡Bienvenido, {usuario.nombres}!', 'success')
         return redirect(url_for('auth.dashboard'))
@@ -60,7 +55,7 @@ def registro():
 
         nombres   = request.form.get('nombres', '').strip()
         apellidos = request.form.get('apellidos', '').strip()
-        correo    = request.form.get('correo', '').strip()
+        correo    = request.form.get('correo', '').strip().lower()
         password  = request.form.get('password', '')
         rol       = request.form.get('rol', '').strip()
 
@@ -89,11 +84,14 @@ def registro():
                            nombres='', apellidos='', correo='', rol='')
 
 
-# ── Logout ─────────────────────────────────────────────────────────────────
-@bp.route('/logout')
-@login_required
+# ── Logout (acepta GET y POST para sendBeacon) ────────────────────────────
+@bp.route('/logout', methods=['GET', 'POST'])
 def logout():
-    current_app.logger.info('Logout: %s (ID: %s)', current_user.correo, current_user.id_usuario)
-    logout_user()
+    if current_user.is_authenticated:
+        current_app.logger.info('Logout: %s (ID: %s)', current_user.correo, current_user.id_usuario)
+        logout_user()
+    # Si es sendBeacon (POST sin redirección esperada), retornar 204
+    if request.method == 'POST':
+        return '', 204
     flash('Has cerrado sesión correctamente.', 'info')
     return redirect(url_for('auth.login'))
