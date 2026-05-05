@@ -1,0 +1,17 @@
+venv/
+venvclear/
+__pycache__/
+*.py[cod]
+*.pyo
+instance/
+*.sqlite
+logs/
+.git/
+.gitignore
+.env
+.vscode/
+.idea/
+*.md
+.dockerignore
+Dockerfile
+docker-compose.yml
