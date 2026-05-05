@@ -30,4 +30,4 @@ EXPOSE 81
 
 # ── Comando de arranque ──────────────────────────────────────────
 # Primero inicializa la BD, luego lanza Gunicorn
-CMD ["sh", "-c", "python init_db.py && gunicorn --bind 0.0.0.0:81 --workers 3 --timeout 120 'run:app'"]
+CMD python init_db.py && gunicorn --bind 0.0.0.0:81 --workers 3 --timeout 120 run:app

@@ -17,7 +17,7 @@ services:
       - log_data:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:81/')"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:81/')\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
