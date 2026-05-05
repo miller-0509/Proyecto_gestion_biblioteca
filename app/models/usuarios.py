@@ -1,7 +1,11 @@
+import re
 from app import db
 from flask_login import UserMixin
 from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
+
+# Regex básico para validación de email
+_EMAIL_RE = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
 
 
 class Usuario(db.Model, UserMixin):
@@ -15,6 +19,11 @@ class Usuario(db.Model, UserMixin):
     rol             = db.Column(db.Enum('administrador', 'aprendiz', 'instructor'), default='aprendiz')
     estado          = db.Column(db.Enum('activo', 'inactivo', 'bloqueado'), default='activo')
     fecha_registro  = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    @property
+    def is_active(self):
+        """Flask-Login respeta este property: solo usuarios activos pueden autenticarse."""
+        return self.estado == 'activo'
 
     def get_id(self):
         return str(self.id_usuario)
@@ -40,7 +49,6 @@ class Usuario(db.Model, UserMixin):
 
     def save(self):
         db.session.add(self)
-        db.session.commit()
 
     # ── Validaciones ───────────────────────────────
     @staticmethod
@@ -52,6 +60,8 @@ class Usuario(db.Model, UserMixin):
             errors.append('Los apellidos son obligatorios.')
         if not correo or not correo.strip():
             errors.append('El correo es obligatorio.')
+        elif not _EMAIL_RE.match(correo):
+            errors.append('El formato del correo electrónico no es válido.')
         elif Usuario.query.filter_by(correo=correo).first():
             errors.append('El correo ya está registrado.')
         if not password:
@@ -76,6 +86,8 @@ class Usuario(db.Model, UserMixin):
             errors.append('Los apellidos son obligatorios.')
         if not correo or not correo.strip():
             errors.append('El correo es obligatorio.')
+        elif not _EMAIL_RE.match(correo):
+            errors.append('El formato del correo electrónico no es válido.')
         elif correo != current_correo and Usuario.query.filter_by(correo=correo).first():
             errors.append('El correo ya está registrado por otro usuario.')
         

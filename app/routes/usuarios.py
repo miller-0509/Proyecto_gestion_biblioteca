@@ -5,7 +5,7 @@ from app.models.prestamos import Prestamo
 from app.models.prestamos_libros import PrestamoLibro
 from app.decorators import admin_required
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 bp = Blueprint('usuarios', __name__, url_prefix='/usuarios')
 
@@ -44,6 +44,7 @@ def crear_usuario():
         )
         nuevo_usuario.set_password(password)
         nuevo_usuario.save()
+        db.session.commit()
 
         flash('Usuario creado exitosamente.', 'success')
         return redirect(url_for('usuarios.lista_usuarios'))
@@ -100,11 +101,18 @@ def eliminar_usuario(id_usuario):
         flash('No puedes eliminar tu propia cuenta.', 'danger')
         return redirect(url_for('usuarios.lista_usuarios'))
         
-    prestamos_activos = Prestamo.query.filter_by(id_usuario=id_usuario).first()
-    libros_activos = PrestamoLibro.query.filter_by(id_usuario=id_usuario).first()
+    # Fix #3: Solo bloquear eliminación si tiene préstamos ACTIVOS (pendiente/aceptado)
+    prestamos_activos = Prestamo.query.filter(
+        Prestamo.id_usuario == id_usuario,
+        Prestamo.estado.in_(['pendiente', 'aceptado'])
+    ).first()
+    libros_activos = PrestamoLibro.query.filter(
+        PrestamoLibro.id_usuario == id_usuario,
+        PrestamoLibro.estado.in_(['pendiente', 'aceptado'])
+    ).first()
     
     if prestamos_activos or libros_activos:
-        flash('No puedes eliminar al usuario porque tiene un historial de préstamos. Cambia su estado a inactivo.', 'danger')
+        flash('No puedes eliminar al usuario porque tiene préstamos activos. Espera a que se devuelvan o cambia su estado a inactivo.', 'danger')
         return redirect(url_for('usuarios.lista_usuarios'))
 
     db.session.delete(usuario)
@@ -121,7 +129,7 @@ def historial_prestamos(id_usuario):
         return redirect(url_for('auth.dashboard'))
         
     usuario = Usuario.query.get_or_404(id_usuario)
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     
     # Obtener préstamos de equipos
     prestamos_equipos = Prestamo.query.filter_by(id_usuario=id_usuario).all()
@@ -134,9 +142,9 @@ def historial_prestamos(id_usuario):
         """Determina si un préstamo activo está atrasado."""
         if prestamo.estado in ('pendiente', 'aceptado') and prestamo.fecha_devolucion_esperada:
             fecha_esp = prestamo.fecha_devolucion_esperada
-            # Hacer timezone-naive para comparación segura
-            if fecha_esp.tzinfo is not None:
-                fecha_esp = fecha_esp.replace(tzinfo=None)
+            # Asegurar que la fecha sea timezone-aware para comparación segura
+            if fecha_esp.tzinfo is None:
+                fecha_esp = fecha_esp.replace(tzinfo=timezone.utc)
             if fecha_esp < now:
                 return 'atrasado'
         return prestamo.estado

@@ -19,10 +19,13 @@ class Libro(db.Model):
     @property
     def tiene_prestamo_activo(self):
         from app.models.prestamos_libros import PrestamoLibro
-        return PrestamoLibro.query.filter(
-            PrestamoLibro.id_libro == self.id_libro,
-            PrestamoLibro.estado.in_(['pendiente', 'aceptado'])
-        ).first() is not None
+        from sqlalchemy import exists
+        return db.session.query(
+            exists().where(
+                PrestamoLibro.id_libro == self.id_libro,
+                PrestamoLibro.estado.in_(['pendiente', 'aceptado'])
+            )
+        ).scalar()
 
     def __repr__(self):
         return f'<Libro {self.titulo}>'
@@ -44,11 +47,9 @@ class Libro(db.Model):
 
     def save(self):
         db.session.add(self)
-        db.session.commit()
 
     def delete(self):
         db.session.delete(self)
-        db.session.commit()
 
     @staticmethod
     def validate_libro(titulo, autor, genero, codigo_unico):

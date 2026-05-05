@@ -24,10 +24,13 @@ class Equipo(db.Model):
     @property
     def tiene_prestamo_activo(self):
         from app.models.prestamos import Prestamo
-        return Prestamo.query.filter(
-            Prestamo.id_equipo == self.id_equipo,
-            Prestamo.estado.in_(['pendiente', 'aceptado'])
-        ).first() is not None
+        from sqlalchemy import exists
+        return db.session.query(
+            exists().where(
+                Prestamo.id_equipo == self.id_equipo,
+                Prestamo.estado.in_(['pendiente', 'aceptado'])
+            )
+        ).scalar()
 
     def __repr__(self):
         return f'<Equipo {self.nombre}>'
@@ -52,7 +55,6 @@ class Equipo(db.Model):
 
     def save(self):
         db.session.add(self)
-        db.session.commit()
 
     @staticmethod
     def validate_equipo(nombre, tipo_equipo, numero_serie):

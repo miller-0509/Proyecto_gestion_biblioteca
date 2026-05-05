@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from datetime import datetime, timezone
+from flask_login import LoginManager, logout_user, current_user
+from datetime import datetime, timezone, timedelta
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -47,6 +47,22 @@ def create_app(config_class=None):
     @app.context_processor
     def inject_now():
         return {'now': lambda: datetime.now(timezone.utc).replace(tzinfo=None)}
+
+    # Auto-logout si la cuenta del usuario fue desactivada/bloqueada durante la sesión
+    @app.before_request
+    def check_user_active():
+        if current_user.is_authenticated and not current_user.is_active:
+            logout_user()
+            from flask import flash, redirect, url_for
+            flash('Tu cuenta ha sido desactivada. Contacta al administrador.', 'warning')
+            return redirect(url_for('auth.login'))
+
+    # Sesión permanente con duración controlada (Fix #12)
+    @app.before_request
+    def make_session_permanent():
+        from flask import session
+        session.permanent = True
+        app.permanent_session_lifetime = timedelta(hours=2)
 
     # Limpieza de sesión de BD al finalizar request (sin commit automático)
     @app.teardown_appcontext

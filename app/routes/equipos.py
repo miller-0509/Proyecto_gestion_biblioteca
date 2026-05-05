@@ -101,6 +101,7 @@ def crear_equipo():
                 flash('Tiempo maximo de prestamo invalido: debe ser un numero entero positivo.', 'warning')
 
         equipo.save()
+        db.session.commit()
         flash(f'Equipo "{equipo.nombre}" registrado exitosamente.', 'success')
         return redirect(url_for('equipos.lista_equipos'))
 
@@ -147,6 +148,12 @@ def editar_equipo(id_equipo):
         equipo.marca = marca or None
         equipo.modelo = modelo or None
         equipo.numero_serie = numero_serie
+        
+        # Fix #5: Impedir cambio a 'disponible' si tiene préstamo activo
+        if estado == 'disponible' and equipo.estado != 'disponible' and equipo.tiene_prestamo_activo:
+            flash('No se puede marcar como disponible: el equipo tiene un préstamo activo.', 'danger')
+            return render_template('equipos/form.html', errors=[], equipo=equipo, accion='editar')
+        
         equipo.estado = estado
         equipo.ubicacion = ubicacion or None
         equipo.proveedor = proveedor or None

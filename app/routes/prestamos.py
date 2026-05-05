@@ -125,8 +125,18 @@ def crear_prestamo():
                     flash(error, 'danger')
                 return redirect(url_for('prestamos.crear_prestamo'))
             
-            # Crear préstamo en estado pendiente
-            dias_prestamo = 7  # Valor por defecto
+            # Fix #9: Verificar límite de préstamos activos del usuario
+            prestamos_activos_count = Prestamo.query.filter(
+                Prestamo.id_usuario == current_user.id_usuario,
+                Prestamo.estado.in_(['pendiente', 'aceptado'])
+            ).count()
+            if prestamos_activos_count >= 5:
+                flash('Has alcanzado el límite de 5 préstamos activos de equipos.', 'warning')
+                return redirect(url_for('prestamos.lista_prestamos'))
+            
+            # Fix #4: Usar tiempo_max_prestamo del equipo si está definido
+            equipo = Equipo.query.get(id_equipo)
+            dias_prestamo = equipo.tiempo_max_prestamo or 7
             fecha_devolucion_esperada = datetime.now(timezone.utc) + timedelta(days=dias_prestamo)
             prestamo = Prestamo(
                 id_usuario=current_user.id_usuario,
@@ -136,6 +146,7 @@ def crear_prestamo():
                 observaciones=observaciones
             )
             prestamo.save()
+            db.session.commit()
             
             flash('Solicitud de préstamo enviada. El administrador la revisará pronto.', 'info')
             return redirect(url_for('prestamos.lista_prestamos'))
@@ -184,13 +195,19 @@ def rechazar_prestamo(id_prestamo):
     
     razon = request.form.get('razon_rechazo', '')
     
+    # Fix #8: Validar longitud de razón de rechazo
+    if len(razon) > 255:
+        flash('La razón de rechazo no puede exceder 255 caracteres.', 'danger')
+        return redirect(url_for('prestamos.lista_prestamos'))
+    
     prestamo.estado = 'rechazado'
     prestamo.razon_rechazo = razon
     prestamo.id_administrador = current_user.id_usuario
     prestamo.save()
+    db.session.commit()
     
     current_app.logger.info('Préstamo rechazado: id=%s, razón=%s', id_prestamo, razon)
-    flash(f'Préstamo rechazado.', 'success')
+    flash('Préstamo rechazado.', 'success')
     return redirect(url_for('prestamos.lista_prestamos'))
 
 
@@ -210,6 +227,7 @@ def devolver_prestamo(id_prestamo):
     prestamo.fecha_devolucion_real = datetime.now(timezone.utc)
     prestamo.equipo.estado = 'disponible'
     prestamo.save()
+    db.session.commit()
     
     current_app.logger.info('Préstamo devuelto: id=%s, equipo=%s', id_prestamo, prestamo.equipo.nombre)
     flash(f'Préstamo del usuario {prestamo.usuario.nombre_completo()} marcado como devuelto.', 'success')

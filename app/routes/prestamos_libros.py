@@ -104,6 +104,15 @@ def crear_prestamo():
                     flash(error, 'danger')
                 return redirect(url_for('prestamos_libros.crear_prestamo'))
             
+            # Fix #9: Verificar límite de préstamos activos del usuario
+            prestamos_activos_count = PrestamoLibro.query.filter(
+                PrestamoLibro.id_usuario == current_user.id_usuario,
+                PrestamoLibro.estado.in_(['pendiente', 'aceptado'])
+            ).count()
+            if prestamos_activos_count >= 5:
+                flash('Has alcanzado el límite de 5 préstamos activos de libros.', 'warning')
+                return redirect(url_for('prestamos_libros.lista_prestamos'))
+            
             dias_prestamo = Libro.query.get(id_libro).tiempo_max_prestamo or 15
             fecha_devolucion_esperada = datetime.now(timezone.utc) + timedelta(days=dias_prestamo)
             prestamo = PrestamoLibro(
@@ -114,6 +123,7 @@ def crear_prestamo():
                 observaciones=observaciones
             )
             prestamo.save()
+            db.session.commit()
             flash('Solicitud de préstamo de libro enviada. El administrador la revisará.', 'info')
             return redirect(url_for('prestamos_libros.lista_prestamos'))
 
@@ -154,9 +164,17 @@ def rechazar_prestamo(id_prestamo):
         return redirect(url_for('prestamos_libros.lista_prestamos'))
     
     prestamo.estado = 'rechazado'
-    prestamo.razon_rechazo = request.form.get('razon_rechazo', '')
+    razon = request.form.get('razon_rechazo', '')
+    
+    # Fix #8: Validar longitud de razón de rechazo
+    if len(razon) > 255:
+        flash('La razón de rechazo no puede exceder 255 caracteres.', 'danger')
+        return redirect(url_for('prestamos_libros.lista_prestamos'))
+    
+    prestamo.razon_rechazo = razon
     prestamo.id_administrador = current_user.id_usuario
     prestamo.save()
+    db.session.commit()
     
     current_app.logger.info('Préstamo libro rechazado: id=%s', id_prestamo)
     flash('Préstamo rechazado.', 'success')
@@ -176,6 +194,7 @@ def devolver_prestamo(id_prestamo):
     prestamo.fecha_devolucion_real = datetime.now(timezone.utc)
     prestamo.libro.estado = 'disponible'
     prestamo.save()
+    db.session.commit()
     
     current_app.logger.info('Préstamo libro devuelto: id=%s', id_prestamo)
     flash('Préstamo marcado como devuelto.', 'success')

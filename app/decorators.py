@@ -4,7 +4,26 @@ from flask import flash, redirect, url_for
 from flask_login import current_user
 
 
+def role_required(*roles):
+    """Decorador reutilizable para restringir acceso por rol(es).
+    
+    Uso:
+        @role_required('administrador')
+        @role_required('administrador', 'instructor')
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.is_authenticated or current_user.rol not in roles:
+                flash('Acceso denegado. No tienes los permisos necesarios.', 'danger')
+                return redirect(url_for('auth.dashboard'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
 def admin_required(f):
+    """Atajo para role_required('administrador')."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or current_user.rol != 'administrador':

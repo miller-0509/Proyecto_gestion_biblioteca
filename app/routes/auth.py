@@ -78,6 +78,7 @@ def registro():
         )
         nuevo.set_password(password)
         nuevo.save()
+        db.session.commit()
 
         current_app.logger.info('Nuevo usuario registrado: %s (rol: %s)', correo, rol)
         flash('Usuario registrado exitosamente. Ahora puedes iniciar sesión.', 'success')

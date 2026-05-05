@@ -84,6 +84,7 @@ def crear_libro():
                 flash('Tiempo máximo de préstamo inválido: debe ser un número entero positivo.', 'warning')
 
         libro.save()
+        db.session.commit()
         flash(f'Libro "{libro.titulo}" registrado exitosamente.', 'success')
         return redirect(url_for('libros.lista_libros'))
 
@@ -124,6 +125,12 @@ def editar_libro(id_libro):
         libro.autor = autor
         libro.genero = genero
         libro.codigo_unico = codigo_unico
+        
+        # Fix #5: Impedir cambio a 'disponible' si tiene préstamo activo
+        if estado == 'disponible' and libro.estado != 'disponible' and libro.tiene_prestamo_activo:
+            flash('No se puede marcar como disponible: el libro tiene un préstamo activo.', 'danger')
+            return render_template('libros/form.html', errors=[], libro=libro, accion='editar')
+        
         libro.estado = estado
         libro.ubicacion = ubicacion or None
         libro.disponible_prestamo = disponible_prestamo
