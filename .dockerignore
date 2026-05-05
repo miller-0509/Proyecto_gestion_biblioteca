@@ -3,7 +3,7 @@ venvclear/
 __pycache__/
 *.py[cod]
 *.pyo
-instance/
+
 *.sqlite
 logs/
 .git/
