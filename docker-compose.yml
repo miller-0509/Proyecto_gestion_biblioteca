@@ -5,7 +5,7 @@ services:
     build: .
     container_name: biblioteca_app
     ports:
-      - "81:81"
+      - "81:8000"
     environment:
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY:-clave-super-secreta-cambiar-en-produccion}
@@ -17,7 +17,7 @@ services:
       - log_data:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:81/')\" || exit 1"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/')\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
