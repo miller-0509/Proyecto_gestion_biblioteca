@@ -19,4 +19,4 @@ RUN mkdir -p instance logs
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python init_db.py && gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 120 run:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "run:app"]
