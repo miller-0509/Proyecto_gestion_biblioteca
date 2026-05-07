@@ -11,7 +11,7 @@ login_manager = LoginManager()
 csrf = CSRFProtect()
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=[],
     storage_uri="memory://",
 )
 
@@ -84,6 +84,11 @@ def create_app(config_class=None):
     app.register_blueprint(libros.bp)
     app.register_blueprint(prestamos_libros.bp)
     app.register_blueprint(usuarios.bp)
+
+@app.route("/health")
+@limiter.exempt
+def health():
+    return {"status": "healthy"}, 200
 
 
     @app.errorhandler(404)
