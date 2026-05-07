@@ -5,10 +5,12 @@ from datetime import datetime, timezone, timedelta
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from werkzeug.exceptions import HTTPException
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 csrf = CSRFProtect()
+
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=[],
@@ -22,6 +24,7 @@ def create_app(config_class=None):
     if config_class is None:
         from config import get_config
         config_class = get_config()
+
     app.config.from_object(config_class)
 
     # ── Extensiones ────────────────────────────────────────────────
@@ -29,6 +32,12 @@ def create_app(config_class=None):
     login_manager.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
+
+    # ── Health Check ───────────────────────────────────────────────
+    @app.route("/health")
+    @limiter.exempt
+    def health():
+        return {"status": "healthy"}, 200
 
     # Eximir /logout de CSRF para sendBeacon (POST al cerrar pestaña)
     from app.routes.auth import bp as auth_bp
@@ -50,34 +59,51 @@ def create_app(config_class=None):
     # Agregar función 'now' al contexto global de Jinja
     @app.context_processor
     def inject_now():
-        return {'now': lambda: datetime.now(timezone.utc).replace(tzinfo=None)}
+        return {
+            'now': lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+        }
 
-    # Auto-logout si la cuenta del usuario fue desactivada/bloqueada durante la sesión
+    # Auto-logout si la cuenta fue desactivada
     @app.before_request
     def check_user_active():
         if current_user.is_authenticated and not current_user.is_active:
             logout_user()
+
             from flask import flash, redirect, url_for
-            flash('Tu cuenta ha sido desactivada. Contacta al administrador.', 'warning')
+
+            flash(
+                'Tu cuenta ha sido desactivada. Contacta al administrador.',
+                'warning'
+            )
+
             return redirect(url_for('auth.login'))
 
-    # Sesión NO permanente — expira al cerrar navegador + timeout de 30 min como respaldo
+    # Sesión no permanente
     @app.before_request
     def configure_session():
         from flask import session
+
         session.permanent = False
         app.permanent_session_lifetime = timedelta(minutes=30)
 
-    # Limpieza de sesión de BD al finalizar request (sin commit automático)
+    # Limpieza segura de sesión DB
     @app.teardown_appcontext
     def shutdown_session(exception=None):
-        """Cierra la sesión de BD de forma segura."""
         if exception:
             db.session.rollback()
+
         db.session.remove()
 
-    #Blueprints
-    from app.routes import auth, equipos, prestamos, libros, prestamos_libros, usuarios
+    # ── Blueprints ─────────────────────────────────────────────────
+    from app.routes import (
+        auth,
+        equipos,
+        prestamos,
+        libros,
+        prestamos_libros,
+        usuarios
+    )
+
     app.register_blueprint(auth.bp)
     app.register_blueprint(equipos.bp)
     app.register_blueprint(prestamos.bp)
@@ -85,24 +111,40 @@ def create_app(config_class=None):
     app.register_blueprint(prestamos_libros.bp)
     app.register_blueprint(usuarios.bp)
 
-@app.route("/health")
-@limiter.exempt
-def health():
-    return {"status": "healthy"}, 200
-
-
+    # ── Error Handlers ─────────────────────────────────────────────
     @app.errorhandler(404)
     def not_found(e):
-        return render_template('errors/404.html') if app.debug else ({"error": "Página no encontrada"}, 404)
+        if app.debug:
+            return render_template('errors/404.html')
+
+        return {"error": "Página no encontrada"}, 404
 
     @app.errorhandler(429)
     def ratelimit_handler(e):
-        app.logger.warning('Rate limit excedido: %s', e.description)
-        return {"error": "Demasiadas solicitudes. Intenta de nuevo más tarde."}, 429
+        app.logger.warning(
+            'Rate limit excedido: %s',
+            e.description
+        )
+
+        return {
+            "error": "Demasiadas solicitudes. Intenta de nuevo más tarde."
+        }, 429
 
     @app.errorhandler(Exception)
     def handle_error(e):
-        app.logger.error('Error no manejado: %s', str(e), exc_info=True)
-        return {"error": "Ha ocurrido un error interno. Contacta al administrador."}, 500
+
+        # Evita convertir errores HTTP normales en 500
+        if isinstance(e, HTTPException):
+            return e
+
+        app.logger.error(
+            'Error no manejado: %s',
+            str(e),
+            exc_info=True
+        )
+
+        return {
+            "error": "Ha ocurrido un error interno. Contacta al administrador."
+        }, 500
 
     return app
