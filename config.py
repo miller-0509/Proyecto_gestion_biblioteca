@@ -16,14 +16,14 @@ class Config:
 
     database_url = os.getenv("DATABASE_URL")
 
-if database_url and database_url.startswith("postgres://"):
-    database_url = database_url.replace(
-        "postgres://",
-        "postgresql://",
-        1
-    )
+    if database_url and database_url.startswith("postgres://"):
+        database_url = database_url.replace(
+            "postgres://",
+            "postgresql://",
+            1
+        )
 
-SQLALCHEMY_DATABASE_URI = database_url
+    SQLALCHEMY_DATABASE_URI = database_url
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -33,7 +33,6 @@ SQLALCHEMY_DATABASE_URI = database_url
 
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_DURATION = 3600  # 1 hora
-
 
 class DevelopmentConfig(Config):
     """Configuración para desarrollo local."""
