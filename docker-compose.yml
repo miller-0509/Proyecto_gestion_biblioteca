@@ -11,20 +11,14 @@ services:
       - SECRET_KEY=${SECRET_KEY:-clave-super-secreta-cambiar-en-produccion}
       - DATABASE_URL=${DATABASE_URL}
     volumes:
-      # Persistir la base de datos SQLite fuera del contenedor
       - db_data:/app/instance
-      # Persistir logs
       - log_data:/app/logs
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/')\" || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
+    # ESTO ES LO NUEVO: Conecta el contenedor a la red de Coolify
+    networks:
+      - coolify
 
-volumes:
-  db_data:
-    driver: local
-  log_data:
-    driver: local
+# DEFINIR LA RED EXTERNA
+networks:
+  coolify:
+    external: true
