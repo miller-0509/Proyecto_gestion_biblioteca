@@ -7,7 +7,7 @@ load_dotenv()
 class Config:
     """Configuración base compartida."""
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-cambiar-en-produccion-obligatorio')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///almacendb.sqlite')
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # ── Seguridad de cookies ──────────────────────────────────────
