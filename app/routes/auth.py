@@ -19,16 +19,23 @@ def login():
 
         usuario = Usuario.query.filter_by(correo=correo).first()
 
-        # Validación unificada: no revelar qué falló (anti-enumeración)
-        if usuario is None or not usuario.check_password(password) or usuario.estado != 'activo':
-            current_app.logger.warning('Intento de login fallido para correo: %s desde IP: %s', correo, request.remote_addr)
-            flash('Credenciales inválidas.', 'danger')
-            return render_template('login.html', correo=correo)
+        # Validación detallada para debugging
+        if usuario is None:
+            current_app.logger.warning('Login fallido: Usuario no encontrado (%s) desde IP: %s', correo, request.remote_addr)
+        elif not usuario.check_password(password):
+            current_app.logger.warning('Login fallido: Contraseña incorrecta para %s desde IP: %s', correo, request.remote_addr)
+        elif not usuario.is_active: # Usamos la property is_active del modelo
+            current_app.logger.warning('Login fallido: Cuenta inactiva/bloqueada para %s (Estado: %s)', correo, usuario.estado)
+        else:
+            # Si pasa todas las validaciones
+            login_user(usuario, remember=False)
+            current_app.logger.info('Login exitoso: %s (ID: %s)', usuario.correo, usuario.id_usuario)
+            flash(f'¡Bienvenido, {usuario.nombres}!', 'success')
+            return redirect(url_for('auth.dashboard'))
 
-        login_user(usuario, remember=False)
-        current_app.logger.info('Login exitoso: %s (ID: %s)', usuario.correo, usuario.id_usuario)
-        flash(f'¡Bienvenido, {usuario.nombres}!', 'success')
-        return redirect(url_for('auth.dashboard'))
+        # Si llegó aquí, es porque falló alguna validación
+        flash('Credenciales inválidas o cuenta no autorizada.', 'danger')
+        return render_template('login.html', correo=correo)
 
     return render_template('login.html', correo='')
 

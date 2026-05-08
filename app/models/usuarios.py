@@ -23,7 +23,11 @@ class Usuario(db.Model, UserMixin):
     @property
     def is_active(self):
         """Flask-Login respeta este property: solo usuarios activos pueden autenticarse."""
-        return self.estado == 'activo'
+        if self.estado is None:
+            return False
+        # Manejo robusto de Enums (algunos drivers devuelven el objeto Enum, otros el string)
+        estado_str = self.estado.name if hasattr(self.estado, 'name') else str(self.estado)
+        return estado_str == 'activo'
 
     def get_id(self):
         return str(self.id_usuario)
