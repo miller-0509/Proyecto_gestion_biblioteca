@@ -8,7 +8,6 @@ from app.models.prestamos import Prestamo
 from app.models.libros import Libro
 from app.models.prestamos_libros import PrestamoLibro
 import os
-from flask_migrate import Migrate
 
 app = create_app()
 
