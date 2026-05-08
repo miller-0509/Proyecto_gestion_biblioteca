@@ -15,7 +15,7 @@ class Prestamo(db.Model):
     fecha_devolucion_esperada = db.Column(db.DateTime, nullable=True)
     fecha_devolucion_real = db.Column(db.DateTime, nullable=True)
     
-    estado = db.Column(db.Enum('pendiente', 'aceptado', 'rechazado', 'devuelto'), default='pendiente')
+    estado = db.Column(db.Enum('pendiente', 'aceptado', 'rechazado', 'devuelto', name='estado_prestamo'), default='pendiente')
     razon_rechazo = db.Column(db.String(255), nullable=True)
     observaciones = db.Column(db.Text, nullable=True)
     
