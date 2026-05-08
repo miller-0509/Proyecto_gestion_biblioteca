@@ -9,16 +9,34 @@ services:
     environment:
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY:-clave-super-secreta-cambiar-en-produccion}
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://admin:12345678Ab@postgres_db:5432/master_db
+    depends_on:
+      - postgres_db
     volumes:
       - db_data:/app/instance
       - log_data:/app/logs
     restart: unless-stopped
-    # ESTO ES LO NUEVO: Conecta el contenedor a la red de Coolify
     networks:
       - coolify
 
-# DEFINIR LA RED EXTERNA
+  postgres_db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=12345678Ab
+      - POSTGRES_DB=master_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - coolify
+
+volumes:
+  db_data:
+  log_data:
+  postgres_data:
+
 networks:
   coolify:
     external: true
