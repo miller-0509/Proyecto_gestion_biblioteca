@@ -9,7 +9,7 @@ services:
     environment:
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY:-clave-super-secreta-cambiar-en-produccion}
-      - DATABASE_URL=sqlite:///almacendb.sqlite
+      - DATABASE_URL=${DATABASE_URL}
     volumes:
       # Persistir la base de datos SQLite fuera del contenedor
       - db_data:/app/instance
