@@ -3,8 +3,11 @@ from app import create_app, db
 app = create_app()
 
 with app.app_context():
-    db.create_all(checkfirst=True)
-    print("[OK] Base de datos inicializada correctamente.")
+    try:
+        db.create_all()
+        print("[OK] Base de datos inicializada correctamente.")
+    except Exception as e:
+        print(f"[WARN] db.create_all() omitido (probablemente ya existe): {e}")
 
 if __name__ == '__main__':
     import os
