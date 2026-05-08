@@ -34,6 +34,7 @@ class Config:
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_DURATION = 3600  # 1 hora
 
+
 class DevelopmentConfig(Config):
     """Configuración para desarrollo local."""
 
