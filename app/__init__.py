@@ -28,6 +28,7 @@ def create_app(config_class=None):
         config_class = get_config()
 
     app.config.from_object(config_class)
+    print("DATABASE URI:", app.config['SQLALCHEMY_DATABASE_URI'])
 
     # ── Extensiones ────────────────────────────────────────────────
     db.init_app(app)
