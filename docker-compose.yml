@@ -9,7 +9,7 @@ services:
     environment:
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY:-clave-super-secreta-cambiar-en-produccion}
-      - DATABASE_URL=postgresql://admin:12345678Ab@postgres_db:5432/master_db
+      - DATABASE_URL=postgresql://admin:12345678Ab@postgres_db:5435/master_db
     depends_on:
       - postgres_db
     volumes:
