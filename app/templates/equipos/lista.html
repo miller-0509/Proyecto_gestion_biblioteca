@@ -178,34 +178,7 @@
                     {% endif %}
                   </div>
 
-                  {% if current_user.rol == 'administrador' %}
-                  <!-- Modal de Confirmación de Eliminación -->
-                  <div class="modal fade" id="deleteModalEquipo{{ equipo.id_equipo }}" tabindex="-1" aria-labelledby="deleteModalLabelEquipo{{ equipo.id_equipo }}" aria-hidden="true">
-                      <div class="modal-dialog modal-dialog-centered">
-                          <div class="modal-content border-0 shadow">
-                              <div class="modal-header border-0 pb-0">
-                                  <h5 class="modal-title" id="deleteModalLabelEquipo{{ equipo.id_equipo }}">
-                                    <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar Eliminación
-                                  </h5>
-                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                              </div>
-                              <div class="modal-body text-start pt-3">
-                                  <p>¿Estás seguro de que deseas eliminar el equipo <strong>{{ equipo.nombre }}</strong>?</p>
-                                  <p class="text-muted small mb-0">Esta acción no se puede deshacer y podría afectar el historial si tiene préstamos.</p>
-                              </div>
-                              <div class="modal-footer border-0 pt-0">
-                                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                  <form action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" method="POST" class="d-inline">
-                                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                      <button type="submit" class="btn btn-danger">
-                                        <i class="bi bi-trash me-1"></i>Eliminar Equipo
-                                      </button>
-                                  </form>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-                  {% endif %}
+
                 </td>
               </tr>
             {% endfor %}
@@ -272,6 +245,37 @@
       {% endif %}
     </ul>
   </nav>
+  {% endif %}
+
+  <!-- Modales de Confirmación de Eliminación (Fuera de la tabla para evitar problemas de z-index) -->
+  {% if current_user.rol == 'administrador' %}
+    {% for equipo in equipos.items %}
+    <div class="modal fade" id="deleteModalEquipo{{ equipo.id_equipo }}" tabindex="-1" aria-labelledby="deleteModalLabelEquipo{{ equipo.id_equipo }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title" id="deleteModalLabelEquipo{{ equipo.id_equipo }}">
+                      <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar Eliminación
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start pt-3">
+                    <p>¿Estás seguro de que deseas eliminar el equipo <strong>{{ equipo.nombre }}</strong>?</p>
+                    <p class="text-muted small mb-0">El equipo será ocultado del sistema (eliminación lógica).</p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form action="{{ url_for('equipos.eliminar_equipo', id_equipo=equipo.id_equipo) }}" method="POST" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-danger">
+                          <i class="bi bi-trash me-1"></i>Eliminar Equipo
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
   {% endif %}
 
 </div>
