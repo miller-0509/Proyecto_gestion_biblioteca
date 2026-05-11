@@ -145,10 +145,7 @@ h6 {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card-sena:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
-}
+
 
 .card-sena-header {
   padding: 1.25rem 1.5rem;
@@ -501,7 +498,6 @@ h6 {
 .btn-primary:hover {
   background: var(--mint-600);
   border-color: var(--mint-600);
-  transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(34, 197, 94, 0.3);
   color: #fff;
 }
@@ -559,7 +555,6 @@ h6 {
 
 .btn-danger:hover {
   background: #dc2626;
-  transform: translateY(-1px);
 }
 
 .btn-success {
