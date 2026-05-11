@@ -162,9 +162,12 @@ def eliminar_libro(id_libro):
     """Eliminar un libro"""
     libro = Libro.query.get_or_404(id_libro)
 
-    # Fix 6: No eliminar si tiene préstamos activos
-    if libro.tiene_prestamo_activo:
-        flash(f'No se puede eliminar "{libro.titulo}": tiene préstamos activos en curso.', 'danger')
+    # Validación 2: No eliminar si tiene historial (PostgreSQL FK constraint)
+    from app.models.prestamos_libros import PrestamoLibro
+    historial = PrestamoLibro.query.filter_by(id_libro=id_libro).first()
+    
+    if historial:
+        flash(f'No se puede eliminar "{libro.titulo}": tiene historial de préstamos registrados. Para mantener la integridad de la biblioteca, te recomendamos editar el libro y cambiar su estado a "Dañado" o "Inactivo".', 'warning')
         return redirect(url_for('libros.lista_libros'))
 
     titulo = libro.titulo

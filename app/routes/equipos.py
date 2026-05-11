@@ -195,9 +195,14 @@ def eliminar_equipo(id_equipo):
     """Eliminar un equipo"""
     equipo = Equipo.query.get_or_404(id_equipo)
 
-    # Fix 6: No eliminar si tiene préstamos activos
+    # Validación 1: No eliminar si tiene préstamos activos
     if equipo.tiene_prestamo_activo:
         flash(f'No se puede eliminar "{equipo.nombre}": tiene préstamos activos en curso.', 'danger')
+        return redirect(url_for('equipos.lista_equipos'))
+
+    # Validación 2: No eliminar si tiene historial (PostgreSQL FK constraint)
+    if equipo.tiene_historial:
+        flash(f'No se puede eliminar "{equipo.nombre}": tiene historial de préstamos antiguos. Para mantener la integridad de los datos, considera marcarlo como "Dañado" o "Inactivo".', 'warning')
         return redirect(url_for('equipos.lista_equipos'))
 
     nombre = equipo.nombre

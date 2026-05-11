@@ -27,6 +27,12 @@ class Libro(db.Model):
             )
         ).scalar()
 
+    @property
+    def tiene_historial(self):
+        """Verifica si el libro tiene cualquier registro de préstamo (activo o pasado)"""
+        from app.models.prestamos_libros import PrestamoLibro
+        return db.session.query(PrestamoLibro).filter_by(id_libro=self.id_libro).first() is not None
+
     def __repr__(self):
         return f'<Libro {self.titulo}>'
 

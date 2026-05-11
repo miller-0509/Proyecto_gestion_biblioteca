@@ -32,6 +32,12 @@ class Equipo(db.Model):
             )
         ).scalar()
 
+    @property
+    def tiene_historial(self):
+        """Verifica si el equipo tiene cualquier registro de préstamo (activo o pasado)"""
+        from app.models.prestamos import Prestamo
+        return db.session.query(Prestamo).filter_by(id_equipo=self.id_equipo).first() is not None
+
     def __repr__(self):
         return f'<Equipo {self.nombre}>'
 
