@@ -16,7 +16,7 @@ def lista_libros():
     estado = request.args.get('estado', '')
     genero = request.args.get('genero', '')
 
-    query = Libro.query
+    query = Libro.query.filter_by(eliminado=False)
 
     if busqueda:
         query = query.filter(
@@ -162,27 +162,16 @@ def eliminar_libro(id_libro):
     """Eliminar un libro"""
     libro = Libro.query.get_or_404(id_libro)
 
-    # Validación 2: No eliminar si tiene historial (PostgreSQL FK constraint)
-    from app.models.prestamos_libros import PrestamoLibro
-    historial = PrestamoLibro.query.filter_by(id_libro=id_libro).first()
-    
-    if historial:
-        flash(f'No se puede eliminar "{libro.titulo}": tiene historial de préstamos registrados. Para mantener la integridad de la biblioteca, te recomendamos editar el libro y cambiar su estado a "Dañado" o "Inactivo".', 'warning')
-        return redirect(url_for('libros.lista_libros'))
-
     titulo = libro.titulo
     try:
-        db.session.delete(libro)
+        # Eliminación lógica
+        libro.eliminado = True
         db.session.commit()
         flash(f'Libro "{titulo}" eliminado exitosamente.', 'success')
     except Exception as e:
         db.session.rollback()
-        # Verificar si es un error de integridad (llave foránea)
-        if "foreign key constraint" in str(e).lower() or "viola la llave foránea" in str(e).lower():
-            flash(f'No se puede eliminar "{titulo}": tiene historial de préstamos asociados. Considera cambiar su estado a "Dañado" o "Mantenimiento".', 'warning')
-        else:
-            flash(f'Error al intentar eliminar el libro: {str(e)}', 'danger')
-            current_app.logger.error(f"Error al eliminar libro {id_libro}: {str(e)}")
+        flash(f'Error al intentar eliminar el libro: {str(e)}', 'danger')
+        current_app.logger.error(f"Error al eliminar libro {id_libro}: {str(e)}")
             
     return redirect(url_for('libros.lista_libros'))
 
@@ -201,6 +190,7 @@ def api_libros_disponibles():
     """API para obtener libros disponibles para préstamo (usado por JS)"""
     libros = Libro.query.filter_by(
         estado='disponible',
-        disponible_prestamo=True
+        disponible_prestamo=True,
+        eliminado=False
     ).all()
     return jsonify([libro.to_dict() for libro in libros])

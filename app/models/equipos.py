@@ -20,6 +20,7 @@ class Equipo(db.Model):
     disponible_prestamo = db.Column(db.Boolean, default=True)  # ¿Disponible para préstamo?
     tiempo_max_prestamo = db.Column(db.Integer)  # Tiempo máximo de préstamo en días
     descripcion         = db.Column(db.Text)  # Descripción adicional
+    eliminado           = db.Column(db.Boolean, default=False) # Eliminación lógica
 
     @property
     def tiene_prestamo_activo(self):

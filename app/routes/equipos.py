@@ -18,7 +18,7 @@ def lista_equipos():
     estado = request.args.get('estado', '')
     tipo = request.args.get('tipo', '')
 
-    query = Equipo.query
+    query = Equipo.query.filter_by(eliminado=False)
 
     if busqueda:
         query = query.filter(
@@ -207,17 +207,14 @@ def eliminar_equipo(id_equipo):
 
     nombre = equipo.nombre
     try:
-        db.session.delete(equipo)
+        # Eliminación lógica
+        equipo.eliminado = True
         db.session.commit()
         flash(f'Equipo "{nombre}" eliminado exitosamente.', 'success')
     except Exception as e:
         db.session.rollback()
-        # Verificar si es un error de integridad (llave foránea)
-        if "foreign key constraint" in str(e).lower() or "viola la llave foránea" in str(e).lower():
-            flash(f'No se puede eliminar "{nombre}": tiene historial de préstamos asociados. Considera cambiar su estado a "Dañado" o "Mantenimiento".', 'warning')
-        else:
-            flash(f'Error al intentar eliminar el equipo: {str(e)}', 'danger')
-            current_app.logger.error(f"Error al eliminar equipo {id_equipo}: {str(e)}")
+        flash(f'Error al intentar eliminar el equipo: {str(e)}', 'danger')
+        current_app.logger.error(f"Error al eliminar equipo {id_equipo}: {str(e)}")
             
     return redirect(url_for('equipos.lista_equipos'))
 
@@ -238,6 +235,7 @@ def api_equipos_disponibles():
     """API para obtener equipos disponibles para préstamo (usado por JS)"""
     equipos = Equipo.query.filter_by(
         estado='disponible',
-        disponible_prestamo=True
+        disponible_prestamo=True,
+        eliminado=False
     ).all()
     return jsonify([equipo.to_dict() for equipo in equipos])
