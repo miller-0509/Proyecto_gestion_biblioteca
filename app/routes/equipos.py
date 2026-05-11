@@ -200,10 +200,6 @@ def eliminar_equipo(id_equipo):
         flash(f'No se puede eliminar "{equipo.nombre}": tiene préstamos activos en curso.', 'danger')
         return redirect(url_for('equipos.lista_equipos'))
 
-    # Validación 2: No eliminar si tiene historial (PostgreSQL FK constraint)
-    if equipo.tiene_historial:
-        flash(f'No se puede eliminar "{equipo.nombre}": tiene historial de préstamos antiguos. Para mantener la integridad de los datos, considera marcarlo como "Dañado" o "Inactivo".', 'warning')
-        return redirect(url_for('equipos.lista_equipos'))
 
     nombre = equipo.nombre
     try:
