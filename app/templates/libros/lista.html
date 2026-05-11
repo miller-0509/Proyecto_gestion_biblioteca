@@ -60,10 +60,10 @@
         </div>
         <div class="col-md-3">
           <label class="form-label small">Género</label>
-          <select name="tipo" class="form-select">
-            <option value="">Todos los tipos</option>
-            {% for t in tipos %}
-              <option value="{{ t[0] }}" {% if tipo == t[0] %}selected{% endif %}>{{ t[0] }}</option>
+          <select name="genero" class="form-select">
+            <option value="">Todos los géneros</option>
+            {% for g in generos %}
+              <option value="{{ g[0] }}" {% if genero == g[0] %}selected{% endif %}>{{ g[0] }}</option>
             {% endfor %}
           </select>
         </div>
@@ -72,7 +72,7 @@
             <i class="bi bi-search"></i>
           </button>
         </div>
-        {% if busqueda or estado or tipo %}
+        {% if busqueda or estado or genero %}
         <div class="col-12">
           <a href="{{ url_for('libros.lista_libros') }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
@@ -110,7 +110,7 @@
                     <strong>{{ libro.titulo }}</strong>
                     {% if libro.autor %}
                       <br>
-                      <small class="text-muted">{{ libro.autor }} {% if False %}{% endif %}</small>
+                      <small class="text-muted">{{ libro.autor }}</small>
                     {% endif %}
                   </div>
                 </td>
@@ -208,12 +208,12 @@
     <ul class="pagination">
       {% if libros.has_prev %}
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('libros.lista_libros', page=1, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+          <a class="page-link" href="{{ url_for('libros.lista_libros', page=1, busqueda=busqueda, estado=estado, genero=genero) }}">
             <i class="bi bi-chevron-bar-left"></i>
           </a>
         </li>
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('libros.lista_libros', page=libros.prev_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+          <a class="page-link" href="{{ url_for('libros.lista_libros', page=libros.prev_num, busqueda=busqueda, estado=estado, genero=genero) }}">
             <i class="bi bi-chevron-left"></i>
           </a>
         </li>
@@ -222,7 +222,7 @@
       {% for page_num in libros.iter_pages(left_edge=1, left_margin=1, right_margin=1, right_edge=1) %}
         {% if page_num %}
           <li class="page-item {% if page_num == libros.page %}active{% endif %}">
-            <a class="page-link" href="{{ url_for('libros.lista_libros', page=page_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+            <a class="page-link" href="{{ url_for('libros.lista_libros', page=page_num, busqueda=busqueda, estado=estado, genero=genero) }}">
               {{ page_num }}
             </a>
           </li>
@@ -233,12 +233,12 @@
 
       {% if libros.has_next %}
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('libros.lista_libros', page=libros.next_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+          <a class="page-link" href="{{ url_for('libros.lista_libros', page=libros.next_num, busqueda=busqueda, estado=estado, genero=genero) }}">
             <i class="bi bi-chevron-right"></i>
           </a>
         </li>
         <li class="page-item">
-          <a class="page-link" href="{{ url_for('libros.lista_libros', page=libros.pages, busqueda=busqueda, estado=estado, tipo=tipo) }}">
+          <a class="page-link" href="{{ url_for('libros.lista_libros', page=libros.pages, busqueda=busqueda, estado=estado, genero=genero) }}">
             <i class="bi bi-chevron-bar-right"></i>
           </a>
         </li>
