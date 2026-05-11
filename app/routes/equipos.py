@@ -201,9 +201,19 @@ def eliminar_equipo(id_equipo):
         return redirect(url_for('equipos.lista_equipos'))
 
     nombre = equipo.nombre
-    db.session.delete(equipo)
-    db.session.commit()
-    flash(f'Equipo "{nombre}" eliminado exitosamente.', 'success')
+    try:
+        db.session.delete(equipo)
+        db.session.commit()
+        flash(f'Equipo "{nombre}" eliminado exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        # Verificar si es un error de integridad (llave foránea)
+        if "foreign key constraint" in str(e).lower() or "viola la llave foránea" in str(e).lower():
+            flash(f'No se puede eliminar "{nombre}": tiene historial de préstamos asociados. Considera cambiar su estado a "Dañado" o "Mantenimiento".', 'warning')
+        else:
+            flash(f'Error al intentar eliminar el equipo: {str(e)}', 'danger')
+            current_app.logger.error(f"Error al eliminar equipo {id_equipo}: {str(e)}")
+            
     return redirect(url_for('equipos.lista_equipos'))
 
 

@@ -168,9 +168,19 @@ def eliminar_libro(id_libro):
         return redirect(url_for('libros.lista_libros'))
 
     titulo = libro.titulo
-    db.session.delete(libro)
-    db.session.commit()
-    flash(f'Libro "{titulo}" eliminado exitosamente.', 'success')
+    try:
+        db.session.delete(libro)
+        db.session.commit()
+        flash(f'Libro "{titulo}" eliminado exitosamente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        # Verificar si es un error de integridad (llave foránea)
+        if "foreign key constraint" in str(e).lower() or "viola la llave foránea" in str(e).lower():
+            flash(f'No se puede eliminar "{titulo}": tiene historial de préstamos asociados. Considera cambiar su estado a "Dañado" o "Mantenimiento".', 'warning')
+        else:
+            flash(f'Error al intentar eliminar el libro: {str(e)}', 'danger')
+            current_app.logger.error(f"Error al eliminar libro {id_libro}: {str(e)}")
+            
     return redirect(url_for('libros.lista_libros'))
 
 # ── Ver Detalles del Libro ─────────────────────────────────────────────────
