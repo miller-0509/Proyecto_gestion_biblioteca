@@ -27,12 +27,12 @@ def create_admin(nombres, apellidos, correo, password):
             db.session.commit()
             
             print("\n" + "="*40)
-            print("🚀 ADMINISTRADOR CREADO EXITOSAMENTE")
+            print("ADMINISTRADOR CREADO EXITOSAMENTE")
             print("="*40)
-            print(f"👤 Nombre:     {nombres} {apellidos}")
-            print(f"📧 Correo:     {correo}")
-            print(f"🔑 Contraseña: {password}")
-            print(f"🛡️ Rol:        Administrador")
+            print(f"Nombre:     {nombres} {apellidos}")
+            print(f"Correo:     {correo}")
+            print(f"Contrasena: {password}")
+            print(f"Rol:        Administrador")
             print("="*40)
             print("\nYa puedes iniciar sesión en la plataforma.")
             return True
