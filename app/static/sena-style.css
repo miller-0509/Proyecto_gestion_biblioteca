@@ -781,18 +781,175 @@ code {
 }
 
 /* ---- RESPONSIVE ---- */
-@media (max-width: 768px) {
+
+/* Large tablets & below (≤992px) */
+@media (max-width: 991.98px) {
+  .container-sena {
+    max-width: 100%;
+  }
+
+  /* Navbar brand text: shorten on tablets */
+  .navbar-brand span {
+    font-size: 0.9rem;
+    max-width: 220px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+  }
+
+  /* Tables: allow scrolling instead of overflow */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Give action columns more breathing room */
+  .table th,
+  .table td {
+    white-space: nowrap;
+  }
+}
+
+/* Tablets & below (≤768px) */
+@media (max-width: 767.98px) {
   .login-box {
-    padding: 1.5rem;
-    margin: 0 1rem;
+    padding: 1.75rem 1.25rem;
+    margin: 0;
+    border-radius: 16px;
   }
 
   .card-sena {
     margin-bottom: 1rem;
+    border-radius: 12px;
+  }
+
+  .card-sena-body {
+    padding: 1rem;
   }
 
   .dashboard-card {
     padding: 1.25rem;
+    margin-bottom: 0;
+  }
+
+  /* Stack footer columns */
+  footer .col-md-6:last-child {
+    text-align: left !important;
+    margin-top: 0.5rem;
+  }
+
+  /* Navbar: compact brand */
+  .navbar-brand span {
+    font-size: 0.8rem;
+    max-width: 160px;
+  }
+
+  .sena-logo-img {
+    max-height: 36px;
+  }
+
+  /* Page section headers */
+  .row.mb-4 h2,
+  .row.mb-4 h3 {
+    font-size: 1.15rem;
+  }
+
+  /* Button groups: stack on small screens */
+  .d-md-flex.justify-content-md-between {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .d-md-flex.justify-content-md-end {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Improved touch targets */
+  .btn {
+    padding: 0.65rem 1rem;
+    min-height: 42px;
+  }
+
+  .btn-sm {
+    min-height: 36px;
+  }
+
+  /* Filter forms: full width inputs */
+  .card-sena .form-control,
+  .card-sena .form-select {
+    font-size: 1rem;
+  }
+
+  /* Pagination: compact */
+  .pagination .page-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Mobile (≤575px) */
+@media (max-width: 575.98px) {
+  main {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  .card-sena-header {
+    padding: 1rem;
+  }
+
+  /* Navbar: hide brand text, show only logo */
+  .navbar-brand span {
+    display: none;
+  }
+
+  .sena-logo-img {
+    max-height: 32px;
+  }
+
+  /* Table: hide less important columns on mobile */
+  .table .d-none-mobile {
+    display: none !important;
+  }
+
+
+
+  /* Login: center & full width */
+  .login-box {
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+  }
+
+  /* Dashboard cards */
+  .dashboard-card {
+    padding: 1rem;
+  }
+
+  .card-icon,
+  .dashboard-card-icon {
+    font-size: 1.75rem;
+  }
+
+  .dashboard-card h4 {
+    font-size: 0.95rem;
+  }
+
+  /* Alert text smaller on mobile */
+  .alert {
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Modal: full width on mobile */
+  .modal-dialog {
+    margin: 0.5rem;
+  }
+
+  /* Row action buttons: stack */
+  .d-flex.gap-2 {
+    flex-wrap: wrap;
   }
 }
 

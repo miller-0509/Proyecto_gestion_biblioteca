@@ -27,10 +27,20 @@
         body {
             display: flex;
             flex-direction: column;
-            background-color: var(--neutral-950);
         }
         main {
             flex: 1;
+        }
+        /* Responsive horizontal padding */
+        @media (max-width: 575.98px) {
+            .container-sena {
+                padding-right: 1rem !important;
+                padding-left: 1rem !important;
+            }
+            main {
+                padding-top: 1rem !important;
+                padding-bottom: 1rem !important;
+            }
         }
     </style>
 </head>
@@ -50,29 +60,15 @@
                 {% if messages %}
                     {% for category, message in messages %}
                         <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show {% if category == 'success' %}alert-sena{% endif %}" role="alert">
-                            <i class="bi bi-info-circle"></i>
+                            <i class="bi bi-{% if category == 'danger' or category == 'error' %}exclamation-triangle{% elif category == 'warning' %}exclamation-circle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
                             <span>{{ message }}</span>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                         </div>
                     {% endfor %}
                 {% endif %}
             {% endwith %}
 
-            <div class="row justify-content-center">
-                <div class="col-lg-12">
-                    <div class="card-sena">
-                        <div class="card-sena-header">
-                            <h2>
-                                <i class="bi bi-{{ block_icon | default('box') }} me-2"></i>
-                                {% block titulo_card %}{% endblock %}
-                            </h2>
-                        </div>
-                        <div class="card-sena-body">
-                            {% block content %}{% endblock %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% block content %}{% endblock %}
         </div>
     </main>
 
