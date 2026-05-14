@@ -7,6 +7,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.exceptions import HTTPException
 from flask_migrate import Migrate
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -28,6 +29,10 @@ def create_app(config_class=None):
         config_class = get_config()
 
     app.config.from_object(config_class)
+    
+    # Aplicar ProxyFix para despliegues tras proxies (Coolify, Nginx, Traefik)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    
     print("DATABASE URI:", app.config['SQLALCHEMY_DATABASE_URI'])
 
     # ── Extensiones ────────────────────────────────────────────────

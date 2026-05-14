@@ -127,31 +127,7 @@
             });
         });
     </script>
-    {% if current_user.is_authenticated %}
-    <script>
-        // Cerrar sesión al cerrar pestaña/navegador via sendBeacon
-        (function() {
-            var isNavigating = false;
-            
-            // Detectar navegación interna (links, forms)
-            document.addEventListener('click', function(e) {
-                var link = e.target.closest('a[href]');
-                if (link && !link.getAttribute('href').startsWith('#')) {
-                    isNavigating = true;
-                }
-            });
-            document.addEventListener('submit', function() {
-                isNavigating = true;
-            });
-
-            window.addEventListener('beforeunload', function() {
-                if (!isNavigating) {
-                    navigator.sendBeacon('/logout');
-                }
-            });
-        })();
-    </script>
-    {% endif %}
+    <!-- Script de navegación (eliminado auto-logout agresivo) -->
     {% block scripts %}{% endblock %}
 </body>
 </html>

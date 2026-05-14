@@ -31,8 +31,10 @@ def login():
             flash(f'Error: Cuenta inactiva (Estado: {usuario.estado}).', 'danger')
         else:
             # Si pasa todas las validaciones
+            from flask import session
+            session.clear() # Limpiar cualquier rastro de sesión previa
             login_user(usuario, remember=False)
-            current_app.logger.info('Login exitoso: %s (ID: %s)', usuario.correo, usuario.id_usuario)
+            current_app.logger.info('Login exitoso: %s (ID: %s, Rol: %s)', usuario.correo, usuario.id_usuario, usuario.rol)
             flash(f'¡Bienvenido, {usuario.nombres}!', 'success')
             return redirect(url_for('auth.dashboard'))
 
