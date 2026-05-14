@@ -24,7 +24,7 @@ def crear_usuario():
     if request.method == 'POST':
         nombres   = request.form.get('nombres', '').strip()
         apellidos = request.form.get('apellidos', '').strip()
-        correo    = request.form.get('correo', '').strip()
+        correo    = request.form.get('correo', '').strip().lower()
         password  = request.form.get('password', '')
         rol       = request.form.get('rol', '').strip()
         estado    = request.form.get('estado', 'activo').strip()
@@ -60,7 +60,7 @@ def editar_usuario(id_usuario):
     if request.method == 'POST':
         nombres   = request.form.get('nombres', '').strip()
         apellidos = request.form.get('apellidos', '').strip()
-        correo    = request.form.get('correo', '').strip()
+        correo    = request.form.get('correo', '').strip().lower()
         rol       = request.form.get('rol', '').strip()
         estado    = request.form.get('estado', '').strip()
         password  = request.form.get('password', '')

@@ -17,15 +17,15 @@ def login():
         correo   = request.form.get('correo', '').strip().lower()
         password = request.form.get('password', '')
 
+        # Búsqueda de usuario
         usuario = Usuario.query.filter_by(correo=correo).first()
 
-        # Validación detallada para debugging
         if usuario is None:
-            current_app.logger.warning('Login fallido: Usuario no encontrado (%s) desde IP: %s', correo, request.remote_addr)
+            current_app.logger.warning('Login fallido: Usuario no encontrado (%s)', correo)
         elif not usuario.check_password(password):
-            current_app.logger.warning('Login fallido: Contraseña incorrecta para %s desde IP: %s', correo, request.remote_addr)
-        elif not usuario.is_active: # Usamos la property is_active del modelo
-            current_app.logger.warning('Login fallido: Cuenta inactiva/bloqueada para %s (Estado: %s)', correo, usuario.estado)
+            current_app.logger.warning('Login fallido: Contraseña incorrecta para %s', correo)
+        elif not usuario.is_active: 
+            current_app.logger.warning('Login fallido: Cuenta inactiva para %s (Estado: %s)', correo, usuario.estado)
         else:
             # Si pasa todas las validaciones
             login_user(usuario, remember=False)

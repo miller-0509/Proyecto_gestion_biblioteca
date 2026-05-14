@@ -19,15 +19,24 @@ class Usuario(db.Model, UserMixin):
     rol             = db.Column(db.Enum('administrador', 'aprendiz', 'instructor', name='rol_usuario'), default='aprendiz')
     estado          = db.Column(db.Enum('activo', 'inactivo', 'bloqueado', name='estado_usuario'), default='activo')
     fecha_registro  = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    def __init__(self, **kwargs):
+        # Normalizar correo si está presente
+        if 'correo' in kwargs:
+            kwargs['correo'] = kwargs['correo'].strip().lower()
+        super(Usuario, self).__init__(**kwargs)
 
     @property
     def is_active(self):
         """Flask-Login respeta este property: solo usuarios activos pueden autenticarse."""
-        if self.estado is None:
+        if not self.estado:
             return False
-        # Manejo robusto de Enums (algunos drivers devuelven el objeto Enum, otros el string)
-        estado_str = self.estado.name if hasattr(self.estado, 'name') else str(self.estado)
-        return estado_str == 'activo'
+        
+        # Convertir a string de forma segura y normalizar para comparación
+        estado_str = str(self.estado).lower()
+        
+        # En algunos sistemas el string viene como 'estado_usuario.activo'
+        return 'activo' in estado_str
 
     def get_id(self):
         return str(self.id_usuario)

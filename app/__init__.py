@@ -44,8 +44,8 @@ def create_app(config_class=None):
         return {"status": "healthy"}, 200
 
     # Eximir /logout de CSRF para sendBeacon (POST al cerrar pestaña)
-    from app.routes.auth import bp as auth_bp
-    csrf.exempt(auth_bp)
+    from app.routes.auth import logout
+    csrf.exempt(logout)
 
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Debes iniciar sesión para acceder.'
