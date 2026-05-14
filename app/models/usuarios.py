@@ -16,8 +16,8 @@ class Usuario(db.Model, UserMixin):
     apellidos       = db.Column(db.String(100), nullable=False)
     correo          = db.Column(db.String(150), unique=True, nullable=False)
     password        = db.Column(db.String(255), nullable=False)
-    rol             = db.Column(db.Enum('administrador', 'aprendiz', 'instructor', name='rol_usuario'), default='aprendiz')
-    estado          = db.Column(db.Enum('activo', 'inactivo', 'bloqueado', name='estado_usuario'), default='activo')
+    rol             = db.Column(db.String(20), default='aprendiz')
+    estado          = db.Column(db.String(20), default='activo')
     fecha_registro  = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     def __init__(self, **kwargs):

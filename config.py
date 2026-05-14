@@ -28,8 +28,15 @@ class Config:
         )
 
     SQLALCHEMY_DATABASE_URI = database_url
-
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Optimización de conexiones DB (Pool)
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+        "pool_size": 10,
+        "max_overflow": 20,
+    }
 
     # ── Seguridad de cookies ──────────────────────────────────────
     SESSION_COOKIE_HTTPONLY = True
