@@ -8,7 +8,7 @@ bp = Blueprint('auth', __name__)
 
 # ── Login ──────────────────────────────────────────────────────────────────
 @bp.route('/', methods=['GET', 'POST'])
-@limiter.limit("5 per minute", methods=["POST"])
+@limiter.limit("50 per minute", methods=["POST"])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('auth.dashboard'))
@@ -22,10 +22,13 @@ def login():
 
         if usuario is None:
             current_app.logger.warning('Login fallido: Usuario no encontrado (%s)', correo)
+            flash('Error: Usuario no encontrado.', 'danger')
         elif not usuario.check_password(password):
             current_app.logger.warning('Login fallido: Contraseña incorrecta para %s', correo)
+            flash('Error: Contraseña incorrecta.', 'danger')
         elif not usuario.is_active: 
             current_app.logger.warning('Login fallido: Cuenta inactiva para %s (Estado: %s)', correo, usuario.estado)
+            flash(f'Error: Cuenta inactiva (Estado: {usuario.estado}).', 'danger')
         else:
             # Si pasa todas las validaciones
             login_user(usuario, remember=False)
@@ -33,8 +36,6 @@ def login():
             flash(f'¡Bienvenido, {usuario.nombres}!', 'success')
             return redirect(url_for('auth.dashboard'))
 
-        # Si llegó aquí, es porque falló alguna validación
-        flash('Credenciales inválidas o cuenta no autorizada.', 'danger')
         return render_template('login.html', correo=correo)
 
     return render_template('login.html', correo='')
