@@ -16,9 +16,7 @@ class Config:
 
     database_url = os.getenv("DATABASE_URL")
     
-    
-    print("ENV DATABASE_URL:", os.getenv("DATABASE_URL"))
-    print("ENV FLASK_ENV:", os.getenv("FLASK_ENV")) 
+
 
     if database_url and database_url.startswith("postgres://"):
         database_url = database_url.replace(

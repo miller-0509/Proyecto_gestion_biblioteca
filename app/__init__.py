@@ -33,7 +33,7 @@ def create_app(config_class=None):
     # Aplicar ProxyFix para despliegues tras proxies (Coolify, Nginx, Traefik)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
     
-    print("DATABASE URI:", app.config['SQLALCHEMY_DATABASE_URI'])
+    
 
     # ── Extensiones ────────────────────────────────────────────────
     db.init_app(app)
@@ -48,9 +48,7 @@ def create_app(config_class=None):
     def health():
         return {"status": "healthy"}, 200
 
-    # Eximir el blueprint de auth temporalmente para debug
-    from app.routes.auth import bp as auth_bp
-    csrf.exempt(auth_bp)
+    # CSRF activo en todos los blueprints (el login template ya envía csrf_token)
 
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Debes iniciar sesión para acceder.'
@@ -75,25 +73,24 @@ def create_app(config_class=None):
     # Auto-logout si la cuenta fue desactivada
     @app.before_request
     def check_user_active():
-        if current_user.is_authenticated and not current_user.is_active:
-            logout_user()
+        try:
+            if current_user.is_authenticated and not current_user.is_active:
+                logout_user()
 
-            from flask import flash, redirect, url_for
+                from flask import flash, redirect, url_for
 
-            flash(
-                'Tu cuenta ha sido desactivada. Contacta al administrador.',
-                'warning'
-            )
+                flash(
+                    'Tu cuenta ha sido desactivada. Contacta al administrador.',
+                    'warning'
+                )
 
-            return redirect(url_for('auth.login'))
+                return redirect(url_for('auth.login'))
+        except Exception as e:
+            # Evitar que un error de BD destruya la sesión del usuario
+            app.logger.warning('Error verificando estado de usuario: %s', str(e))
 
-    # Sesión no permanente
-    @app.before_request
-    def configure_session():
-        from flask import session
-
-        session.permanent = False
-        app.permanent_session_lifetime = timedelta(minutes=30)
+    # Configuración de sesión permanente con timeout de 30 minutos
+    app.permanent_session_lifetime = timedelta(minutes=30)
 
     # Limpieza segura de sesión DB
     @app.teardown_appcontext
