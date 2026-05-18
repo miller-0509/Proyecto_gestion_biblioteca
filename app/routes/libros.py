@@ -53,9 +53,20 @@ def crear_libro():
         genero = request.form.get('genero', '').strip()
         codigo_unico = request.form.get('codigo_unico', '').strip()
         ubicacion = request.form.get('ubicacion', '').strip()
+        fecha_compra_str = request.form.get('fecha_compra', '').strip()
+        proveedor = request.form.get('proveedor', '').strip()
+        responsable = request.form.get('responsable', '').strip()
         disponible_prestamo = request.form.get('disponible_prestamo') == 'on'
         tiempo_max_prestamo = request.form.get('tiempo_max_prestamo', '')
         descripcion = request.form.get('descripcion', '').strip()
+
+        fecha_compra = None
+        if fecha_compra_str:
+            from datetime import datetime
+            try:
+                fecha_compra = datetime.strptime(fecha_compra_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
 
         errors = Libro.validate_libro(titulo, autor, genero, codigo_unico)
         if errors:
@@ -70,6 +81,9 @@ def crear_libro():
             genero=genero,
             codigo_unico=codigo_unico,
             ubicacion=ubicacion or None,
+            fecha_compra=fecha_compra,
+            proveedor=proveedor or None,
+            responsable=responsable or None,
             disponible_prestamo=disponible_prestamo,
             descripcion=descripcion or None,
         )
@@ -108,9 +122,20 @@ def editar_libro(id_libro):
         codigo_unico = request.form.get('codigo_unico', '').strip()
         estado = request.form.get('estado', '').strip()
         ubicacion = request.form.get('ubicacion', '').strip()
+        fecha_compra_str = request.form.get('fecha_compra', '').strip()
+        proveedor = request.form.get('proveedor', '').strip()
+        responsable = request.form.get('responsable', '').strip()
         disponible_prestamo = request.form.get('disponible_prestamo') == 'on'
         tiempo_max_prestamo = request.form.get('tiempo_max_prestamo', '')
         descripcion = request.form.get('descripcion', '').strip()
+        
+        fecha_compra = None
+        if fecha_compra_str:
+            from datetime import datetime
+            try:
+                fecha_compra = datetime.strptime(fecha_compra_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
 
         # Validar que el código único sea único si cambió
         if codigo_unico != libro.codigo_unico:
@@ -133,6 +158,9 @@ def editar_libro(id_libro):
         
         libro.estado = estado
         libro.ubicacion = ubicacion or None
+        libro.fecha_compra = fecha_compra
+        libro.proveedor = proveedor or None
+        libro.responsable = responsable or None
         libro.disponible_prestamo = disponible_prestamo
         libro.descripcion = descripcion or None
 

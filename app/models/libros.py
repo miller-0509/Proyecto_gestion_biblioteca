@@ -26,6 +26,9 @@ class Libro(db.Model):
     estado              = db.Column(db.String(20), default='disponible')
     ubicacion           = db.Column(db.String(150))
     fecha_registro      = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    fecha_compra        = db.Column(db.Date)
+    proveedor           = db.Column(db.String(150))
+    responsable         = db.Column(db.String(150))
     disponible_prestamo = db.Column(db.Boolean, default=True)
     tiempo_max_prestamo = db.Column(db.Integer, default=15)  # 15 dias por defecto
     descripcion         = db.Column(db.Text)
@@ -63,6 +66,9 @@ class Libro(db.Model):
             'estado': self.estado,
             'ubicacion': self.ubicacion,
             'fecha_registro': self.fecha_registro.isoformat() if self.fecha_registro else None,
+            'fecha_compra': self.fecha_compra.isoformat() if self.fecha_compra else None,
+            'proveedor': self.proveedor,
+            'responsable': self.responsable,
             'disponible_prestamo': self.disponible_prestamo,
             'tiempo_max_prestamo': self.tiempo_max_prestamo,
             'descripcion': self.descripcion,
