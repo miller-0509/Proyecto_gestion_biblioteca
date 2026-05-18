@@ -1,55 +1,44 @@
-# 📚 Sistema de Gestión de Biblioteca
+# 📚 Sistema de Gestión de Biblioteca y Almacén SENA
 
-> Plataforma web para la administración de préstamos de libros y equipos tecnológicos, orientada a instituciones educativas.
+> Plataforma web para la administración profesional y centralizada de préstamos de libros y equipos tecnológicos, orientada a instituciones educativas, con una arquitectura sólida de control de accesos (RBAC).
 
 ---
 
 ## 📋 Descripción
 
-El **Sistema de Gestión de Biblioteca** es una aplicación web desarrollada con Flask que permite administrar de forma centralizada el préstamo de libros y equipos tecnológicos dentro de una institución educativa. El sistema diferencia entre roles de usuario (administrador, instructor y aprendiz), garantizando que cada actor tenga acceso únicamente a las funciones que le corresponden. Su objetivo principal es digitalizar y agilizar los procesos de solicitud, aprobación, seguimiento y devolución de recursos físicos.
+El **Sistema de Gestión de Biblioteca y Almacén** es una aplicación web empresarial desarrollada con Flask y PostgreSQL que permite administrar de forma centralizada el inventario y los préstamos físicos de una institución. 
+
+El sistema cuenta con un control de accesos robusto basado en 5 roles jerárquicos (Administrador, Bibliotecario, Almacenista, Instructor y Aprendiz), garantizando la seguridad en el backend y una interfaz dinámica en el frontend que se adapta a los privilegios de cada usuario. Su objetivo principal es digitalizar, asegurar y agilizar todos los procesos de solicitud, seguimiento y auditoría de recursos.
 
 ---
 
-## ✨ Funcionalidades
+## ✨ Funcionalidades Principales
 
-### 👥 Gestión de Usuarios
-- Registro, edición y eliminación de usuarios.
-- Roles disponibles: **Administrador**, **Instructor** y **Aprendiz**.
+### 👥 Gestión Avanzada de Usuarios y Roles (RBAC)
+- Jerarquía de 5 roles con permisos y límites estrictos:
+  - **Administrador**: Control total sobre todos los módulos y gestión de personal. Sin límites de préstamo.
+  - **Bibliotecario**: Gestión exclusiva de libros (aprobar, rechazar, devolver, cambiar estado). Límite de 5 préstamos. No ve equipos.
+  - **Almacenista**: Gestión exclusiva de equipos (aprobar, rechazar, devolver, cambiar estado). Límite de 5 préstamos. No ve libros.
+  - **Instructor**: Nivel usuario. Límite de 5 préstamos combinados.
+  - **Aprendiz**: Nivel usuario. Límite de 3 préstamos combinados.
+- Control dinámico de UI: El menú lateral, dashboard y botones de acción se ocultan/muestran según el rol de la sesión.
 - Control de estado por cuenta: `activo`, `inactivo` o `bloqueado`.
-- Contraseñas almacenadas con hash seguro (Werkzeug).
 
-### 📖 Gestión de Libros
-- Catálogo de libros con título, autor, género y código único.
-- Control de disponibilidad y tiempo máximo de préstamo.
-- Estados de libro: `disponible`, `prestado`, `mantenimiento` o `dañado`.
+### 🛡️ Seguridad y Autenticación
+- **Verificación de Correo (Mailing)**: Los aprendices e instructores deben verificar su correo (envío de token real usando Flask-Mail y suplantación SMTP) para iniciar sesión. El personal administrativo (Admin, Bibliotecario, Almacenista) está exento de este paso para agilizar operaciones.
+- **Recuperación de Contraseña**: Flujo profesional "¿Olvidaste tu contraseña?" con envío de correos, enlaces seguros generados criptográficamente (`itsdangerous`) y expiración por tiempo y uso.
+- Decoradores de backend (`@gestion_libros_required`, `@gestion_equipos_required`, `@admin_required`) para proteger rutas críticas a nivel del servidor.
 
-### 🖥️ Gestión de Equipos
-- Inventario de equipos tecnológicos (laptops, monitores, teclados, herramientas, etc.).
-- Registro detallado: número de serie, marca, modelo, proveedor, responsable y ubicación.
-- Control de disponibilidad y tiempo máximo de préstamo por equipo.
+### 📖 Gestión de Libros y 🖥️ Gestión de Equipos
+- Inventarios detallados (títulos, seriales, marcas, códigos únicos, responsables, ubicaciones).
+- **Gestión de Estados Manual y Excepciones**: El personal puede forzar cambios de estado por situaciones reales (`daño`, `mantenimiento`, `pérdida`, `baja`, `reparación`, `bloqueo temporal`, `recuperación`).
+- Registro histórico inmutable de todos los cambios de estado (auditoría).
 
-### 🔄 Préstamos de Equipos
-- Solicitud de préstamo por parte de aprendices e instructores.
+### 🔄 Sistema de Préstamos Inteligente
+- Límite estricto de **préstamos combinados activos** (suma de libros + equipos prestados/pendientes) según el rol.
 - Flujo completo: `pendiente` → `aceptado` / `rechazado` → `devuelto`.
-- Registro de fecha de solicitud, aprobación, devolución esperada y devolución real.
-- Solo el administrador puede aprobar, rechazar y confirmar devoluciones.
-- Validación de disponibilidad en tiempo real para evitar préstamos duplicados.
-
-### 📕 Préstamos de Libros
-- Solicitud y gestión independiente del préstamo de libros.
-- Mismo flujo de estados que los préstamos de equipos.
-- Historial completo de préstamos por libro y por usuario.
-
-### 🛡️ Control de Roles y Seguridad
-- Decorador `@admin_required` para proteger rutas sensibles en el backend.
-- Protección CSRF en todos los formularios mediante Flask-WTF.
-- Acceso a funciones administrativas restringido exclusivamente al rol `administrador`.
-- Redirección automática y mensajes de acceso denegado para usuarios no autorizados.
-
-### 🔐 Autenticación
-- Inicio y cierre de sesión seguros con Flask-Login.
-- Verificación de estado de cuenta en cada inicio de sesión.
-- Gestión de sesiones con clave secreta generada dinámicamente.
+- El sistema detecta automáticamente disponibilidades y previene "carreras de condiciones" o duplicados.
+- Historial transparente para los usuarios donde solo ven sus propios préstamos.
 
 ---
 
@@ -59,14 +48,12 @@ El **Sistema de Gestión de Biblioteca** es una aplicación web desarrollada con
 |---|---|---|
 | **Python** | 3.x | Lenguaje principal del backend |
 | **Flask** | 3.1.0 | Framework web |
-| **Flask-SQLAlchemy** | 3.1.1 | ORM para base de datos |
-| **Flask-Login** | 0.6.3 | Gestión de sesiones y autenticación |
-| **Flask-WTF** | - | Protección CSRF |
-| **Werkzeug** | 3.1.3 | Seguridad y utilidades web |
-| **SQLite** | - | Base de datos embebida |
-| **Jinja2** | - | Motor de plantillas HTML |
-| **HTML5 / CSS3** | - | Estructura y estilos del frontend |
-| **JavaScript** | - | Interactividad del cliente |
+| **PostgreSQL** | 16+ | Base de datos relacional robusta |
+| **Flask-SQLAlchemy** | 3.1.1 | ORM avanzado para consultas |
+| **Flask-Login** | 0.6.3 | Gestión de sesiones seguras |
+| **Flask-Mail** | - | Envío de correos (Verificaciones y Recuperaciones) |
+| **itsdangerous** | - | Tokens temporales criptográficos |
+| **Bootstrap / CSS Vanilla** | 5.3 | Interfaz dinámica y responsiva con estilos corporativos (SENA) |
 
 ---
 
@@ -75,50 +62,34 @@ El **Sistema de Gestión de Biblioteca** es una aplicación web desarrollada con
 ```
 Proyecto_gestion_biblioteca/
 │
-├── app/                          # Paquete principal de la aplicación
+├── app/                          
 │   ├── __init__.py               # Factory de la app (create_app)
-│   ├── decorators.py             # Decoradores personalizados (admin_required)
+│   ├── decorators.py             # Seguridad de rutas (@gestion_libros_required...)
+│   ├── email_service.py          # Lógica SMTP para envíos de correo
 │   │
-│   ├── models/                   # Modelos de base de datos (SQLAlchemy)
-│   │   ├── __init__.py
-│   │   ├── usuarios.py           # Modelo de Usuario
-│   │   ├── equipos.py            # Modelo de Equipo
-│   │   ├── libros.py             # Modelo de Libro
-│   │   ├── prestamos.py          # Modelo de Préstamo de Equipos
-│   │   └── prestamos_libros.py   # Modelo de Préstamo de Libros
+│   ├── models/                   # Definición de Tablas PostgreSQL
+│   │   ├── usuarios.py           # Usuario y conteo lógico de préstamos
+│   │   ├── equipos.py            # Equipos e Historial de Estados
+│   │   ├── libros.py             # Libros e Historial de Estados
+│   │   └── ...
 │   │
-│   ├── routes/                   # Blueprints y rutas de la aplicación
-│   │   ├── auth.py               # Login, registro y logout
-│   │   ├── usuarios.py           # CRUD de usuarios
-│   │   ├── equipos.py            # CRUD de equipos
-│   │   ├── libros.py             # CRUD de libros
-│   │   ├── prestamos.py          # Gestión de préstamos de equipos
-│   │   └── prestamos_libros.py   # Gestión de préstamos de libros
+│   ├── routes/                   # Controladores (MVC)
+│   │   ├── auth.py               # Login, Recuperación Password, Verificación
+│   │   └── ...
 │   │
-│   ├── templates/                # Plantillas HTML (Jinja2)
-│   │   ├── base.html             # Plantilla base con layout general
-│   │   ├── login.html            # Página de inicio de sesión
-│   │   ├── dashboard.html        # Panel principal
-│   │   ├── menu.html             # Menú de navegación
-│   │   ├── equipos/              # Vistas de equipos
-│   │   ├── libros/               # Vistas de libros
-│   │   ├── prestamos/            # Vistas de préstamos de equipos
-│   │   ├── prestamos_libros/     # Vistas de préstamos de libros
-│   │   └── usuarios/             # Vistas de usuarios
+│   ├── templates/                # UI (Jinja2 + Bootstrap)
+│   │   ├── dashboard.html        # Dinámico por Roles
+│   │   ├── menu.html             # Navbar y Sidebar con RBAC
+│   │   └── ...
 │   │
-│   └── static/                   # Archivos estáticos
-│       ├── sena-style.css        # Estilos principales del sistema
-│       ├── images/               # Imágenes del sistema
-│       └── img/                  # Recursos gráficos adicionales
+│   └── static/                   
+│       └── sena-style.css        # Estilos visuales
 │
-├── instance/                     # Archivos de instancia (BD generada)
-│   └── almacendb.sqlite          # Base de datos SQLite
-│
-├── config.py                     # Configuración de la aplicación
-├── run.py                        # Punto de entrada del servidor
-├── init_db.py                    # Script de inicialización de BD
-├── requirements.txt              # Dependencias del proyecto
-└── README.md                     # Documentación del proyecto
+├── config.py                     # Variables de entorno y DB URI
+├── update_enum.py                # Script de migración de tipos de Postgres
+├── init_db.py                    # Script de inicialización
+├── requirements.txt              # Dependencias
+└── README.md                     
 ```
 
 ---
@@ -127,104 +98,55 @@ Proyecto_gestion_biblioteca/
 
 ### Requisitos previos
 
-- Python 3.8 o superior instalado.
-- `pip` disponible en el sistema.
-- (Recomendado) Entorno virtual de Python.
+- Python 3.8 o superior.
+- PostgreSQL en ejecución local o en contenedor Docker.
+- Variables de entorno configuradas (Credenciales SMTP para correo, `DATABASE_URL` para PostgreSQL).
 
 ### Pasos de instalación
 
-**1. Clonar el repositorio**
+**1. Clonar el repositorio y Entorno Virtual**
 
 ```bash
 git clone https://github.com/tu-usuario/Proyecto_gestion_biblioteca.git
 cd Proyecto_gestion_biblioteca
-```
-
-**2. Crear y activar el entorno virtual**
-
-```bash
-# Crear entorno virtual
 python -m venv venv
-
-# Activar en Windows
-venv\Scripts\activate
-
-# Activar en Linux / macOS
-source venv/bin/activate
+# Activar: venv\Scripts\activate (Windows) o source venv/bin/activate (Linux/Mac)
 ```
 
-**3. Instalar las dependencias**
+**2. Instalar dependencias**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**4. Inicializar la base de datos**
+**3. Configurar Base de Datos PostgreSQL**
+
+Crea una base de datos en PostgreSQL e inicializa las tablas:
 
 ```bash
 python init_db.py
 ```
+*(Si agregas roles nuevos en el futuro, puedes usar `python update_enum.py` para actualizar la estructura de la base de datos).*
 
-**5. Ejecutar el servidor**
+**4. Ejecutar el servidor**
 
 ```bash
 python run.py
 ```
-
-**6. Abrir en el navegador**
-
-```
-http://localhost:81
-```
-
-> **Nota:** El servidor corre por defecto en el puerto `81`. Si el puerto está en uso, puedes modificarlo en `run.py`.
+Accede mediante el navegador a `http://localhost:81`.
 
 ---
 
-## 🖥️ Uso del sistema
+## 🚀 Próximos Pasos (Pendientes)
 
-### 👤 Usuario (Aprendiz / Instructor)
-
-1. Acceder al sistema mediante la página de inicio de sesión.
-2. Desde el **dashboard**, consultar el catálogo de libros y equipos disponibles.
-3. Solicitar un préstamo seleccionando el recurso deseado.
-4. Hacer seguimiento del estado de su solicitud: `pendiente`, `aceptado` o `rechazado`.
-5. Una vez devuelto el recurso, el historial quedará registrado.
-
-### 🔑 Administrador
-
-1. Iniciar sesión con una cuenta de rol `administrador`.
-2. Gestionar el catálogo de libros y equipos (agregar, editar, eliminar).
-3. Revisar las solicitudes de préstamo pendientes y aprobarlas o rechazarlas.
-4. **Confirmar la devolución** de recursos prestados (acción exclusiva del administrador).
-5. Administrar cuentas de usuario: registrar nuevos usuarios, cambiar roles y controlar estados de cuenta.
-6. Consultar el historial completo de todos los préstamos del sistema.
-
----
-
-## 🖼️ Capturas de pantalla
-
-> _Las siguientes capturas serán agregadas próximamente._
-
-| Vista | Descripción |
-|---|---|
-| ![Login](./app/static/images/screenshot-login.png) | Página de inicio de sesión |
-| ![Dashboard](./app/static/images/screenshot-dashboard.png) | Panel principal |
-| ![Préstamos](./app/static/images/screenshot-prestamos.png) | Gestión de préstamos |
-| ![Equipos](./app/static/images/screenshot-equipos.png) | Catálogo de equipos |
-
----
-
-## 🚀 Mejoras futuras
-
-- [ ] **Sistema de multas**: calcular y registrar multas automáticas por devoluciones tardías.
-- [ ] **Notificaciones por correo**: alertas automáticas al aprobar, rechazar o vencer el plazo de un préstamo.
-- [ ] **Dashboard con estadísticas**: gráficas de préstamos activos, recursos más solicitados e historial por período.
-- [ ] **Exportación de reportes**: generación de informes en PDF o Excel.
-- [ ] **Búsqueda y filtros avanzados**: en catálogos de libros, equipos e historial de préstamos.
-- [ ] **Mejoras de UI/UX**: diseño responsivo mejorado y soporte para modo oscuro.
-- [ ] **API REST**: exposición de endpoints para integración con otros sistemas institucionales.
-- [ ] **Autenticación de dos factores (2FA)**: para cuentas de administrador.
+- [x] **Roles y Permisos Múltiples**: Bibliotecarios y Almacenistas.
+- [x] **Recuperación de Contraseña Avanzada**.
+- [x] **Gestión Manual de Excepciones y Estados Físicos**.
+- [x] **Integración Real con Mailing**.
+- [x] **Migración a PostgreSQL**.
+- [ ] **Sistema de Notificaciones Automáticas**: Alertas de vencimiento de préstamos.
+- [ ] **Panel de Estadísticas (Reportes)**: Gráficas de préstamos mensuales, descargas a PDF/Excel reservadas para administración.
+- [ ] **Despliegue (Coolify/Docker)**: Configuración en entorno de producción.
 
 ---
 
@@ -232,6 +154,4 @@ http://localhost:81
 
 **Miller Capera**
 
----
-
-*Sistema desarrollado para la gestión eficiente de recursos bibliográficos y tecnológicos en entornos educativos.*
+*Sistema desarrollado para la gestión eficiente, segura e inteligente de recursos en entornos educativos.*
