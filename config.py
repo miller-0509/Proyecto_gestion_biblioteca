@@ -69,9 +69,9 @@ config_by_env = {
 
 
 def get_config():
-    """Retorna la configuración según FLASK_ENV (por defecto 'production' por seguridad)."""
+    """Retorna la configuración según FLASK_ENV (por defecto 'development' para facilitar desarrollo local)."""
 
-    env = os.environ.get('FLASK_ENV', 'production')
+    env = os.environ.get('FLASK_ENV', 'development')
 
     if env == 'production' and os.environ.get('SECRET_KEY') is None:
         raise ValueError(
