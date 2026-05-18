@@ -458,7 +458,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.775rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 1.15rem 1.25rem;
+  padding: 0.85rem 0.75rem;
   white-space: nowrap;
 }
 
@@ -473,7 +473,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .table tbody td {
   border-bottom: 1px solid var(--neutral-100);
-  padding: 1.15rem 1.25rem;
+  padding: 0.85rem 0.75rem;
   vertical-align: middle;
   font-size: 0.9rem;
 }
