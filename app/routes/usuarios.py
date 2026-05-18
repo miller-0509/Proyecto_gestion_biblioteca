@@ -101,23 +101,24 @@ def eliminar_usuario(id_usuario):
         flash('No puedes eliminar tu propia cuenta.', 'danger')
         return redirect(url_for('usuarios.lista_usuarios'))
         
-    # Fix #3: Solo bloquear eliminación si tiene préstamos ACTIVOS (pendiente/aceptado)
-    prestamos_activos = Prestamo.query.filter(
-        Prestamo.id_usuario == id_usuario,
-        Prestamo.estado.in_(['pendiente', 'aceptado'])
-    ).first()
-    libros_activos = PrestamoLibro.query.filter(
-        PrestamoLibro.id_usuario == id_usuario,
-        PrestamoLibro.estado.in_(['pendiente', 'aceptado'])
-    ).first()
-    
-    if prestamos_activos or libros_activos:
-        flash('No puedes eliminar al usuario porque tiene préstamos activos. Espera a que se devuelvan o cambia su estado a inactivo.', 'danger')
-        return redirect(url_for('usuarios.lista_usuarios'))
-
-    db.session.delete(usuario)
-    db.session.commit()
-    flash(f'Usuario {usuario.nombres} eliminado exitosamente.', 'success')
+    try:
+        # 1. Desvincular préstamos gestionados si el usuario era administrador (llave foránea anulable)
+        Prestamo.query.filter_by(id_administrador=id_usuario).update({Prestamo.id_administrador: None})
+        PrestamoLibro.query.filter_by(id_administrador=id_usuario).update({PrestamoLibro.id_administrador: None})
+        
+        # 2. Eliminar préstamos de equipos y libros del usuario (llave foránea no anulable)
+        Prestamo.query.filter_by(id_usuario=id_usuario).delete()
+        PrestamoLibro.query.filter_by(id_usuario=id_usuario).delete()
+        
+        # 3. Eliminar al usuario físicamente
+        db.session.delete(usuario)
+        db.session.commit()
+        
+        flash(f'Usuario {usuario.nombres} {usuario.apellidos} y todo su historial de préstamos fueron eliminados permanentemente.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ocurrió un error al eliminar el usuario: {str(e)}', 'danger')
+        
     return redirect(url_for('usuarios.lista_usuarios'))
 
 @bp.route('/historial/<int:id_usuario>')
