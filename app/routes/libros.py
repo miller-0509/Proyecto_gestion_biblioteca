@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app
 from flask_login import login_required, current_user
-from app.models.libros import Libro
+from app.models.libros import Libro, HistorialEstadoLibro
 from app import db
 from app.decorators import admin_required
 
@@ -181,7 +181,84 @@ def eliminar_libro(id_libro):
 def detalle_libro(id_libro):
     """Ver detalles de un libro"""
     libro = Libro.query.get_or_404(id_libro)
-    return render_template('libros/detalle.html', libro=libro)
+    
+    # Obtener historial de estados ordenado de más reciente a más antiguo
+    historial_estados = []
+    if current_user.rol == 'administrador':
+        historial_estados = HistorialEstadoLibro.query.filter_by(id_libro=id_libro).order_by(HistorialEstadoLibro.fecha.desc()).all()
+        
+    return render_template('libros/detalle.html', libro=libro, historial_estados=historial_estados)
+
+
+# ── Actualizar Estado (Manual) ──────────────────────────────────────────────
+@bp.route('/<int:id_libro>/estado', methods=['POST'])
+@login_required
+@admin_required
+def actualizar_estado(id_libro):
+    """Actualizar el estado del libro manualmente (Admin)"""
+    libro = Libro.query.get_or_404(id_libro)
+    
+    nuevo_estado = request.form.get('estado', '').strip()
+    observacion = request.form.get('observacion', '').strip()
+    
+    estados_permitidos = ['disponible', 'mantenimiento', 'dañado', 'perdido', 'eliminado']
+    
+    if not observacion:
+        flash('Debe proporcionar una observación para cambiar el estado.', 'danger')
+        return redirect(url_for('libros.lista_libros'))
+        
+    if nuevo_estado not in estados_permitidos:
+        flash('Estado inválido o no permitido manualmente.', 'danger')
+        return redirect(url_for('libros.lista_libros'))
+        
+    if nuevo_estado == 'disponible' and libro.tiene_prestamo_activo:
+        flash('No se puede cambiar a "disponible" porque el libro tiene préstamos activos.', 'danger')
+        return redirect(url_for('libros.lista_libros'))
+        
+    if nuevo_estado == 'eliminado' and libro.tiene_prestamo_activo:
+        flash('No se puede eliminar el libro porque tiene préstamos activos.', 'danger')
+        return redirect(url_for('libros.lista_libros'))
+        
+    estado_anterior = libro.estado
+    
+    if estado_anterior == nuevo_estado:
+        flash('El libro ya se encuentra en ese estado.', 'warning')
+        return redirect(url_for('libros.lista_libros'))
+        
+    try:
+        # Registrar en el historial
+        historial = HistorialEstadoLibro(
+            id_libro=libro.id_libro,
+            estado_anterior=estado_anterior,
+            estado_nuevo=nuevo_estado,
+            observacion=observacion,
+            id_administrador=current_user.id_usuario
+        )
+        db.session.add(historial)
+        
+        # Actualizar el libro
+        libro.estado = nuevo_estado
+        if nuevo_estado == 'eliminado':
+            libro.eliminado = True
+            
+        db.session.commit()
+        
+        current_app.logger.info(
+            'Estado libro actualizado manualmente: libro_id=%s, estado_anterior=%s, estado_nuevo=%s, admin_id=%s',
+            id_libro, estado_anterior, nuevo_estado, current_user.id_usuario
+        )
+        flash(f'Estado del libro actualizado a "{nuevo_estado}".', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error('Error al actualizar estado del libro %s: %s', id_libro, str(e))
+        flash('Ocurrió un error al actualizar el estado.', 'danger')
+        
+    # Redirect back to where the request came from (list or detail)
+    referrer = request.referrer
+    if referrer and 'libros/' in referrer and str(id_libro) in referrer:
+        return redirect(url_for('libros.detalle_libro', id_libro=id_libro))
+    return redirect(url_for('libros.lista_libros'))
 
 # ── API: Obtener libros disponibles ─────────────────────────────────────────
 @bp.route('/api/disponibles', methods=['GET'])

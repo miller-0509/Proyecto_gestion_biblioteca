@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app
 from flask_login import login_required, current_user
-from app.models.equipos import Equipo
+from app.models.equipos import Equipo, HistorialEstadoEquipo
 from app import db
 from app.decorators import admin_required
 
@@ -221,7 +221,84 @@ def eliminar_equipo(id_equipo):
 def detalle_equipo(id_equipo):
     """Ver detalles de un equipo (accesible para todos)"""
     equipo = Equipo.query.get_or_404(id_equipo)
-    return render_template('equipos/detalle.html', equipo=equipo)
+    
+    # Obtener historial de estados ordenado de más reciente a más antiguo
+    historial_estados = []
+    if current_user.rol == 'administrador':
+        historial_estados = HistorialEstadoEquipo.query.filter_by(id_equipo=id_equipo).order_by(HistorialEstadoEquipo.fecha.desc()).all()
+        
+    return render_template('equipos/detalle.html', equipo=equipo, historial_estados=historial_estados)
+
+
+# ── Actualizar Estado (Manual) ──────────────────────────────────────────────
+@bp.route('/<int:id_equipo>/estado', methods=['POST'])
+@login_required
+@admin_required
+def actualizar_estado(id_equipo):
+    """Actualizar el estado del equipo manualmente (Admin)"""
+    equipo = Equipo.query.get_or_404(id_equipo)
+    
+    nuevo_estado = request.form.get('estado', '').strip()
+    observacion = request.form.get('observacion', '').strip()
+    
+    estados_permitidos = ['disponible', 'mantenimiento', 'dañado', 'fuera_de_servicio', 'perdido', 'eliminado']
+    
+    if not observacion:
+        flash('Debe proporcionar una observación para cambiar el estado.', 'danger')
+        return redirect(url_for('equipos.lista_equipos'))
+        
+    if nuevo_estado not in estados_permitidos:
+        flash('Estado inválido o no permitido manualmente.', 'danger')
+        return redirect(url_for('equipos.lista_equipos'))
+        
+    if nuevo_estado == 'disponible' and equipo.tiene_prestamo_activo:
+        flash('No se puede cambiar a "disponible" porque el equipo tiene préstamos activos.', 'danger')
+        return redirect(url_for('equipos.lista_equipos'))
+        
+    if nuevo_estado == 'eliminado' and equipo.tiene_prestamo_activo:
+        flash('No se puede eliminar el equipo porque tiene préstamos activos.', 'danger')
+        return redirect(url_for('equipos.lista_equipos'))
+        
+    estado_anterior = equipo.estado
+    
+    if estado_anterior == nuevo_estado:
+        flash('El equipo ya se encuentra en ese estado.', 'warning')
+        return redirect(url_for('equipos.lista_equipos'))
+        
+    try:
+        # Registrar en el historial
+        historial = HistorialEstadoEquipo(
+            id_equipo=equipo.id_equipo,
+            estado_anterior=estado_anterior,
+            estado_nuevo=nuevo_estado,
+            observacion=observacion,
+            id_administrador=current_user.id_usuario
+        )
+        db.session.add(historial)
+        
+        # Actualizar el equipo
+        equipo.estado = nuevo_estado
+        if nuevo_estado == 'eliminado':
+            equipo.eliminado = True
+            
+        db.session.commit()
+        
+        current_app.logger.info(
+            'Estado equipo actualizado manualmente: equipo_id=%s, estado_anterior=%s, estado_nuevo=%s, admin_id=%s',
+            id_equipo, estado_anterior, nuevo_estado, current_user.id_usuario
+        )
+        flash(f'Estado del equipo actualizado a "{nuevo_estado}".', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error('Error al actualizar estado del equipo %s: %s', id_equipo, str(e))
+        flash('Ocurrió un error al actualizar el estado.', 'danger')
+        
+    # Redirect back to where the request came from (list or detail)
+    referrer = request.referrer
+    if referrer and 'equipos/' in referrer and str(id_equipo) in referrer:
+        return redirect(url_for('equipos.detalle_equipo', id_equipo=id_equipo))
+    return redirect(url_for('equipos.lista_equipos'))
 
 
 # ── API: Obtener equipos disponibles ─────────────────────────────────────────

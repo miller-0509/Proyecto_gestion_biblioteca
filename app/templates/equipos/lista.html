@@ -167,6 +167,11 @@
                             <i class="bi bi-pencil me-2"></i>Editar equipo
                           </a>
                         </li>
+                        <li>
+                          <button type="button" class="dropdown-item text-primary" data-bs-toggle="modal" data-bs-target="#estadoModalEquipo{{ equipo.id_equipo }}">
+                            <i class="bi bi-arrow-repeat me-2"></i>Actualizar estado
+                          </button>
+                        </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                           <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModalEquipo{{ equipo.id_equipo }}">
@@ -272,6 +277,58 @@
                         </button>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Actualización de Estado (Lista) -->
+    <div class="modal fade" id="estadoModalEquipo{{ equipo.id_equipo }}" tabindex="-1" aria-labelledby="estadoModalLabelEquipo{{ equipo.id_equipo }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title" id="estadoModalLabelEquipo{{ equipo.id_equipo }}">
+                      <i class="bi bi-arrow-repeat text-primary me-2"></i>Actualizar Estado
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('equipos.actualizar_estado', id_equipo=equipo.id_equipo) }}" method="POST">
+                    <div class="modal-body text-start pt-3">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Equipo:</label>
+                            <strong>{{ equipo.nombre }}</strong>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="estado{{ equipo.id_equipo }}" class="form-label fw-bold">Nuevo Estado <span class="text-danger">*</span></label>
+                            <select name="estado" id="estado{{ equipo.id_equipo }}" class="form-select" required>
+                                <option value="">Seleccione un estado...</option>
+                                <option value="disponible" {% if equipo.estado == 'disponible' %}disabled{% endif %}>Disponible</option>
+                                <option value="mantenimiento" {% if equipo.estado == 'mantenimiento' %}disabled{% endif %}>En Mantenimiento</option>
+                                <option value="dañado" {% if equipo.estado == 'dañado' %}disabled{% endif %}>Dañado</option>
+                                <option value="fuera_de_servicio" {% if equipo.estado == 'fuera_de_servicio' %}disabled{% endif %}>Fuera de Servicio</option>
+                                <option value="perdido" {% if equipo.estado == 'perdido' %}disabled{% endif %}>Perdido</option>
+                                <option value="eliminado" {% if equipo.estado == 'eliminado' %}disabled{% endif %} class="text-danger">Eliminado / Baja</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="observacion{{ equipo.id_equipo }}" class="form-label fw-bold">Observación <span class="text-danger">*</span></label>
+                            <textarea name="observacion" id="observacion{{ equipo.id_equipo }}" class="form-control" rows="2" placeholder="Motivo del cambio..." required></textarea>
+                        </div>
+                        
+                        {% if equipo.tiene_prestamo_activo %}
+                        <div class="alert alert-warning py-2 mb-0" style="font-size: 0.85rem;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Tiene un préstamo activo. Opciones limitadas.
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

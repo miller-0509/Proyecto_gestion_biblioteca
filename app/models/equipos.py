@@ -1,6 +1,20 @@
 from app import db
 from datetime import datetime, timezone
 
+class HistorialEstadoEquipo(db.Model):
+    __tablename__ = 'historial_estado_equipos'
+
+    id = db.Column(db.Integer, primary_key=True)
+    id_equipo = db.Column(db.Integer, db.ForeignKey('equipos.id_equipo'), nullable=False)
+    estado_anterior = db.Column(db.String(50), nullable=False)
+    estado_nuevo = db.Column(db.String(50), nullable=False)
+    observacion = db.Column(db.Text, nullable=False)
+    id_administrador = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=False)
+    fecha = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    admin = db.relationship('Usuario', backref='cambios_estado_equipos', lazy=True)
+
+
 
 class Equipo(db.Model):
     __tablename__ = 'equipos'
@@ -21,6 +35,8 @@ class Equipo(db.Model):
     tiempo_max_prestamo = db.Column(db.Integer)  # Tiempo máximo de préstamo en días
     descripcion         = db.Column(db.Text)  # Descripción adicional
     eliminado           = db.Column(db.Boolean, default=False) # Eliminación lógica
+
+    historial_estados = db.relationship('HistorialEstadoEquipo', backref='equipo', lazy=True, cascade="all, delete-orphan")
 
     @property
     def tiene_prestamo_activo(self):
