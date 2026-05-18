@@ -57,6 +57,26 @@ if csrf_match:
 
 print()
 print("=" * 60)
+print("TEST 2B: Intentar login con credenciales CORRECTAS")
+print("=" * 60)
+data = urllib.parse.urlencode({
+    'csrf_token': csrf_token,
+    'correo': 'flask_test_user@example.com',
+    'password': 'Password123*'
+}).encode()
+try:
+    resp = opener.open(urllib.request.Request(f'{BASE}/', data=data, method='POST'))
+    html = resp.read().decode()
+    print(f"  Status: {resp.status}")
+    print(f"  URL final: {resp.url}")
+    print(f"  Cookies: {[c.name for c in cj]}")
+    has_success = 'Bienvenido' in html or 'dashboard' in resp.url or 'session' in [c.name for c in cj] or 'biblioteca_session' in [c.name for c in cj]
+    print(f"  Login exitoso detectado: {has_success}")
+except Exception as e:
+    print(f"  ERROR durante login correcto: {e}")
+
+print()
+print("=" * 60)
 print("TEST 3: Verificar que /dashboard redirige a login sin sesión")
 print("=" * 60)
 resp = opener.open(f'{BASE}/dashboard')
