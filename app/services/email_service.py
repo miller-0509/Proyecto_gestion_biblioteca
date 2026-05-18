@@ -206,3 +206,185 @@ def _generar_html_verificacion(usuario, enlace):
     
 </body>
 </html>'''
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  RECUPERACIÓN DE CONTRASEÑA
+# ══════════════════════════════════════════════════════════════════════════════
+
+def generar_token_recuperacion(correo, password_hash):
+    """Genera un token firmado para recuperación de contraseña.
+
+    Incluye un fragmento del hash actual de la contraseña para que el token
+    se invalide automáticamente si la contraseña ya fue cambiada (anti-replay).
+    """
+    s = _get_serializer()
+    # Incluir fragmento del hash para invalidación automática tras cambio
+    payload = {'correo': correo, 'ph': password_hash[:16]}
+    token = s.dumps(payload, salt=TOKEN_SALT_RECUPERACION)
+    logger.info('Token de recuperacion generado para: %s', correo)
+    return token
+
+
+def verificar_token_recuperacion(token, max_age=TOKEN_EXPIRACION_SEGUNDOS):
+    """Valida un token de recuperación de contraseña.
+
+    Returns:
+        dict: {'correo': str, 'ph': str} si el token es válido.
+        None: Si el token es inválido, expirado o manipulado.
+    """
+    s = _get_serializer()
+    try:
+        payload = s.loads(token, salt=TOKEN_SALT_RECUPERACION, max_age=max_age)
+        logger.info('Token de recuperacion verificado para: %s', payload.get('correo'))
+        return payload
+    except SignatureExpired:
+        logger.warning('Token de recuperacion expirado (max_age=%ds)', max_age)
+        return None
+    except BadSignature:
+        logger.warning('Token de recuperacion invalido o manipulado')
+        return None
+    except Exception as e:
+        logger.error('Error inesperado verificando token de recuperacion: %s', str(e))
+        return None
+
+
+def enviar_correo_recuperacion(usuario, mail_instance):
+    """Envía el correo de recuperación de contraseña con diseño HTML profesional.
+
+    Args:
+        usuario: Instancia del modelo Usuario.
+        mail_instance: Instancia de Flask-Mail inicializada.
+
+    Returns:
+        bool: True si se envió correctamente, False si falló.
+    """
+    try:
+        token = generar_token_recuperacion(usuario.correo, usuario.password)
+        enlace = url_for('auth.restablecer_password', token=token, _external=True)
+
+        msg = Message(
+            subject='🔐 Recupera tu contraseña - Sistema SENA Biblioteca',
+            recipients=[usuario.correo],
+            html=_generar_html_recuperacion(usuario, enlace),
+        )
+
+        mail_instance.send(msg)
+
+        logger.info(
+            'Email de recuperacion enviado exitosamente a: %s (ID: %s)',
+            usuario.correo, usuario.id_usuario
+        )
+        return True
+
+    except Exception as e:
+        logger.error(
+            'Error enviando email de recuperacion a %s: %s',
+            usuario.correo, str(e),
+            exc_info=True
+        )
+        return False
+
+
+def _generar_html_recuperacion(usuario, enlace):
+    """Genera el HTML profesional del correo de recuperación de contraseña.
+
+    Compatible con Gmail, Outlook, Apple Mail y clientes móviles.
+    Utiliza tablas para máxima compatibilidad con clientes de correo.
+    """
+    expiracion_minutos = TOKEN_EXPIRACION_SEGUNDOS // 60
+    year = datetime.now(timezone.utc).year
+
+    return f'''<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contrasena - SENA</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: 'Segoe UI', Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">
+
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f6f9;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+
+                <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width: 520px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);">
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); padding: 36px 32px; text-align: center;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA" width="56" style="display: inline-block; margin-bottom: 16px; filter: brightness(10);">
+                            <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0; letter-spacing: -0.02em;">
+                                Recuperar Contrasena
+                            </h1>
+                            <p style="color: rgba(255,255,255,0.85); font-size: 14px; margin: 8px 0 0;">
+                                Sistema de Biblioteca y Almacen SENA
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 36px 32px 24px;">
+                            <p style="color: #374151; font-size: 16px; margin: 0 0 8px; font-weight: 600;">
+                                Hola, {usuario.nombres}
+                            </p>
+                            <p style="color: #6B7280; font-size: 14px; line-height: 1.7; margin: 0 0 28px;">
+                                Recibimos una solicitud para restablecer la contrasena de tu cuenta en el Sistema SENA de Biblioteca y Almacen. Si tu realizaste esta solicitud, haz clic en el siguiente boton para crear una nueva contrasena:
+                            </p>
+
+                            <!-- Button -->
+                            <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td align="center" style="padding: 8px 0 28px;">
+                                        <a href="{enlace}"
+                                           target="_blank"
+                                           style="display: inline-block; background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 10px; font-size: 15px; font-weight: 700; letter-spacing: 0.02em; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);">
+                                            Restablecer Mi Contrasena
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Alternative link -->
+                            <div style="background-color: #F9FAFB; border-radius: 10px; padding: 16px; margin-bottom: 24px;">
+                                <p style="color: #6B7280; font-size: 12px; margin: 0 0 8px;">
+                                    Si el boton no funciona, copia y pega este enlace en tu navegador:
+                                </p>
+                                <p style="color: #3B82F6; font-size: 11px; word-break: break-all; margin: 0; font-family: monospace;">
+                                    {enlace}
+                                </p>
+                            </div>
+
+                            <!-- Security warning -->
+                            <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                                <tr>
+                                    <td style="border-left: 3px solid #EF4444; padding: 12px 16px; background: #FEF2F2; border-radius: 0 8px 8px 0;">
+                                        <p style="color: #991B1B; font-size: 12px; margin: 0; line-height: 1.6;">
+                                            <strong>Seguridad:</strong> Este enlace expira en <strong>{expiracion_minutos} minutos</strong> y solo puede usarse una vez.
+                                            Si no solicitaste este cambio, ignora este mensaje. Tu contrasena actual permanecera sin cambios.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #F9FAFB; padding: 20px 32px; text-align: center; border-top: 1px solid #E5E7EB;">
+                            <p style="color: #9CA3AF; font-size: 11px; margin: 0; line-height: 1.6;">
+                                &copy; {year} Sistema SENA - Biblioteca y Almacen<br>
+                                Este es un correo automatico, por favor no respondas.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>'''

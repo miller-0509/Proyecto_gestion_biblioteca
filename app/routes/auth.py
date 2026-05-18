@@ -5,6 +5,8 @@ from app import db, limiter, mail
 from app.services.email_service import (
     enviar_correo_verificacion,
     verificar_token,
+    enviar_correo_recuperacion,
+    verificar_token_recuperacion,
 )
 
 bp = Blueprint('auth', __name__)
@@ -194,6 +196,117 @@ def reenviar_verificacion():
 
     flash(mensaje_generico, 'info')
     return redirect(url_for('auth.login'))
+
+
+# ── Recuperar Contraseña (Solicitud) ───────────────────────────────────────
+@bp.route('/recuperar-password', methods=['GET', 'POST'])
+@limiter.limit("3 per minute", methods=["POST"])
+def recuperar_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('auth.dashboard'))
+
+    if request.method == 'POST':
+        correo = request.form.get('correo', '').strip().lower()
+
+        # Respuesta genérica SIEMPRE (protección anti-enumeración)
+        mensaje_generico = ('Si existe una cuenta asociada a ese correo, '
+                            'hemos enviado las instrucciones para restablecer '
+                            'tu contraseña. Revisa tu bandeja de entrada y la carpeta de spam.')
+
+        if correo:
+            usuario = Usuario.query.filter_by(correo=correo).first()
+
+            if usuario and usuario.is_active:
+                enviado = enviar_correo_recuperacion(usuario, mail)
+                if enviado:
+                    current_app.logger.info(
+                        'Recuperacion solicitada y enviada para: %s (ID: %s)',
+                        correo, usuario.id_usuario
+                    )
+                else:
+                    current_app.logger.error(
+                        'Fallo al enviar correo de recuperacion a: %s', correo
+                    )
+            else:
+                # Log silencioso — NO revelar si el usuario existe
+                current_app.logger.info(
+                    'Recuperacion solicitada para correo inexistente o inactivo: %s', correo
+                )
+
+        flash(mensaje_generico, 'info')
+        return redirect(url_for('auth.login'))
+
+    return render_template('recuperar_password.html')
+
+
+# ── Restablecer Contraseña (con Token) ─────────────────────────────────────
+@bp.route('/restablecer-password/<token>', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=["POST"])
+def restablecer_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('auth.dashboard'))
+
+    # Validar token criptográfico
+    payload = verificar_token_recuperacion(token)
+
+    if payload is None:
+        current_app.logger.warning('Intento de restablecimiento con token invalido/expirado')
+        flash('El enlace de recuperación es inválido o ha expirado. '
+              'Solicita uno nuevo desde la página de inicio de sesión.', 'danger')
+        return redirect(url_for('auth.recuperar_password'))
+
+    correo = payload.get('correo')
+    ph_fragment = payload.get('ph')
+
+    usuario = Usuario.query.filter_by(correo=correo).first()
+
+    if usuario is None:
+        current_app.logger.warning('Restablecimiento: usuario no encontrado para %s', correo)
+        flash('No se encontró una cuenta asociada a este enlace.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    # Anti-replay: comparar fragmento del hash con el actual
+    if usuario.password[:16] != ph_fragment:
+        current_app.logger.warning(
+            'Token de recuperacion reutilizado (password ya cambiada) para: %s', correo
+        )
+        flash('Este enlace de recuperación ya fue utilizado. '
+              'Si necesitas restablecer tu contraseña nuevamente, solicita un nuevo enlace.', 'warning')
+        return redirect(url_for('auth.recuperar_password'))
+
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        password_confirm = request.form.get('password_confirm', '')
+
+        # Validaciones
+        errors = []
+        if not password:
+            errors.append('La contraseña es obligatoria.')
+        elif len(password) < 8:
+            errors.append('La contraseña debe tener al menos 8 caracteres.')
+        elif not any(c.isupper() for c in password):
+            errors.append('La contraseña debe contener al menos una letra mayúscula.')
+        elif not any(c.isdigit() for c in password):
+            errors.append('La contraseña debe contener al menos un número.')
+
+        if password != password_confirm:
+            errors.append('Las contraseñas no coinciden.')
+
+        if errors:
+            return render_template('restablecer_password.html', errors=errors, token=token)
+
+        # Cambiar contraseña
+        usuario.set_password(password)
+        db.session.commit()
+
+        current_app.logger.info(
+            'Contrasena restablecida exitosamente para: %s (ID: %s)',
+            usuario.correo, usuario.id_usuario
+        )
+        flash('¡Tu contraseña ha sido restablecida exitosamente! Ya puedes iniciar sesión con tu nueva contraseña.', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('restablecer_password.html', errors=[], token=token)
 
 
 # ── Logout (acepta GET y POST para sendBeacon) ────────────────────────────
