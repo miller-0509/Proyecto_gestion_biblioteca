@@ -73,6 +73,23 @@
           </a>
         </form>
 
+        <!-- Reenviar Verificación (visible solo cuando el email no está verificado) -->
+        {% if email_no_verificado %}
+        <div class="mt-4 p-3" style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.25); border-radius: 12px;">
+          <p class="mb-2 small text-center" style="color: #92400E;">
+            <i class="bi bi-envelope-exclamation me-1"></i>
+            <strong>¿No recibiste el correo?</strong>
+          </p>
+          <form method="POST" action="{{ url_for('auth.reenviar_verificacion') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="correo" value="{{ correo }}">
+            <button type="submit" class="btn btn-warning btn-sm w-100">
+              <i class="bi bi-arrow-clockwise me-1"></i>Reenviar Enlace de Verificación
+            </button>
+          </form>
+        </div>
+        {% endif %}
+
         <!-- Info Text -->
         <div class="text-center mt-4">
           <small class="text-muted">

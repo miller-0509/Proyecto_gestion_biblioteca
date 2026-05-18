@@ -8,11 +8,13 @@ from flask_limiter.util import get_remote_address
 from werkzeug.exceptions import HTTPException
 from flask_migrate import Migrate
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_mail import Mail
 
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 csrf = CSRFProtect()
+mail = Mail()
 
 limiter = Limiter(
     key_func=get_remote_address,
@@ -40,6 +42,7 @@ def create_app(config_class=None):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
+    mail.init_app(app)
     limiter.init_app(app)
 
     # ── Health Check ───────────────────────────────────────────────

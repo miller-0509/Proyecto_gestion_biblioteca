@@ -1,7 +1,11 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models.usuarios import Usuario
-from app import db, limiter
+from app import db, limiter, mail
+from app.services.email_service import (
+    enviar_correo_verificacion,
+    verificar_token,
+)
 
 bp = Blueprint('auth', __name__)
 
@@ -27,6 +31,16 @@ def login():
         elif not usuario.is_active: 
             current_app.logger.warning('Login fallido: Cuenta inactiva para %s (Estado: %s)', correo, usuario.estado)
         else:
+            # Verificar si el email ha sido verificado (admins están exentos)
+            if not usuario.email_verificado and usuario.rol != 'administrador':
+                current_app.logger.warning(
+                    'Login bloqueado: Email no verificado para %s (ID: %s)',
+                    correo, usuario.id_usuario
+                )
+                flash('Debes verificar tu correo electrónico antes de iniciar sesión. '
+                      'Revisa tu bandeja de entrada o solicita un nuevo enlace.', 'warning')
+                return render_template('login.html', correo=correo, email_no_verificado=True)
+
             # Si pasa todas las validaciones
             from flask import session
 
@@ -43,9 +57,9 @@ def login():
 
         # Si llegó aquí, es porque falló alguna validación
         flash('Credenciales inválidas o cuenta no autorizada.', 'danger')
-        return render_template('login.html', correo=correo)
+        return render_template('login.html', correo=correo, email_no_verificado=False)
 
-    return render_template('login.html', correo='')
+    return render_template('login.html', correo='', email_no_verificado=False)
 
 
 # ── Dashboard (home temporal) ──────────────────────────────────────────────
@@ -65,7 +79,7 @@ def registro():
         if honeypot:
             current_app.logger.warning('Bot detectado (honeypot) desde IP: %s', request.remote_addr)
             # Simular éxito para no darle pistas al bot
-            flash('Usuario registrado exitosamente. Ahora puedes iniciar sesión.', 'success')
+            flash('Usuario registrado exitosamente. Revisa tu correo para verificar tu cuenta.', 'success')
             return redirect(url_for('auth.login'))
 
         nombres   = request.form.get('nombres', '').strip()
@@ -85,18 +99,101 @@ def registro():
             apellidos=apellidos,
             correo=correo,
             rol=rol,
+            email_verificado=False,
         )
         nuevo.set_password(password)
         nuevo.save()
         db.session.commit()
 
         current_app.logger.info('Nuevo usuario registrado: %s (rol: %s)', correo, rol)
-        flash('Usuario registrado exitosamente. Ahora puedes iniciar sesión.', 'success')
+
+        # Enviar email de verificación
+        enviado = enviar_correo_verificacion(nuevo, mail)
+        if enviado:
+            flash('¡Registro exitoso! Hemos enviado un enlace de verificación a tu correo electrónico. '
+                  'Revisa tu bandeja de entrada (y la carpeta de spam).', 'success')
+        else:
+            flash('Registro exitoso, pero no pudimos enviar el correo de verificación. '
+                  'Puedes solicitar un reenvío desde la página de inicio de sesión.', 'warning')
+
         return redirect(url_for('auth.login'))
 
     return render_template('usuarios/register.html',
                            errors=[],
                            nombres='', apellidos='', correo='', rol='')
+
+
+# ── Verificación de Email ──────────────────────────────────────────────────
+@bp.route('/verificar/<token>')
+def verificar_email(token):
+    correo = verificar_token(token)
+
+    if correo is None:
+        current_app.logger.warning('Intento de verificación con token inválido/expirado')
+        flash('El enlace de verificación es inválido o ha expirado. '
+              'Solicita un nuevo enlace desde la página de inicio de sesión.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    usuario = Usuario.query.filter_by(correo=correo).first()
+
+    if usuario is None:
+        current_app.logger.warning('Verificación: usuario no encontrado para correo %s', correo)
+        flash('No se encontró una cuenta asociada a este enlace.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    if usuario.email_verificado:
+        current_app.logger.info('Verificación: %s ya estaba verificado', correo)
+        flash('Tu correo electrónico ya fue verificado anteriormente. Puedes iniciar sesión.', 'info')
+        return redirect(url_for('auth.login'))
+
+    # Marcar como verificado
+    from datetime import datetime, timezone
+    usuario.email_verificado = True
+    usuario.fecha_verificacion = datetime.now(timezone.utc)
+    db.session.commit()
+
+    current_app.logger.info(
+        'Email verificado exitosamente: %s (ID: %s)',
+        usuario.correo, usuario.id_usuario
+    )
+    flash('¡Tu correo electrónico ha sido verificado exitosamente! Ya puedes iniciar sesión.', 'success')
+    return redirect(url_for('auth.login'))
+
+
+# ── Reenvío de Verificación ────────────────────────────────────────────────
+@bp.route('/reenviar-verificacion', methods=['POST'])
+@limiter.limit("2 per minute")
+def reenviar_verificacion():
+    correo = request.form.get('correo', '').strip().lower()
+
+    if not correo:
+        flash('Debes ingresar tu correo electrónico.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    # Respuesta genérica para evitar enumeración de usuarios
+    mensaje_generico = ('Si el correo está registrado y no ha sido verificado, '
+                        'hemos enviado un nuevo enlace de verificación. '
+                        'Revisa tu bandeja de entrada y la carpeta de spam.')
+
+    usuario = Usuario.query.filter_by(correo=correo).first()
+
+    if usuario and not usuario.email_verificado:
+        enviado = enviar_correo_verificacion(usuario, mail)
+        if enviado:
+            current_app.logger.info('Reenvío de verificación exitoso para: %s', correo)
+        else:
+            current_app.logger.error('Fallo al reenviar verificación a: %s', correo)
+    else:
+        # Log pero NO revelar si el usuario existe o si ya está verificado
+        current_app.logger.info(
+            'Reenvío solicitado para correo: %s (usuario_existe=%s, verificado=%s)',
+            correo,
+            usuario is not None,
+            usuario.email_verificado if usuario else 'N/A'
+        )
+
+    flash(mensaje_generico, 'info')
+    return redirect(url_for('auth.login'))
 
 
 # ── Logout (acepta GET y POST para sendBeacon) ────────────────────────────

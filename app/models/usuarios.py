@@ -11,14 +11,16 @@ _EMAIL_RE = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
 class Usuario(db.Model, UserMixin):
     __tablename__ = 'usuarios'
 
-    id_usuario      = db.Column(db.Integer, primary_key=True)
-    nombres         = db.Column(db.String(100), nullable=False)
-    apellidos       = db.Column(db.String(100), nullable=False)
-    correo          = db.Column(db.String(150), unique=True, nullable=False)
-    password        = db.Column(db.String(255), nullable=False)
-    rol             = db.Column(db.String(20), default='aprendiz')
-    estado          = db.Column(db.String(20), default='activo')
-    fecha_registro  = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    id_usuario         = db.Column(db.Integer, primary_key=True)
+    nombres            = db.Column(db.String(100), nullable=False)
+    apellidos          = db.Column(db.String(100), nullable=False)
+    correo             = db.Column(db.String(150), unique=True, nullable=False)
+    password           = db.Column(db.String(255), nullable=False)
+    rol                = db.Column(db.String(20), default='aprendiz')
+    estado             = db.Column(db.String(20), default='activo')
+    fecha_registro     = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    email_verificado   = db.Column(db.Boolean, default=False, nullable=False, server_default='false')
+    fecha_verificacion = db.Column(db.DateTime, nullable=True)
     
     def __init__(self, **kwargs):
         # Normalizar correo si está presente
