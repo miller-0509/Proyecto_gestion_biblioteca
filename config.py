@@ -36,7 +36,8 @@ class Config:
         "max_overflow": 20,
     }
 
-    # ── Seguridad de cookies ──────────────────────────────────────
+    # ── Seguridad y unicidad de cookies ───────────────────────────
+    SESSION_COOKIE_NAME = 'biblioteca_session'  # Evita colisiones de cookies en el mismo dominio/IP (Coolify)
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
 
@@ -68,9 +69,9 @@ config_by_env = {
 
 
 def get_config():
-    """Retorna la configuración según FLASK_ENV."""
+    """Retorna la configuración según FLASK_ENV (por defecto 'production' por seguridad)."""
 
-    env = os.environ.get('FLASK_ENV', 'development')
+    env = os.environ.get('FLASK_ENV', 'production')
 
     if env == 'production' and os.environ.get('SECRET_KEY') is None:
         raise ValueError(

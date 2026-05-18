@@ -30,11 +30,9 @@ def login():
             # Si pasa todas las validaciones
             from flask import session
 
-            # Limpiar datos de sesión previos SIN destruir la infraestructura de Flask-Login.
-            # session.clear() destruía _id y _fresh causando invalidación inmediata.
-            for key in list(session.keys()):
-                if not key.startswith('_'):
-                    session.pop(key, None)
+            # Cerrar sesión anterior y limpiar cookies de sesión viejas completamente
+            logout_user()
+            session.clear()
 
             login_user(usuario, remember=False, fresh=True)
             session.permanent = True  # Activar timeout de sesión

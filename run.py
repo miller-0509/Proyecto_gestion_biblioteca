@@ -5,6 +5,7 @@ app = create_app()
 with app.app_context():
     try:
         db.create_all()
+        db.engine.dispose()  # Evita compartir sockets de conexión de BD en los procesos hijos de Gunicorn (post-fork)
         print("[OK] Base de datos inicializada correctamente.")
     except Exception as e:
         print(f"[WARN] db.create_all() omitido (probablemente ya existe): {e}")

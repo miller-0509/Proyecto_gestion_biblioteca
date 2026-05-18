@@ -70,9 +70,13 @@ def create_app(config_class=None):
             'now': lambda: datetime.now(timezone.utc).replace(tzinfo=None)
         }
 
-    # Auto-logout si la cuenta fue desactivada
+    # Auto-logout si la cuenta fue desactivada (optimizado para evitar consultas a la BD en archivos estáticos)
     @app.before_request
     def check_user_active():
+        from flask import request
+        if request.endpoint == 'static' or request.path.startswith('/static/'):
+            return
+
         try:
             if current_user.is_authenticated and not current_user.is_active:
                 logout_user()
