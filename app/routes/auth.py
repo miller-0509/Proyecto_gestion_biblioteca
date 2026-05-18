@@ -33,8 +33,8 @@ def login():
         elif not usuario.is_active: 
             current_app.logger.warning('Login fallido: Cuenta inactiva para %s (Estado: %s)', correo, usuario.estado)
         else:
-            # Verificar si el email ha sido verificado (admins están exentos)
-            if not usuario.email_verificado and usuario.rol != 'administrador':
+            # Bypass verification for administrative and staff roles
+            if not usuario.email_verificado and usuario.rol not in ['administrador', 'bibliotecario', 'almacenista']:
                 current_app.logger.warning(
                     'Login bloqueado: Email no verificado para %s (ID: %s)',
                     correo, usuario.id_usuario

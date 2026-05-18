@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from app.models.equipos import Equipo, HistorialEstadoEquipo
 from app import db
-from app.decorators import admin_required
+from app.decorators import gestion_equipos_required
 
 bp = Blueprint('equipos', __name__, url_prefix='/equipos')
 
@@ -47,7 +47,7 @@ def lista_equipos():
 # ── Crear Nuevo Equipo ──────────────────────────────────────────────────────
 @bp.route('/nuevo', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@gestion_equipos_required
 def crear_equipo():
     """Crear un nuevo equipo"""
     if request.method == 'POST':
@@ -114,7 +114,7 @@ def crear_equipo():
 # ── Editar Equipo ───────────────────────────────────────────────────────────
 @bp.route('/<int:id_equipo>/editar', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@gestion_equipos_required
 def editar_equipo(id_equipo):
     """Editar un equipo existente"""
     equipo = Equipo.query.get_or_404(id_equipo)
@@ -190,7 +190,7 @@ def editar_equipo(id_equipo):
 # ── Eliminar Equipo ─────────────────────────────────────────────────────────
 @bp.route('/<int:id_equipo>/eliminar', methods=['POST'])
 @login_required
-@admin_required
+@gestion_equipos_required
 def eliminar_equipo(id_equipo):
     """Eliminar un equipo"""
     equipo = Equipo.query.get_or_404(id_equipo)
@@ -224,7 +224,7 @@ def detalle_equipo(id_equipo):
     
     # Obtener historial de estados ordenado de más reciente a más antiguo
     historial_estados = []
-    if current_user.rol == 'administrador':
+    if current_user.rol in ['administrador', 'almacenista']:
         historial_estados = HistorialEstadoEquipo.query.filter_by(id_equipo=id_equipo).order_by(HistorialEstadoEquipo.fecha.desc()).all()
         
     return render_template('equipos/detalle.html', equipo=equipo, historial_estados=historial_estados)
@@ -233,7 +233,7 @@ def detalle_equipo(id_equipo):
 # ── Actualizar Estado (Manual) ──────────────────────────────────────────────
 @bp.route('/<int:id_equipo>/estado', methods=['POST'])
 @login_required
-@admin_required
+@gestion_equipos_required
 def actualizar_estado(id_equipo):
     """Actualizar el estado del equipo manualmente (Admin)"""
     equipo = Equipo.query.get_or_404(id_equipo)

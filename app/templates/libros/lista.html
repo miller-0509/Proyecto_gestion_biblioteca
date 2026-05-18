@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block titulo_card %}
-  {% if current_user.rol == 'administrador' %}
+  {% if current_user.rol in ['administrador', 'bibliotecario'] %}
     Gestión de Libros
   {% else %}
     Catálogo de Libros
@@ -15,7 +15,7 @@
     <div class="col-md-6">
       <h3 class="text-primary-sena mb-0">
         <i class="bi bi-book me-2"></i>
-        {% if current_user.rol == 'administrador' %}
+        {% if current_user.rol in ['administrador', 'bibliotecario'] %}
           Gestión de Libros
         {% else %}
           Inventario de Libros
@@ -23,7 +23,7 @@
       </h3>
     </div>
     <div class="col-md-6 text-end">
-      {% if current_user.rol == 'administrador' %}
+      {% if current_user.rol in ['administrador', 'bibliotecario'] %}
       <a href="{{ url_for('libros.crear_libro') }}" class="btn btn-primary">
         <i class="bi bi-plus-circle me-2"></i>Registrar Libro
       </a>
@@ -156,7 +156,7 @@
                       <i class="bi bi-eye"></i>
                     </a>
                     
-                    {% if current_user.rol == 'administrador' %}
+                    {% if current_user.rol in ['administrador', 'bibliotecario'] %}
                     <div class="dropdown">
                       <button class="btn btn-action-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-three-dots-vertical"></i>
@@ -195,7 +195,7 @@
                 </div>
                 <p class="mb-0"><strong>No hay libros registrados</strong></p>
                 <small>
-                  {% if current_user.rol == 'administrador' %}
+                  {% if current_user.rol in ['administrador', 'bibliotecario'] %}
                     <a href="{{ url_for('libros.crear_libro') }}">Registra el primer libro</a>
                   {% endif %}
                 </small>
@@ -253,7 +253,7 @@
   {% endif %}
 
   <!-- Modales de Confirmación de Eliminación (Fuera de la tabla para evitar problemas de z-index) -->
-  {% if current_user.rol == 'administrador' %}
+  {% if current_user.rol in ['administrador', 'bibliotecario'] %}
     {% for libro in libros.items %}
     <div class="modal fade" id="deleteModalLibro{{ libro.id_libro }}" tabindex="-1" aria-labelledby="deleteModalLabelLibro{{ libro.id_libro }}" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

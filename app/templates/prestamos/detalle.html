@@ -219,7 +219,7 @@
       </a>
       
       <div class="d-flex gap-2">
-        {% if current_user.rol == 'administrador' %}
+        {% if current_user.rol in ['administrador', 'almacenista'] %}
           {% if prestamo.estado == 'pendiente' %}
             <!-- Accept Button -->
             <form method="POST" action="{{ url_for('prestamos.aceptar_prestamo', id_prestamo=prestamo.id_prestamo) }}" style="display:inline;">

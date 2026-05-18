@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from app.models.libros import Libro, HistorialEstadoLibro
 from app import db
-from app.decorators import admin_required
+from app.decorators import gestion_libros_required
 
 bp = Blueprint('libros', __name__, url_prefix='/libros')
 
@@ -44,7 +44,7 @@ def lista_libros():
 # ── Crear Nuevo Libro ──────────────────────────────────────────────────────
 @bp.route('/nuevo', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@gestion_libros_required
 def crear_libro():
     """Crear un nuevo libro"""
     if request.method == 'POST':
@@ -110,7 +110,7 @@ def crear_libro():
 # ── Editar Libro ───────────────────────────────────────────────────────────
 @bp.route('/<int:id_libro>/editar', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@gestion_libros_required
 def editar_libro(id_libro):
     """Editar un libro existente"""
     libro = Libro.query.get_or_404(id_libro)
@@ -185,7 +185,7 @@ def editar_libro(id_libro):
 # ── Eliminar Libro ─────────────────────────────────────────────────────────
 @bp.route('/<int:id_libro>/eliminar', methods=['POST'])
 @login_required
-@admin_required
+@gestion_libros_required
 def eliminar_libro(id_libro):
     """Eliminar un libro"""
     libro = Libro.query.get_or_404(id_libro)
@@ -212,7 +212,7 @@ def detalle_libro(id_libro):
     
     # Obtener historial de estados ordenado de más reciente a más antiguo
     historial_estados = []
-    if current_user.rol == 'administrador':
+    if current_user.rol in ['administrador', 'bibliotecario']:
         historial_estados = HistorialEstadoLibro.query.filter_by(id_libro=id_libro).order_by(HistorialEstadoLibro.fecha.desc()).all()
         
     return render_template('libros/detalle.html', libro=libro, historial_estados=historial_estados)
@@ -221,7 +221,7 @@ def detalle_libro(id_libro):
 # ── Actualizar Estado (Manual) ──────────────────────────────────────────────
 @bp.route('/<int:id_libro>/estado', methods=['POST'])
 @login_required
-@admin_required
+@gestion_libros_required
 def actualizar_estado(id_libro):
     """Actualizar el estado del libro manualmente (Admin)"""
     libro = Libro.query.get_or_404(id_libro)

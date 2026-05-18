@@ -6,7 +6,7 @@ from app import db
 from app.models.prestamos import Prestamo
 from app.models.equipos import Equipo
 from app.models.usuarios import Usuario
-from app.decorators import admin_required, calcular_dias_restantes
+from app.decorators import admin_required, gestion_equipos_required, calcular_dias_restantes
 
 bp = Blueprint('prestamos', __name__, url_prefix='/prestamos')
 
@@ -17,8 +17,8 @@ def lista_prestamos():
     """Lista de préstamos del usuario o todos si es admin"""
     page = request.args.get('page', 1, type=int)
     
-    if current_user.rol == 'administrador':
-        # Admin ve todos los préstamos (con joinedload para evitar N+1)
+    if current_user.rol in ['administrador', 'almacenista']:
+        # Admin/Almacenista ve todos los préstamos (con joinedload para evitar N+1)
         query = Prestamo.query.options(
             joinedload(Prestamo.usuario),
             joinedload(Prestamo.equipo)
@@ -52,8 +52,8 @@ def lista_prestamos():
 def crear_prestamo():
     """Crear nuevo préstamo"""
     
-    if current_user.rol == 'administrador':
-        # Admin puede seleccionar equipo y usuario
+    if current_user.rol in ['administrador', 'almacenista']:
+        # Admin/Almacenista puede seleccionar equipo y usuario
         if request.method == 'GET':
             equipos = Equipo.query.filter_by(disponible_prestamo=True, estado='disponible').limit(100).all()
             usuarios = Usuario.query.filter(Usuario.rol.in_(['aprendiz', 'instructor'])).limit(100).all()
@@ -126,12 +126,8 @@ def crear_prestamo():
                 return redirect(url_for('prestamos.crear_prestamo'))
             
             # Fix #9: Verificar límite de préstamos activos del usuario
-            prestamos_activos_count = Prestamo.query.filter(
-                Prestamo.id_usuario == current_user.id_usuario,
-                Prestamo.estado.in_(['pendiente', 'aceptado'])
-            ).count()
-            if prestamos_activos_count >= 5:
-                flash('Has alcanzado el límite de 5 préstamos activos de equipos.', 'warning')
+            if current_user.prestamos_activos_count() >= current_user.limite_prestamos:
+                flash(f'Has alcanzado el límite de {current_user.limite_prestamos} préstamos activos permitidos para tu rol.', 'warning')
                 return redirect(url_for('prestamos.lista_prestamos'))
             
             # Fix #4: Usar tiempo_max_prestamo del equipo si está definido
@@ -154,7 +150,7 @@ def crear_prestamo():
 
 @bp.route('/<int:id_prestamo>/aceptar', methods=['POST'])
 @login_required
-@admin_required
+@gestion_equipos_required
 def aceptar_prestamo(id_prestamo):
     """Aceptar solicitud de préstamo"""
     
@@ -183,7 +179,7 @@ def aceptar_prestamo(id_prestamo):
 
 @bp.route('/<int:id_prestamo>/rechazar', methods=['POST'])
 @login_required
-@admin_required
+@gestion_equipos_required
 def rechazar_prestamo(id_prestamo):
     """Rechazar solicitud de préstamo"""
     
@@ -213,7 +209,7 @@ def rechazar_prestamo(id_prestamo):
 
 @bp.route('/<int:id_prestamo>/devolver', methods=['POST'])
 @login_required
-@admin_required
+@gestion_equipos_required
 def devolver_prestamo(id_prestamo):
     """Marcar préstamo como devuelto"""
     
@@ -242,7 +238,7 @@ def detalle_prestamo(id_prestamo):
     prestamo = Prestamo.query.get_or_404(id_prestamo)
     
     # Validar acceso
-    if current_user.rol != 'administrador' and prestamo.id_usuario != current_user.id_usuario:
+    if current_user.rol not in ['administrador', 'almacenista'] and prestamo.id_usuario != current_user.id_usuario:
         flash('No tienes permiso para ver este préstamo.', 'danger')
         return redirect(url_for('prestamos.lista_prestamos'))
     

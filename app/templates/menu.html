@@ -34,45 +34,59 @@
           </a>
         </li>
 
+        {% if current_user.rol != 'bibliotecario' %}
         <!-- Equipos -->
         <li class="nav-item">
-          <a class="nav-link {{ 'active' if 'equipos' in request.endpoint else '' }}" href="{{ url_for('equipos.lista_equipos') }}">
+          <a class="nav-link {{ 'active' if request.endpoint and 'equipos' in request.endpoint else '' }}" href="{{ url_for('equipos.lista_equipos') }}">
             <i class="bi bi-pc-display me-1"></i>
             <span>Equipos</span>
           </a>
         </li>
+        {% endif %}
 
+        {% if current_user.rol != 'almacenista' %}
         <!-- Libros -->
         <li class="nav-item">
-          <a class="nav-link {{ 'active' if 'libros' in request.endpoint else '' }}" href="{{ url_for('libros.lista_libros') }}">
+          <a class="nav-link {{ 'active' if request.endpoint and 'libros' in request.endpoint else '' }}" href="{{ url_for('libros.lista_libros') }}">
             <i class="bi bi-book me-1"></i>
             <span>Libros</span>
           </a>
         </li>
+        {% endif %}
 
         <!-- Préstamos Dropdown -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle {{ 'active' if 'prestamos' in request.endpoint else '' }}" href="#" id="prestamosMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="nav-link dropdown-toggle {{ 'active' if request.endpoint and 'prestamos' in request.endpoint else '' }}" href="#" id="prestamosMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-arrow-left-right me-1"></i>
             <span>Préstamos</span>
           </a>
           <ul class="dropdown-menu" aria-labelledby="prestamosMenu">
+            {% if current_user.rol != 'bibliotecario' %}
             <li><a class="dropdown-item" href="{{ url_for('prestamos.lista_prestamos') }}">
               <i class="bi bi-list-check me-2"></i>
-              {% if current_user.rol == 'administrador' %}Ver Todos{% else %}Mis{% endif %} Préstamos de Equipos
+              {% if current_user.rol in ['administrador', 'almacenista'] %}Ver Todos{% else %}Mis{% endif %} Préstamos de Equipos
             </a></li>
+            {% endif %}
+            
+            {% if current_user.rol != 'almacenista' %}
             <li><a class="dropdown-item" href="{{ url_for('prestamos_libros.lista_prestamos') }}">
               <i class="bi bi-book-half me-2"></i>
-              {% if current_user.rol == 'administrador' %}Ver Todos{% else %}Mis{% endif %} Préstamos de Libros
+              {% if current_user.rol in ['administrador', 'bibliotecario'] %}Ver Todos{% else %}Mis{% endif %} Préstamos de Libros
             </a></li>
-            {% if current_user.rol == 'administrador' or current_user.rol in ['aprendiz', 'instructor'] %}
+            {% endif %}
+            
+            {% if current_user.rol in ['administrador', 'almacenista', 'bibliotecario', 'aprendiz', 'instructor'] %}
             <li><hr class="dropdown-divider"></li>
+            {% if current_user.rol != 'bibliotecario' %}
             <li><a class="dropdown-item" href="{{ url_for('prestamos.crear_prestamo') }}">
               <i class="bi bi-plus-circle me-2"></i>Solicitar Préstamo de Equipo
             </a></li>
+            {% endif %}
+            {% if current_user.rol != 'almacenista' %}
             <li><a class="dropdown-item" href="{{ url_for('prestamos_libros.crear_prestamo') }}">
               <i class="bi bi-plus-circle me-2"></i>Solicitar Préstamo de Libro
             </a></li>
+            {% endif %}
             {% endif %}
           </ul>
         </li>
@@ -80,7 +94,7 @@
         <!-- Usuarios Menu (Admin only) -->
         {% if current_user.rol == 'administrador' %}
         <li class="nav-item">
-          <a class="nav-link {{ 'active' if 'usuarios' in request.endpoint else '' }}" href="{{ url_for('usuarios.lista_usuarios') }}">
+          <a class="nav-link {{ 'active' if request.endpoint and 'usuarios' in request.endpoint else '' }}" href="{{ url_for('usuarios.lista_usuarios') }}">
             <i class="bi bi-people me-1"></i>
             <span>Usuarios</span>
           </a>

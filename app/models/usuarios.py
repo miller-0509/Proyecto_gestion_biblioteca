@@ -40,6 +40,18 @@ class Usuario(db.Model, UserMixin):
         # En algunos sistemas el string viene como 'estado_usuario.activo'
         return 'activo' in estado_str
 
+    @property
+    def limite_prestamos(self):
+        """Retorna el límite máximo de préstamos simultáneos según el rol del usuario."""
+        limites = {
+            'aprendiz': 3,
+            'instructor': 8,
+            'bibliotecario': 5,
+            'almacenista': 5,
+            'administrador': 999
+        }
+        return limites.get(self.rol, 3)
+
     def get_id(self):
         return str(self.id_usuario)
 
@@ -51,6 +63,23 @@ class Usuario(db.Model, UserMixin):
 
     def nombre_completo(self):
         return f'{self.nombres} {self.apellidos}'
+
+    def prestamos_activos_count(self):
+        """Cuenta los préstamos activos combinando libros y equipos."""
+        from app.models.prestamos import Prestamo
+        from app.models.prestamos_libros import PrestamoLibro
+        
+        equipos = Prestamo.query.filter(
+            Prestamo.id_usuario == self.id_usuario,
+            Prestamo.estado.in_(['pendiente', 'aceptado'])
+        ).count()
+        
+        libros = PrestamoLibro.query.filter(
+            PrestamoLibro.id_usuario == self.id_usuario,
+            PrestamoLibro.estado.in_(['pendiente', 'aceptado'])
+        ).count()
+        
+        return equipos + libros
 
     def to_dict(self):
         return {
@@ -91,9 +120,9 @@ class Usuario(db.Model, UserMixin):
             if not any(c.isdigit() for c in password):
                 errors.append('La contraseña debe contener al menos un número.')
             
-        roles_permitidos = ['aprendiz', 'instructor']
+        roles_permitidos = ['aprendiz']
         if is_admin:
-            roles_permitidos.append('administrador')
+            roles_permitidos.extend(['instructor', 'bibliotecario', 'almacenista', 'administrador'])
             
         if rol not in roles_permitidos:
             errors.append(f"Debes seleccionar un rol válido ({', '.join(roles_permitidos)}).")
@@ -113,7 +142,7 @@ class Usuario(db.Model, UserMixin):
         elif correo != current_correo and Usuario.query.filter_by(correo=correo).first():
             errors.append('El correo ya está registrado por otro usuario.')
         
-        if rol not in ['administrador', 'aprendiz', 'instructor']:
+        if rol not in ['aprendiz', 'instructor', 'bibliotecario', 'almacenista', 'administrador']:
             errors.append('Debes seleccionar un rol válido.')
         if estado not in ['activo', 'inactivo', 'bloqueado']:
             errors.append('Debes seleccionar un estado válido.')

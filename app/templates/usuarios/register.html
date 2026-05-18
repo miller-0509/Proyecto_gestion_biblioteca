@@ -87,23 +87,15 @@
             <small class="form-text text-muted mt-1 d-block">Mínimo 8 caracteres y una letra mayúscula</small>
           </div>
 
-          <!-- Role Selection -->
-          <div class="form-group">
-            <label for="rol" class="form-label">
-              <i class="bi bi-badge me-2"></i>Selecciona Tu Rol *
-            </label>
-            <select name="rol" id="rol" class="form-select" required>
-              <option value="">-- Selecciona tu rol --</option>
-              <option value="aprendiz" {% if rol=='aprendiz' %}selected{% endif %}>
-                <i class="bi bi-mortarboard me-1"></i> Aprendiz SENA
-              </option>
-              <option value="instructor" {% if rol=='instructor' %}selected{% endif %}>
-                <i class="bi bi-person-check me-1"></i> Instructor SENA
-              </option>
-            </select>
+          <!-- Role Selection (Hardcoded to Aprendiz) -->
+          <div class="form-group mb-4 text-center">
+            <input type="hidden" name="rol" value="aprendiz">
+            <span class="badge bg-success bg-opacity-10 text-success p-2 rounded-pill w-100" style="border: 1px solid rgba(34, 197, 94, 0.2);">
+              <i class="bi bi-mortarboard me-2"></i>Rol Asignado: Aprendiz SENA
+            </span>
             <small class="form-text text-muted d-block mt-2">
               <i class="bi bi-info-circle me-1"></i>
-              Solo los administradores pueden crear, editar o eliminar equipos
+              Los instructores, bibliotecarios y almacenistas deben ser creados por un administrador interno.
             </small>
           </div>
 

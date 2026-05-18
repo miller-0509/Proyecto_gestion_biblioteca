@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block titulo_card %}
-  {% if current_user.rol == 'administrador' %}
+  {% if current_user.rol in ['administrador', 'almacenista'] %}
     Gestión de Equipos
   {% else %}
     Catálogo de Equipos
@@ -15,7 +15,7 @@
     <div class="col-md-6">
       <h3 class="text-primary-sena mb-0">
         <i class="bi bi-pc-display me-2"></i>
-        {% if current_user.rol == 'administrador' %}
+        {% if current_user.rol in ['administrador', 'almacenista'] %}
           Gestión de Equipos
         {% else %}
           Inventario de Equipos
@@ -23,7 +23,7 @@
       </h3>
     </div>
     <div class="col-md-6 text-end">
-      {% if current_user.rol == 'administrador' %}
+      {% if current_user.rol in ['administrador', 'almacenista'] %}
       <a href="{{ url_for('equipos.crear_equipo') }}" class="btn btn-primary">
         <i class="bi bi-plus-circle me-2"></i>Registrar Equipo
       </a>
@@ -156,7 +156,7 @@
                       <i class="bi bi-eye"></i>
                     </a>
                     
-                    {% if current_user.rol == 'administrador' %}
+                    {% if current_user.rol in ['administrador', 'almacenista'] %}
                     <div class="dropdown">
                       <button class="btn btn-action-dropdown dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-three-dots-vertical"></i>
@@ -195,7 +195,7 @@
                 </div>
                 <p class="mb-0"><strong>No hay equipos registrados</strong></p>
                 <small>
-                  {% if current_user.rol == 'administrador' %}
+                  {% if current_user.rol in ['administrador', 'almacenista'] %}
                     <a href="{{ url_for('equipos.crear_equipo') }}">Registra el primer equipo</a>
                   {% endif %}
                 </small>
@@ -253,7 +253,7 @@
   {% endif %}
 
   <!-- Modales de Confirmación de Eliminación (Fuera de la tabla para evitar problemas de z-index) -->
-  {% if current_user.rol == 'administrador' %}
+  {% if current_user.rol in ['administrador', 'almacenista'] %}
     {% for equipo in equipos.items %}
     <div class="modal fade" id="deleteModalEquipo{{ equipo.id_equipo }}" tabindex="-1" aria-labelledby="deleteModalLabelEquipo{{ equipo.id_equipo }}" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

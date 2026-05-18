@@ -60,6 +60,8 @@
                                 {% set current_rol = request.form.get('rol', usuario.rol) %}
                                 <option value="aprendiz" {% if current_rol == 'aprendiz' %}selected{% endif %}>Aprendiz</option>
                                 <option value="instructor" {% if current_rol == 'instructor' %}selected{% endif %}>Instructor</option>
+                                <option value="bibliotecario" {% if current_rol == 'bibliotecario' %}selected{% endif %}>Bibliotecario</option>
+                                <option value="almacenista" {% if current_rol == 'almacenista' %}selected{% endif %}>Almacenista</option>
                                 <option value="administrador" {% if current_rol == 'administrador' %}selected{% endif %}>Administrador</option>
                             </select>
                         </div>

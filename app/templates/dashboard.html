@@ -35,66 +35,46 @@
 <div class="row g-4">
 
   <!-- Equipos Card -->
-  {% if current_user.rol == 'administrador' %}
+  {% if current_user.rol != 'bibliotecario' %}
   <div class="col-md-4">
     <a href="{{ url_for('equipos.lista_equipos') }}" class="dashboard-card">
       <div class="card-icon">
         <i class="bi bi-pc-display"></i>
       </div>
       <h4>Catálogo de Equipos</h4>
+      {% if current_user.rol in ['administrador', 'almacenista'] %}
       <p>Administra el inventario completo de equipos del sistema.</p>
-      <div>
-        <span class="badge bg-primary">Administrar</span>
-      </div>
-    </a>
-  </div>
-  {% else %}
-  <div class="col-md-4">
-    <a href="{{ url_for('equipos.lista_equipos') }}" class="dashboard-card">
-      <div class="card-icon">
-        <i class="bi bi-pc-display"></i>
-      </div>
-      <h4>Catálogo de Equipos</h4>
+      <div><span class="badge bg-primary">Administrar</span></div>
+      {% else %}
       <p>Consulta los equipos disponibles para solicitar en préstamo.</p>
-      <div>
-        <span class="badge bg-info">Consultar</span>
-      </div>
+      <div><span class="badge bg-info">Consultar</span></div>
+      {% endif %}
     </a>
   </div>
   {% endif %}
 
   <!-- Libros Card -->
-  {% if current_user.rol == 'administrador' %}
+  {% if current_user.rol != 'almacenista' %}
   <div class="col-md-4">
     <a href="{{ url_for('libros.lista_libros') }}" class="dashboard-card">
       <div class="dashboard-card-icon" style="color: var(--sena-green);">
         <i class="bi bi-book"></i>
       </div>
       <h4>Catálogo de Libros</h4>
+      {% if current_user.rol in ['administrador', 'bibliotecario'] %}
       <p>Administra el inventario completo de libros de la biblioteca.</p>
-      <div>
-        <span class="badge bg-primary">Administrar</span>
-      </div>
-    </a>
-  </div>
-  {% else %}
-  <div class="col-md-4">
-    <a href="{{ url_for('libros.lista_libros') }}" class="dashboard-card">
-      <div class="dashboard-card-icon" style="color: var(--sena-green);">
-        <i class="bi bi-book"></i>
-      </div>
-      <h4>Catálogo de Libros</h4>
+      <div><span class="badge bg-primary">Administrar</span></div>
+      {% else %}
       <p>Consulta los libros disponibles para solicitar en préstamo.</p>
-      <div>
-        <span class="badge bg-info">Consultar</span>
-      </div>
+      <div><span class="badge bg-info">Consultar</span></div>
+      {% endif %}
     </a>
   </div>
   {% endif %}
 
   <!-- Préstamos Card -->
   <div class="col-md-4">
-    {% if current_user.rol == 'administrador' %}
+    {% if current_user.rol in ['administrador', 'almacenista', 'bibliotecario'] %}
     <a href="{{ url_for('prestamos.lista_prestamos') }}" class="dashboard-card">
       <div class="dashboard-card-icon" style="color: #F59E0B;">
         <i class="bi bi-arrow-left-right"></i>
@@ -170,14 +150,20 @@
       </div>
       <div class="card-sena-body">
         <div class="list-group">
+          {% if current_user.rol in ['administrador', 'almacenista'] %}
           <a href="{{ url_for('equipos.crear_equipo') }}" class="list-group-item list-group-item-action">
             <i class="bi bi-plus-circle me-2" style="color: var(--mint-400);"></i>
             Registrar Nuevo Equipo
           </a>
+          {% endif %}
+          
+          {% if current_user.rol in ['administrador', 'bibliotecario'] %}
           <a href="{{ url_for('libros.crear_libro') }}" class="list-group-item list-group-item-action">
             <i class="bi bi-plus-circle me-2" style="color: var(--mint-400);"></i>
             Registrar Nuevo Libro
           </a>
+          {% endif %}
+          
           <a href="{{ url_for('prestamos.crear_prestamo') }}" class="list-group-item list-group-item-action">
             <i class="bi bi-plus-circle me-2" style="color: var(--mint-400);"></i>
             Crear Préstamo Manual

@@ -6,7 +6,7 @@ from app import db
 from app.models.prestamos_libros import PrestamoLibro
 from app.models.libros import Libro
 from app.models.usuarios import Usuario
-from app.decorators import admin_required, calcular_dias_restantes
+from app.decorators import admin_required, gestion_libros_required, calcular_dias_restantes
 
 bp = Blueprint('prestamos_libros', __name__, url_prefix='/prestamos-libros')
 
@@ -16,7 +16,7 @@ bp = Blueprint('prestamos_libros', __name__, url_prefix='/prestamos-libros')
 def lista_prestamos():
     page = request.args.get('page', 1, type=int)
     
-    if current_user.rol == 'administrador':
+    if current_user.rol in ['administrador', 'bibliotecario']:
         query = PrestamoLibro.query.options(
             joinedload(PrestamoLibro.usuario),
             joinedload(PrestamoLibro.libro)
@@ -47,7 +47,7 @@ def lista_prestamos():
 @bp.route('/crear', methods=['GET', 'POST'])
 @login_required
 def crear_prestamo():
-    if current_user.rol == 'administrador':
+    if current_user.rol in ['administrador', 'bibliotecario']:
         if request.method == 'GET':
             libros = Libro.query.filter_by(disponible_prestamo=True, estado='disponible').limit(100).all()
             usuarios = Usuario.query.filter(Usuario.rol.in_(['aprendiz', 'instructor'])).limit(100).all()
@@ -105,12 +105,8 @@ def crear_prestamo():
                 return redirect(url_for('prestamos_libros.crear_prestamo'))
             
             # Fix #9: Verificar límite de préstamos activos del usuario
-            prestamos_activos_count = PrestamoLibro.query.filter(
-                PrestamoLibro.id_usuario == current_user.id_usuario,
-                PrestamoLibro.estado.in_(['pendiente', 'aceptado'])
-            ).count()
-            if prestamos_activos_count >= 5:
-                flash('Has alcanzado el límite de 5 préstamos activos de libros.', 'warning')
+            if current_user.prestamos_activos_count() >= current_user.limite_prestamos:
+                flash(f'Has alcanzado el límite de {current_user.limite_prestamos} préstamos activos.', 'warning')
                 return redirect(url_for('prestamos_libros.lista_prestamos'))
             
             dias_prestamo = Libro.query.get(id_libro).tiempo_max_prestamo or 15
@@ -130,7 +126,7 @@ def crear_prestamo():
 
 @bp.route('/<int:id_prestamo>/aceptar', methods=['POST'])
 @login_required
-@admin_required
+@gestion_libros_required
 def aceptar_prestamo(id_prestamo):
     prestamo = PrestamoLibro.query.get_or_404(id_prestamo)
     if prestamo.estado != 'pendiente':
@@ -156,7 +152,7 @@ def aceptar_prestamo(id_prestamo):
 
 @bp.route('/<int:id_prestamo>/rechazar', methods=['POST'])
 @login_required
-@admin_required
+@gestion_libros_required
 def rechazar_prestamo(id_prestamo):
     prestamo = PrestamoLibro.query.get_or_404(id_prestamo)
     if prestamo.estado != 'pendiente':
@@ -183,7 +179,7 @@ def rechazar_prestamo(id_prestamo):
 
 @bp.route('/<int:id_prestamo>/devolver', methods=['POST'])
 @login_required
-@admin_required
+@gestion_libros_required
 def devolver_prestamo(id_prestamo):
     prestamo = PrestamoLibro.query.get_or_404(id_prestamo)
     if prestamo.estado != 'aceptado':
@@ -205,7 +201,7 @@ def devolver_prestamo(id_prestamo):
 @login_required
 def detalle_prestamo(id_prestamo):
     prestamo = PrestamoLibro.query.get_or_404(id_prestamo)
-    if current_user.rol != 'administrador' and prestamo.id_usuario != current_user.id_usuario:
+    if current_user.rol not in ['administrador', 'bibliotecario'] and prestamo.id_usuario != current_user.id_usuario:
         flash('No tienes permiso para ver este préstamo.', 'danger')
         return redirect(url_for('prestamos_libros.lista_prestamos'))
     

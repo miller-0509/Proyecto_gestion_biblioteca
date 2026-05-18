@@ -33,6 +33,50 @@ def admin_required(f):
     return decorated_function
 
 
+def bibliotecario_required(f):
+    """Permite acceso a bibliotecarios y administradores."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.rol not in ['administrador', 'bibliotecario']:
+            flash('Acceso denegado. Se requieren permisos de bibliotecario o administrador.', 'danger')
+            return redirect(url_for('auth.dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def almacenista_required(f):
+    """Permite acceso a almacenistas y administradores."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.rol not in ['administrador', 'almacenista']:
+            flash('Acceso denegado. Se requieren permisos de almacenista o administrador.', 'danger')
+            return redirect(url_for('auth.dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def gestion_libros_required(f):
+    """Protege rutas exclusivas de gestión de biblioteca."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.rol not in ['administrador', 'bibliotecario']:
+            flash('Acceso denegado. Módulo de biblioteca restringido.', 'danger')
+            return redirect(url_for('auth.dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def gestion_equipos_required(f):
+    """Protege rutas exclusivas de gestión de almacén."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.rol not in ['administrador', 'almacenista']:
+            flash('Acceso denegado. Módulo de almacén restringido.', 'danger')
+            return redirect(url_for('auth.dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 def calcular_dias_restantes(prestamo):
     """Calcula los días restantes de un préstamo aceptado.
 
