@@ -126,10 +126,22 @@
                         </td>
                         <td>
                             {% if item.estado == 'devuelto' and item.fecha_devolucion_real %}
-                                <span class="text-success" style="font-size:0.875rem;">
-                                    <i class="bi bi-check-circle-fill me-1"></i>
-                                    {{ item.fecha_devolucion_real.strftime('%d/%m/%Y %H:%M') }}
-                                </span>
+                                <div class="mb-1">
+                                    <span class="text-success" style="font-size:0.875rem;">
+                                        <i class="bi bi-check-circle-fill me-1"></i>
+                                        {{ item.fecha_devolucion_real.strftime('%d/%m/%Y %H:%M') }}
+                                    </span>
+                                </div>
+                                {% if item.estado_fisico_devolucion %}
+                                    <span class="badge {% if item.estado_fisico_devolucion in ['excelente', 'bueno'] %}bg-success{% elif item.estado_fisico_devolucion == 'regular' %}bg-warning text-dark{% else %}bg-danger{% endif %} text-white" style="font-size:0.7rem;">
+                                        Físico: {{ item.estado_fisico_devolucion | capitalize }}
+                                    </span>
+                                {% endif %}
+                                {% if item.observacion_devolucion %}
+                                    <div class="text-muted mt-1" style="font-size:0.78rem;">
+                                        <i class="bi bi-chat-left-text me-1"></i>{{ item.observacion_devolucion }}
+                                    </div>
+                                {% endif %}
                             {% elif item.fecha_devolucion_esperada %}
                                 <span class="{% if item.estado == 'atrasado' %}text-danger{% else %}text-muted{% endif %}" style="font-size:0.875rem;">
                                     <i class="bi bi-clock me-1"></i>

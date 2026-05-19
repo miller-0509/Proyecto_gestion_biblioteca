@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from app import db, mail
 from app.models.prestamos_libros import PrestamoLibro
 from app.services.email_service import enviar_notificacion_prestamo
-from app.models.libros import Libro
+from app.models.libros import Libro, HistorialEstadoLibro
 from app.models.usuarios import Usuario
 from app.decorators import admin_required, gestion_libros_required, calcular_dias_restantes
 
@@ -199,18 +199,57 @@ def devolver_prestamo(id_prestamo):
     if prestamo.estado != 'aceptado':
         flash('Este préstamo no está en estado aceptado.', 'warning')
         return redirect(url_for('prestamos_libros.lista_prestamos'))
+        
+    estado_fisico = request.form.get('estado_fisico')
+    estado_final = request.form.get('estado_final')
+    observacion_devolucion = request.form.get('observacion_devolucion')
+    
+    if not observacion_devolucion or observacion_devolucion.strip() == '':
+        flash('Debes ingresar una observación para la devolución.', 'danger')
+        return redirect(url_for('prestamos_libros.lista_prestamos'))
+        
+    if not estado_fisico or not estado_final:
+        flash('Debes seleccionar el estado físico y la acción final.', 'danger')
+        return redirect(url_for('prestamos_libros.lista_prestamos'))
+        
+    estados_fisicos_validos = ['excelente', 'bueno', 'regular', 'deteriorado', 'dañado']
+    if estado_fisico not in estados_fisicos_validos:
+        flash('Estado físico inválido.', 'danger')
+        return redirect(url_for('prestamos_libros.lista_prestamos'))
+        
+    estados_finales_validos = ['disponible', 'mantenimiento', 'no_disponible']
+    if estado_final not in estados_finales_validos:
+        flash('Estado final inválido.', 'danger')
+        return redirect(url_for('prestamos_libros.lista_prestamos'))
+    
+    estado_anterior = prestamo.libro.estado
     
     prestamo.estado = 'devuelto'
     prestamo.fecha_devolucion_real = datetime.now(timezone.utc)
-    prestamo.libro.estado = 'disponible'
+    prestamo.observacion_devolucion = observacion_devolucion
+    prestamo.estado_fisico_devolucion = estado_fisico
+    
+    prestamo.libro.estado = estado_final
     prestamo.save()
+    
+    # Registro en historial de estados del libro
+    if estado_anterior != estado_final:
+        historial = HistorialEstadoLibro(
+            id_libro=prestamo.id_libro,
+            estado_anterior=estado_anterior,
+            estado_nuevo=estado_final,
+            observacion=f"Cambio por devolución. Físico: {estado_fisico}. Obs: {observacion_devolucion}",
+            id_administrador=current_user.id_usuario
+        )
+        db.session.add(historial)
+        
     db.session.commit()
     
     # Notificar devolución
     enviar_notificacion_prestamo(prestamo, 'devuelto', mail, es_libro=True)
     
-    current_app.logger.info('Préstamo libro devuelto: id=%s', id_prestamo)
-    flash('Préstamo marcado como devuelto y notificado.', 'success')
+    current_app.logger.info('Préstamo libro devuelto: id=%s, estado_fisico=%s, estado_final=%s', id_prestamo, estado_fisico, estado_final)
+    flash(f'Préstamo marcado como devuelto. El libro pasó a estado {estado_final}.', 'success')
     return redirect(url_for('prestamos_libros.lista_prestamos'))
 
 

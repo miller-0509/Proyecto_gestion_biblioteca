@@ -19,6 +19,10 @@ class Prestamo(db.Model):
     razon_rechazo = db.Column(db.String(255), nullable=True)
     observaciones = db.Column(db.Text, nullable=True)
     
+    # Devolucion
+    observacion_devolucion = db.Column(db.Text, nullable=True)
+    estado_fisico_devolucion = db.Column(db.String(20), nullable=True)
+    
     # Tracking de notificaciones
     notificacion_vencimiento_enviada = db.Column(db.Boolean, default=False)
     notificacion_vencido_enviada = db.Column(db.Boolean, default=False)
@@ -43,6 +47,8 @@ class Prestamo(db.Model):
             'estado': self.estado,
             'razon_rechazo': self.razon_rechazo,
             'observaciones': self.observaciones,
+            'observacion_devolucion': self.observacion_devolucion,
+            'estado_fisico_devolucion': self.estado_fisico_devolucion,
         }
     
     def save(self):

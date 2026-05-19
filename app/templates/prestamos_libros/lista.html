@@ -76,26 +76,38 @@
             {% endif %}
           </td>
           <td>
-            {% if prestamo.fecha_devolucion_esperada %}
-              <small>{{ prestamo.fecha_devolucion_esperada.strftime('%d/%m/%Y') }}</small>
-              {% if prestamo.estado == 'aceptado' and item.dias_restantes is not none %}
-                <br>
-                {% if item.dias_restantes < 0 %}
-                  <small class="badge bg-danger">
-                    <i class="bi bi-exclamation-circle me-1"></i>Vencido hace {{ -item.dias_restantes }} días
-                  </small>
-                {% elif item.dias_restantes == 0 %}
-                  <small class="badge bg-warning">
-                    <i class="bi bi-exclamation-triangle me-1"></i>Vence hoy
-                  </small>
-                {% else %}
-                  <small class="badge bg-info">
-                    Vence en {{ item.dias_restantes }} días
-                  </small>
-                {% endif %}
+          <td>
+            {% if prestamo.estado == 'devuelto' and prestamo.fecha_devolucion_real %}
+              <div class="mb-1">
+                <small class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>{{ prestamo.fecha_devolucion_real.strftime('%d/%m/%Y %H:%M') }}</small>
+              </div>
+              {% if prestamo.estado_fisico_devolucion %}
+                <span class="badge {% if prestamo.estado_fisico_devolucion in ['excelente', 'bueno'] %}bg-success{% elif prestamo.estado_fisico_devolucion == 'regular' %}bg-warning text-dark{% else %}bg-danger{% endif %} text-white" style="font-size:0.7rem;">
+                  {{ prestamo.estado_fisico_devolucion | capitalize }}
+                </span>
               {% endif %}
             {% else %}
-              —
+              {% if prestamo.fecha_devolucion_esperada %}
+                <small>{{ prestamo.fecha_devolucion_esperada.strftime('%d/%m/%Y') }}</small>
+                {% if prestamo.estado == 'aceptado' and item.dias_restantes is not none %}
+                  <br>
+                  {% if item.dias_restantes < 0 %}
+                    <small class="badge bg-danger">
+                      <i class="bi bi-exclamation-circle me-1"></i>Vencido hace {{ -item.dias_restantes }} días
+                    </small>
+                  {% elif item.dias_restantes == 0 %}
+                    <small class="badge bg-warning text-dark">
+                      <i class="bi bi-exclamation-triangle me-1"></i>Vence hoy
+                    </small>
+                  {% else %}
+                    <small class="badge bg-info text-dark">
+                      Vence en {{ item.dias_restantes }} días
+                    </small>
+                  {% endif %}
+                {% endif %}
+              {% else %}
+                —
+              {% endif %}
             {% endif %}
           </td>
           <td>
@@ -126,12 +138,9 @@
                     </li>
                   {% elif prestamo.estado == 'aceptado' %}
                     <li>
-                      <form method="POST" action="{{ url_for('prestamos_libros.devolver_prestamo', id_prestamo=prestamo.id_prestamo) }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <button type="submit" class="dropdown-item text-warning">
-                          <i class="bi bi-box-arrow-left me-2"></i>Marcar devuelto
-                        </button>
-                      </form>
+                      <button type="button" class="dropdown-item text-warning" data-bs-toggle="modal" data-bs-target="#devolverModal{{ prestamo.id_prestamo }}">
+                        <i class="bi bi-box-arrow-left me-2"></i>Marcar devuelto
+                      </button>
                     </li>
                   {% endif %}
                 </ul>
@@ -169,6 +178,68 @@
                       </button>
                       <button type="submit" class="btn btn-danger">
                         <i class="bi bi-x-circle me-1"></i>Rechazar
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
+            {% if current_user.rol in ['administrador', 'bibliotecario'] and prestamo.estado == 'aceptado' %}
+            <!-- Devolver Modal -->
+            <div class="modal fade" id="devolverModal{{ prestamo.id_prestamo }}" tabindex="-1">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                  <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title">
+                      <i class="bi bi-box-arrow-left me-2" style="color: var(--sena-primary);"></i>
+                      Registrar Devolución de Libro
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <form method="POST" action="{{ url_for('prestamos_libros.devolver_prestamo', id_prestamo=prestamo.id_prestamo) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label for="estado_fisico{{ prestamo.id_prestamo }}" class="form-label">
+                          <i class="bi bi-book me-1"></i>Estado Físico del Libro <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select estado-fisico-select" id="estado_fisico{{ prestamo.id_prestamo }}" name="estado_fisico" data-target="estado_final{{ prestamo.id_prestamo }}" required>
+                          <option value="">Seleccione el estado...</option>
+                          <option value="excelente">Excelente</option>
+                          <option value="bueno">Bueno</option>
+                          <option value="regular">Regular</option>
+                          <option value="deteriorado">Deteriorado</option>
+                          <option value="dañado">Dañado</option>
+                        </select>
+                      </div>
+                      
+                      <div class="mb-3">
+                        <label for="estado_final{{ prestamo.id_prestamo }}" class="form-label">
+                          <i class="bi bi-gear me-1"></i>Acción (Estado Final) <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select" id="estado_final{{ prestamo.id_prestamo }}" name="estado_final" required>
+                          <option value="">Seleccione primero el estado físico...</option>
+                        </select>
+                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>El libro pasará a este estado en el inventario.</small>
+                      </div>
+
+                      <div class="mb-3">
+                        <label for="observacion_devolucion{{ prestamo.id_prestamo }}" class="form-label">
+                          <i class="bi bi-chat-left-text me-1"></i>Observaciones <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="observacion_devolucion{{ prestamo.id_prestamo }}" 
+                                  name="observacion_devolucion" rows="3" 
+                                  placeholder="Ej: Libro entregado con hojas dobladas..." required></textarea>
+                      </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                      </button>
+                      <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Confirmar Devolución
                       </button>
                     </div>
                   </form>
@@ -254,4 +325,40 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const estadoFisicoSelects = document.querySelectorAll('.estado-fisico-select');
+    
+    estadoFisicoSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            const targetId = this.getAttribute('data-target');
+            const targetSelect = document.getElementById(targetId);
+            const value = this.value;
+            
+            targetSelect.innerHTML = ''; // Limpiar opciones
+            
+            if (value === 'excelente' || value === 'bueno') {
+                targetSelect.innerHTML = '<option value="disponible">Disponible (Volver al inventario)</option>';
+            } else if (value === 'regular') {
+                targetSelect.innerHTML = `
+                    <option value="">Seleccione acción...</option>
+                    <option value="disponible">Disponible (Puede seguir prestándose)</option>
+                    <option value="mantenimiento">Mantenimiento / Revisión</option>
+                `;
+            } else if (value === 'dañado' || value === 'incompleto' || value === 'deteriorado') {
+                targetSelect.innerHTML = `
+                    <option value="">Seleccione acción...</option>
+                    <option value="mantenimiento">Mantenimiento / Reparación</option>
+                    <option value="no_disponible">No Disponible (Baja temporal/definitiva)</option>
+                `;
+            } else {
+                targetSelect.innerHTML = '<option value="">Seleccione primero el estado físico...</option>';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
