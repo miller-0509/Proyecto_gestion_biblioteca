@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block titulo_card %}Mi Historial de Préstamos{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+      <h3 class="text-primary-sena mb-0">
+        <i class="bi bi-person-lines-fill me-2"></i>Mis Préstamos
+      </h3>
+      <p class="text-muted mb-0">Historial completo de tus recursos solicitados.</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('reportes.index') }}" class="btn btn-outline-secondary me-2">Volver</a>
+        <a href="{{ url_for('reportes.exportar_pdf', tipo_reporte='mis_prestamos') }}" class="btn btn-danger" target="_blank">
+          <i class="bi bi-file-earmark-pdf me-1"></i> Exportar a PDF
+        </a>
+        <a href="{{ url_for('reportes.exportar_excel', tipo_reporte='mis_prestamos') }}" class="btn btn-success">
+          <i class="bi bi-file-earmark-excel me-1"></i> Exportar a Excel
+        </a>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card-sena mb-4">
+    <div class="card-sena-body bg-light">
+      <form method="GET" class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">Filtrar por Estado</label>
+          <select name="estado" class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="aceptado" {% if estado == 'aceptado' %}selected{% endif %}>Activo (Aceptado)</option>
+            <option value="devuelto" {% if estado == 'devuelto' %}selected{% endif %}>Devuelto</option>
+            <option value="rechazado" {% if estado == 'rechazado' %}selected{% endif %}>Rechazado</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i> Filtrar</button>
+        </div>
+        {% if estado %}
+        <div class="col-md-2 text-start">
+             <a href="{{ url_for('reportes.mis_prestamos') }}" class="btn btn-outline-danger w-100"><i class="bi bi-x-circle me-1"></i>Limpiar</a>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Tabla Equipos -->
+    <div class="col-12 mb-4">
+        <h5 class="text-primary-sena mb-3"><i class="bi bi-pc-display me-2"></i>Mis Equipos Solicitados</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle border">
+              <thead class="table-light">
+                <tr>
+                  <th>Recurso</th>
+                  <th>Fecha Solicitud</th>
+                  <th>Estado</th>
+                  <th>Fecha Devolución</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in mis_equipos %}
+                <tr>
+                  <td><strong>{{ p.equipo.nombre if p.equipo else 'Desconocido' }}</strong></td>
+                  <td>{{ p.fecha_solicitud.strftime('%Y-%m-%d %H:%M') if p.fecha_solicitud else 'N/A' }}</td>
+                  <td>
+                      {% if p.estado == 'pendiente' %}<span class="badge bg-secondary">Pendiente</span>
+                      {% elif p.estado == 'aceptado' %}<span class="badge bg-warning text-dark">Activo</span>
+                      {% elif p.estado == 'rechazado' %}<span class="badge bg-danger">Rechazado</span>
+                      {% elif p.estado == 'devuelto' %}<span class="badge bg-success">Devuelto</span>
+                      {% else %}<span class="badge bg-secondary">{{ p.estado|capitalize }}</span>{% endif %}
+                  </td>
+                  <td>{{ p.fecha_devolucion_real.strftime('%Y-%m-%d %H:%M') if p.fecha_devolucion_real else '—' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center py-3 text-muted">No tienes historial de equipos.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tabla Libros -->
+    <div class="col-12">
+        <h5 class="text-primary-sena mb-3"><i class="bi bi-book me-2"></i>Mis Libros Solicitados</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle border">
+              <thead class="table-light">
+                <tr>
+                  <th>Recurso</th>
+                  <th>Fecha Solicitud</th>
+                  <th>Estado</th>
+                  <th>Fecha Devolución</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in mis_libros %}
+                <tr>
+                  <td><strong>{{ p.libro.titulo if p.libro else 'Desconocido' }}</strong></td>
+                  <td>{{ p.fecha_solicitud.strftime('%Y-%m-%d %H:%M') if p.fecha_solicitud else 'N/A' }}</td>
+                  <td>
+                      {% if p.estado == 'pendiente' %}<span class="badge bg-secondary">Pendiente</span>
+                      {% elif p.estado == 'aceptado' %}<span class="badge bg-warning text-dark">Activo</span>
+                      {% elif p.estado == 'rechazado' %}<span class="badge bg-danger">Rechazado</span>
+                      {% elif p.estado == 'devuelto' %}<span class="badge bg-success">Devuelto</span>
+                      {% else %}<span class="badge bg-secondary">{{ p.estado|capitalize }}</span>{% endif %}
+                  </td>
+                  <td>{{ p.fecha_devolucion_real.strftime('%Y-%m-%d %H:%M') if p.fecha_devolucion_real else '—' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center py-3 text-muted">No tienes historial de libros.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

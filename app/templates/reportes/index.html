@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block titulo_card %}Centro de Reportes Institucionales{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h3 class="text-primary-sena mb-2">
+        <i class="bi bi-graph-up me-2"></i>Reportes Estratégicos
+      </h3>
+      <p class="text-muted">
+        Bienvenido al centro de generación de reportes y estadísticas.
+      </p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Inventario -->
+    {% if current_user.rol in ['administrador', 'bibliotecario', 'almacenista'] %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card-sena h-100">
+        <div class="card-sena-header bg-light">
+          <h5 class="mb-0 text-dark"><i class="bi bi-box-seam me-2"></i>Inventario General</h5>
+        </div>
+        <div class="card-sena-body d-flex flex-column">
+          <p class="text-muted small mb-4 flex-grow-1">
+            Consulta y exporta el estado actual del inventario (libros y/o equipos) con filtros detallados.
+          </p>
+          <a href="{{ url_for('reportes.inventario') }}" class="btn btn-outline-primary w-100 mt-auto">
+            Acceder al Reporte <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Préstamos Globales -->
+    {% if current_user.rol in ['administrador', 'bibliotecario', 'almacenista'] %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card-sena h-100">
+        <div class="card-sena-header bg-light">
+          <h5 class="mb-0 text-dark"><i class="bi bi-arrow-left-right me-2"></i>Préstamos Realizados</h5>
+        </div>
+        <div class="card-sena-body d-flex flex-column">
+          <p class="text-muted small mb-4 flex-grow-1">
+            Revisa el historial global de préstamos, devoluciones pendientes y vencidas por estado y fecha.
+          </p>
+          <a href="{{ url_for('reportes.prestamos') }}" class="btn btn-outline-primary w-100 mt-auto">
+            Acceder al Reporte <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Usuarios Activos -->
+    {% if current_user.rol == 'administrador' %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card-sena h-100">
+        <div class="card-sena-header bg-light">
+          <h5 class="mb-0 text-dark"><i class="bi bi-people me-2"></i>Usuarios Activos</h5>
+        </div>
+        <div class="card-sena-body d-flex flex-column">
+          <p class="text-muted small mb-4 flex-grow-1">
+            Listado de usuarios activos y su cantidad de préstamos en curso ordenados de mayor a menor.
+          </p>
+          <a href="{{ url_for('reportes.usuarios_activos') }}" class="btn btn-outline-primary w-100 mt-auto">
+            Acceder al Reporte <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Mis Préstamos (Solo para Aprendiz e Instructor) -->
+    {% if current_user.rol in ['aprendiz', 'instructor'] %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card-sena h-100">
+        <div class="card-sena-header bg-light">
+          <h5 class="mb-0 text-dark"><i class="bi bi-person-lines-fill me-2"></i>Mis Préstamos</h5>
+        </div>
+        <div class="card-sena-body d-flex flex-column">
+          <p class="text-muted small mb-4 flex-grow-1">
+            Consulta e imprime tu historial personal completo de recursos solicitados.
+          </p>
+          <a href="{{ url_for('reportes.mis_prestamos') }}" class="btn btn-outline-primary w-100 mt-auto">
+            Acceder al Reporte <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

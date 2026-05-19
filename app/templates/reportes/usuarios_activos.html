@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block titulo_card %}Usuarios Activos y Préstamos{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+      <h3 class="text-primary-sena mb-0">
+        <i class="bi bi-people me-2"></i>Reporte de Usuarios
+      </h3>
+      <p class="text-muted mb-0">Usuarios con sesión activa y conteo de préstamos vigentes.</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('reportes.index') }}" class="btn btn-outline-secondary">Volver</a>
+    </div>
+  </div>
+
+  <div class="card-sena">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle border">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Nombre Completo</th>
+              <th>Correo Electrónico</th>
+              <th>Rol Institucional</th>
+              <th>Préstamos Activos (Libros + Equipos)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in usuarios %}
+            <tr>
+              <td><span class="text-muted">#{{ item.usuario.id_usuario }}</span></td>
+              <td><strong>{{ item.usuario.nombre_completo() }}</strong></td>
+              <td>{{ item.usuario.correo }}</td>
+              <td>
+                {% if item.usuario.rol == 'administrador' %}<span class="badge bg-danger">Administrador</span>
+                {% elif item.usuario.rol == 'bibliotecario' %}<span class="badge bg-info text-dark">Bibliotecario</span>
+                {% elif item.usuario.rol == 'almacenista' %}<span class="badge bg-secondary">Almacenista</span>
+                {% elif item.usuario.rol == 'instructor' %}<span class="badge bg-primary">Instructor</span>
+                {% else %}<span class="badge bg-success">Aprendiz</span>{% endif %}
+              </td>
+              <td>
+                {% if item.activos > 0 %}
+                    <span class="badge bg-warning text-dark fs-6">{{ item.activos }} vigentes</span>
+                {% else %}
+                    <span class="text-muted">Sin préstamos</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center py-4 text-muted">No hay usuarios activos.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

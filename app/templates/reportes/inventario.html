@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block titulo_card %}Reporte de Inventario{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+      <h3 class="text-primary-sena mb-0">
+        <i class="bi bi-box-seam me-2"></i>Inventario Institucional
+      </h3>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('reportes.index') }}" class="btn btn-outline-secondary me-2">Volver</a>
+        {% if current_user.rol == 'administrador' %}
+        <div class="btn-group me-2">
+          <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('reportes.exportar_excel', tipo_reporte='inventario_equipos') }}">Reporte de Equipos</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('reportes.exportar_excel', tipo_reporte='inventario_libros') }}">Reporte de Libros</a></li>
+          </ul>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('reportes.exportar_pdf', tipo_reporte='inventario_equipos') }}" target="_blank">Reporte de Equipos</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('reportes.exportar_pdf', tipo_reporte='inventario_libros') }}" target="_blank">Reporte de Libros</a></li>
+          </ul>
+        </div>
+        {% elif current_user.rol == 'almacenista' %}
+        <a href="{{ url_for('reportes.exportar_excel', tipo_reporte='inventario_equipos') }}" class="btn btn-success me-2">
+          <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel
+        </a>
+        <a href="{{ url_for('reportes.exportar_pdf', tipo_reporte='inventario_equipos') }}" target="_blank" class="btn btn-danger">
+          <i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF
+        </a>
+        {% elif current_user.rol == 'bibliotecario' %}
+        <a href="{{ url_for('reportes.exportar_excel', tipo_reporte='inventario_libros') }}" class="btn btn-success me-2">
+          <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel
+        </a>
+        <a href="{{ url_for('reportes.exportar_pdf', tipo_reporte='inventario_libros') }}" target="_blank" class="btn btn-danger">
+          <i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF
+        </a>
+        {% endif %}
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card-sena mb-4">
+    <div class="card-sena-body bg-light">
+      <form method="GET" class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Estado</label>
+          <select name="estado" class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="disponible" {% if estado == 'disponible' %}selected{% endif %}>Disponible</option>
+            <option value="prestado" {% if estado == 'prestado' %}selected{% endif %}>Prestado</option>
+            <option value="mantenimiento" {% if estado == 'mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+            <option value="dañado" {% if estado == 'dañado' %}selected{% endif %}>Dañado</option>
+            <option value="fuera_de_servicio" {% if estado == 'fuera_de_servicio' %}selected{% endif %}>Fuera de Servicio</option>
+            <option value="perdido" {% if estado == 'perdido' %}selected{% endif %}>Perdido</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Tipo de Equipo</label>
+          <select name="tipo" class="form-select" {% if not tipos_equipo %}disabled{% endif %}>
+            <option value="">Todos los tipos</option>
+            {% for t in tipos_equipo %}
+              <option value="{{ t[0] }}" {% if tipo == t[0] %}selected{% endif %}>{{ t[0] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-bold">Fecha Desde</label>
+          <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-bold">Fecha Hasta</label>
+          <input type="date" name="fecha_fin" class="form-control" value="{{ fecha_fin }}">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i> Filtrar</button>
+        </div>
+        {% if estado or tipo or fecha_inicio or fecha_fin %}
+        <div class="col-12 mt-2 text-end">
+             <a href="{{ url_for('reportes.inventario') }}" class="text-decoration-none small text-danger"><i class="bi bi-x-circle me-1"></i>Limpiar Filtros</a>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs mb-4" id="inventarioTabs" role="tablist">
+    {% if current_user.rol in ['administrador', 'almacenista'] %}
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active fw-bold text-dark" id="equipos-tab" data-bs-toggle="tab" data-bs-target="#equipos" type="button" role="tab" aria-controls="equipos" aria-selected="true">
+        <i class="bi bi-pc-display me-2"></i>Equipos <span class="badge bg-secondary ms-1">{{ equipos|length }}</span>
+      </button>
+    </li>
+    {% endif %}
+    {% if current_user.rol in ['administrador', 'bibliotecario'] %}
+    <li class="nav-item" role="presentation">
+      <button class="nav-link {% if current_user.rol == 'bibliotecario' %}active{% endif %} fw-bold text-dark" id="libros-tab" data-bs-toggle="tab" data-bs-target="#libros" type="button" role="tab" aria-controls="libros" aria-selected="false">
+        <i class="bi bi-book me-2"></i>Libros <span class="badge bg-secondary ms-1">{{ libros|length }}</span>
+      </button>
+    </li>
+    {% endif %}
+  </ul>
+
+  <div class="tab-content" id="inventarioTabsContent">
+    
+    {% if current_user.rol in ['administrador', 'almacenista'] %}
+    <div class="tab-pane fade show active" id="equipos" role="tabpanel" aria-labelledby="equipos-tab">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle border">
+              <thead class="table-light">
+                <tr>
+                  <th>Ref</th>
+                  <th>Nombre</th>
+                  <th>Tipo</th>
+                  <th>N° Serie</th>
+                  <th>Estado</th>
+                  <th>Ubicación</th>
+                  <th>Registro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for eq in equipos %}
+                <tr>
+                  <td><span class="badge bg-light text-dark border">E-{{ eq.id_equipo }}</span></td>
+                  <td><strong>{{ eq.nombre }}</strong><br><small class="text-muted">{{ eq.marca or '' }}</small></td>
+                  <td>{{ eq.tipo_equipo }}</td>
+                  <td><code class="text-dark bg-light px-2 py-1 rounded">{{ eq.numero_serie }}</code></td>
+                  <td>
+                      {% if eq.estado == 'disponible' %}<span class="badge bg-success">Disponible</span>
+                      {% elif eq.estado == 'prestado' %}<span class="badge bg-warning text-dark">Prestado</span>
+                      {% elif eq.estado == 'dañado' %}<span class="badge bg-danger">Dañado</span>
+                      {% elif eq.estado == 'mantenimiento' %}<span class="badge bg-info text-dark">Mantenimiento</span>
+                      {% else %}<span class="badge bg-secondary">{{ eq.estado|capitalize }}</span>{% endif %}
+                  </td>
+                  <td>{{ eq.ubicacion or 'N/A' }}</td>
+                  <td>{{ eq.fecha_registro.strftime('%Y-%m-%d') if eq.fecha_registro else 'N/A' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No se encontraron resultados para equipos.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if current_user.rol in ['administrador', 'bibliotecario'] %}
+    <div class="tab-pane fade {% if current_user.rol == 'bibliotecario' %}show active{% endif %}" id="libros" role="tabpanel" aria-labelledby="libros-tab">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle border">
+              <thead class="table-light">
+                <tr>
+                  <th>Ref</th>
+                  <th>Título</th>
+                  <th>Autor</th>
+                  <th>Código Único</th>
+                  <th>Estado</th>
+                  <th>Ubicación</th>
+                  <th>Registro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for lib in libros %}
+                <tr>
+                  <td><span class="badge bg-light text-dark border">L-{{ lib.id_libro }}</span></td>
+                  <td><strong>{{ lib.titulo }}</strong><br><small class="text-muted">{{ lib.genero }}</small></td>
+                  <td>{{ lib.autor }}</td>
+                  <td><code class="text-dark bg-light px-2 py-1 rounded">{{ lib.codigo_unico }}</code></td>
+                  <td>
+                      {% if lib.estado == 'disponible' %}<span class="badge bg-success">Disponible</span>
+                      {% elif lib.estado == 'prestado' %}<span class="badge bg-warning text-dark">Prestado</span>
+                      {% elif lib.estado == 'dañado' %}<span class="badge bg-danger">Dañado</span>
+                      {% elif lib.estado == 'mantenimiento' %}<span class="badge bg-info text-dark">Mantenimiento</span>
+                      {% else %}<span class="badge bg-secondary">{{ lib.estado|capitalize }}</span>{% endif %}
+                  </td>
+                  <td>{{ lib.ubicacion or 'N/A' }}</td>
+                  <td>{{ lib.fecha_registro.strftime('%Y-%m-%d') if lib.fecha_registro else 'N/A' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No se encontraron resultados para libros.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+</div>
+{% endblock %}

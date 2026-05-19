@@ -114,7 +114,8 @@ def create_app(config_class=None):
         prestamos,
         libros,
         prestamos_libros,
-        usuarios
+        usuarios,
+        reportes
     )
 
     app.register_blueprint(auth.bp)
@@ -123,6 +124,7 @@ def create_app(config_class=None):
     app.register_blueprint(libros.bp)
     app.register_blueprint(prestamos_libros.bp)
     app.register_blueprint(usuarios.bp)
+    app.register_blueprint(reportes.bp)
 
     # ── Error Handlers ─────────────────────────────────────────────
     @app.errorhandler(404)

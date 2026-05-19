@@ -91,6 +91,14 @@
           </ul>
         </li>
 
+        <!-- Reportes -->
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if request.endpoint and 'reportes' in request.endpoint else '' }}" href="{{ url_for('reportes.index') }}">
+            <i class="bi bi-graph-up me-1"></i>
+            <span>Reportes</span>
+          </a>
+        </li>
+
         <!-- Usuarios Menu (Admin only) -->
         {% if current_user.rol == 'administrador' %}
         <li class="nav-item">

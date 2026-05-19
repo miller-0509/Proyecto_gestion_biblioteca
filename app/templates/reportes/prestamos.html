@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block titulo_card %}Reporte de Préstamos Globales{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+      <h3 class="text-primary-sena mb-0">
+        <i class="bi bi-arrow-left-right me-2"></i>Préstamos Realizados
+      </h3>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('reportes.index') }}" class="btn btn-outline-secondary me-2">Volver</a>
+        
+        {% if current_user.rol == 'administrador' %}
+        <div class="btn-group me-2">
+          <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('reportes.exportar_excel', tipo_reporte='prestamos_equipos') }}">Reporte de Equipos</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('reportes.exportar_excel', tipo_reporte='prestamos_libros') }}">Reporte de Libros</a></li>
+          </ul>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{{ url_for('reportes.exportar_pdf', tipo_reporte='prestamos_equipos') }}" target="_blank">Reporte de Equipos</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('reportes.exportar_pdf', tipo_reporte='prestamos_libros') }}" target="_blank">Reporte de Libros</a></li>
+          </ul>
+        </div>
+        {% elif current_user.rol == 'almacenista' %}
+        <a href="{{ url_for('reportes.exportar_excel', tipo_reporte='prestamos_equipos') }}" class="btn btn-success me-2">
+          <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel
+        </a>
+        <a href="{{ url_for('reportes.exportar_pdf', tipo_reporte='prestamos_equipos') }}" target="_blank" class="btn btn-danger">
+          <i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF
+        </a>
+        {% elif current_user.rol == 'bibliotecario' %}
+        <a href="{{ url_for('reportes.exportar_excel', tipo_reporte='prestamos_libros') }}" class="btn btn-success me-2">
+          <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel
+        </a>
+        <a href="{{ url_for('reportes.exportar_pdf', tipo_reporte='prestamos_libros') }}" target="_blank" class="btn btn-danger">
+          <i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF
+        </a>
+        {% endif %}
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card-sena mb-4">
+    <div class="card-sena-body bg-light">
+      <form method="GET" class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Estado del Préstamo</label>
+          <select name="estado" class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="aceptado" {% if estado == 'aceptado' %}selected{% endif %}>Aceptado (Activo)</option>
+            <option value="rechazado" {% if estado == 'rechazado' %}selected{% endif %}>Rechazado</option>
+            <option value="devuelto" {% if estado == 'devuelto' %}selected{% endif %}>Devuelto</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Tipo de Recurso</label>
+          <select name="tipo_recurso" class="form-select">
+            <option value="">Todos (Libros y Equipos)</option>
+            {% if current_user.rol in ['administrador', 'almacenista'] %}
+            <option value="equipos" {% if tipo_recurso == 'equipos' %}selected{% endif %}>Solo Equipos</option>
+            {% endif %}
+            {% if current_user.rol in ['administrador', 'bibliotecario'] %}
+            <option value="libros" {% if tipo_recurso == 'libros' %}selected{% endif %}>Solo Libros</option>
+            {% endif %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-bold">Fecha Solicitud (Desde)</label>
+          <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-bold">Fecha Solicitud (Hasta)</label>
+          <input type="date" name="fecha_fin" class="form-control" value="{{ fecha_fin }}">
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i> Filtrar</button>
+        </div>
+        {% if estado or tipo_recurso or fecha_inicio or fecha_fin %}
+        <div class="col-12 mt-2 text-end">
+             <a href="{{ url_for('reportes.prestamos') }}" class="text-decoration-none small text-danger"><i class="bi bi-x-circle me-1"></i>Limpiar Filtros</a>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs mb-4" id="prestamosTabs" role="tablist">
+    {% if current_user.rol in ['administrador', 'almacenista'] %}
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active fw-bold text-dark" id="equipos-tab" data-bs-toggle="tab" data-bs-target="#equipos" type="button" role="tab" aria-controls="equipos" aria-selected="true">
+        <i class="bi bi-pc-display me-2"></i>Equipos <span class="badge bg-secondary ms-1">{{ prestamos_equipos|length }}</span>
+      </button>
+    </li>
+    {% endif %}
+    {% if current_user.rol in ['administrador', 'bibliotecario'] %}
+    <li class="nav-item" role="presentation">
+      <button class="nav-link {% if current_user.rol == 'bibliotecario' %}active{% endif %} fw-bold text-dark" id="libros-tab" data-bs-toggle="tab" data-bs-target="#libros" type="button" role="tab" aria-controls="libros" aria-selected="false">
+        <i class="bi bi-book me-2"></i>Libros <span class="badge bg-secondary ms-1">{{ prestamos_libros|length }}</span>
+      </button>
+    </li>
+    {% endif %}
+  </ul>
+
+  <div class="tab-content" id="prestamosTabsContent">
+    
+    {% if current_user.rol in ['administrador', 'almacenista'] %}
+    <div class="tab-pane fade show active" id="equipos" role="tabpanel" aria-labelledby="equipos-tab">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle border">
+              <thead class="table-light">
+                <tr>
+                  <th>Cod.</th>
+                  <th>Usuario Solicitante</th>
+                  <th>Equipo</th>
+                  <th>Estado</th>
+                  <th>Fecha Solicitud</th>
+                  <th>Fecha Devolución</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in prestamos_equipos %}
+                <tr>
+                  <td><span class="badge bg-light text-dark border">#{{ p.id_prestamo }}</span></td>
+                  <td>
+                    <strong>{{ p.usuario.nombre_completo() if p.usuario else 'Desconocido' }}</strong><br>
+                    <small class="text-muted">{{ p.usuario.correo if p.usuario else '' }}</small>
+                  </td>
+                  <td>{{ p.equipo.nombre if p.equipo else 'Desconocido' }}</td>
+                  <td>
+                      {% if p.estado == 'pendiente' %}<span class="badge bg-secondary">Pendiente</span>
+                      {% elif p.estado == 'aceptado' %}<span class="badge bg-warning text-dark">Aceptado</span>
+                      {% elif p.estado == 'rechazado' %}<span class="badge bg-danger">Rechazado</span>
+                      {% elif p.estado == 'devuelto' %}<span class="badge bg-success">Devuelto</span>
+                      {% else %}<span class="badge bg-secondary">{{ p.estado|capitalize }}</span>{% endif %}
+                  </td>
+                  <td>{{ p.fecha_solicitud.strftime('%Y-%m-%d %H:%M') if p.fecha_solicitud else 'N/A' }}</td>
+                  <td>{{ p.fecha_devolucion_real.strftime('%Y-%m-%d %H:%M') if p.fecha_devolucion_real else 'Pendiente' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center py-4 text-muted">No se encontraron préstamos de equipos.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if current_user.rol in ['administrador', 'bibliotecario'] %}
+    <div class="tab-pane fade {% if current_user.rol == 'bibliotecario' %}show active{% endif %}" id="libros" role="tabpanel" aria-labelledby="libros-tab">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle border">
+              <thead class="table-light">
+                <tr>
+                  <th>Cod.</th>
+                  <th>Usuario Solicitante</th>
+                  <th>Libro</th>
+                  <th>Estado</th>
+                  <th>Fecha Solicitud</th>
+                  <th>Fecha Devolución</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in prestamos_libros %}
+                <tr>
+                  <td><span class="badge bg-light text-dark border">#{{ p.id_prestamo_libro }}</span></td>
+                  <td>
+                    <strong>{{ p.usuario.nombre_completo() if p.usuario else 'Desconocido' }}</strong><br>
+                    <small class="text-muted">{{ p.usuario.correo if p.usuario else '' }}</small>
+                  </td>
+                  <td>{{ p.libro.titulo if p.libro else 'Desconocido' }}</td>
+                  <td>
+                      {% if p.estado == 'pendiente' %}<span class="badge bg-secondary">Pendiente</span>
+                      {% elif p.estado == 'aceptado' %}<span class="badge bg-warning text-dark">Aceptado</span>
+                      {% elif p.estado == 'rechazado' %}<span class="badge bg-danger">Rechazado</span>
+                      {% elif p.estado == 'devuelto' %}<span class="badge bg-success">Devuelto</span>
+                      {% else %}<span class="badge bg-secondary">{{ p.estado|capitalize }}</span>{% endif %}
+                  </td>
+                  <td>{{ p.fecha_solicitud.strftime('%Y-%m-%d %H:%M') if p.fecha_solicitud else 'N/A' }}</td>
+                  <td>{{ p.fecha_devolucion_real.strftime('%Y-%m-%d %H:%M') if p.fecha_devolucion_real else 'Pendiente' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center py-4 text-muted">No se encontraron préstamos de libros.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+</div>
+{% endblock %}
