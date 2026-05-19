@@ -18,6 +18,10 @@ class PrestamoLibro(db.Model):
     razon_rechazo = db.Column(db.String(255), nullable=True)
     observaciones = db.Column(db.Text, nullable=True)
     
+    # Tracking de notificaciones
+    notificacion_vencimiento_enviada = db.Column(db.Boolean, default=False)
+    notificacion_vencido_enviada = db.Column(db.Boolean, default=False)
+    
     usuario = db.relationship('Usuario', foreign_keys=[id_usuario], backref='prestamos_libros_solicitados')
     libro = db.relationship('Libro', foreign_keys=[id_libro], backref='prestamos')
     administrador = db.relationship('Usuario', foreign_keys=[id_administrador], backref='prestamos_libros_gestionados')

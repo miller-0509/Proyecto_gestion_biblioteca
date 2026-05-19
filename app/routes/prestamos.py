@@ -2,8 +2,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import joinedload
-from app import db
+from app import db, mail
 from app.models.prestamos import Prestamo
+from app.services.email_service import enviar_notificacion_prestamo
 from app.models.equipos import Equipo
 from app.models.usuarios import Usuario
 from app.decorators import admin_required, gestion_equipos_required, calcular_dias_restantes
@@ -93,8 +94,11 @@ def crear_prestamo():
             db.session.add(prestamo)
             db.session.commit()
             
+            # Notificar aprobación inmediata
+            enviar_notificacion_prestamo(prestamo, 'aprobado', mail, es_libro=False)
+            
             current_app.logger.info('Préstamo equipo creado (admin): equipo_id=%s, usuario_id=%s, admin_id=%s', id_equipo, id_usuario, current_user.id_usuario)
-            flash(f'Préstamo creado exitosamente por {dias_prestamo} días.', 'success')
+            flash(f'Préstamo creado exitosamente por {dias_prestamo} días. Se ha notificado al usuario.', 'success')
             return redirect(url_for('prestamos.lista_prestamos'))
     
     else:
@@ -144,7 +148,10 @@ def crear_prestamo():
             prestamo.save()
             db.session.commit()
             
-            flash('Solicitud de préstamo enviada. El administrador la revisará pronto.', 'info')
+            # Notificar solicitud recibida
+            enviar_notificacion_prestamo(prestamo, 'pendiente', mail, es_libro=False)
+            
+            flash('Solicitud de préstamo enviada. Se te ha notificado por correo. El administrador la revisará pronto.', 'info')
             return redirect(url_for('prestamos.lista_prestamos'))
 
 
@@ -172,8 +179,11 @@ def aceptar_prestamo(id_prestamo):
     equipo.estado = 'prestado'
     db.session.commit()
     
+    # Notificar aprobación
+    enviar_notificacion_prestamo(prestamo, 'aprobado', mail, es_libro=False)
+    
     current_app.logger.info('Préstamo aceptado: id=%s, equipo=%s, por admin=%s', id_prestamo, equipo.nombre, current_user.id_usuario)
-    flash(f'Préstamo del usuario {prestamo.usuario.nombre_completo()} aceptado.', 'success')
+    flash(f'Préstamo del usuario {prestamo.usuario.nombre_completo()} aceptado y notificado.', 'success')
     return redirect(url_for('prestamos.lista_prestamos'))
 
 
@@ -202,8 +212,11 @@ def rechazar_prestamo(id_prestamo):
     prestamo.save()
     db.session.commit()
     
+    # Notificar rechazo
+    enviar_notificacion_prestamo(prestamo, 'rechazado', mail, es_libro=False)
+    
     current_app.logger.info('Préstamo rechazado: id=%s, razón=%s', id_prestamo, razon)
-    flash('Préstamo rechazado.', 'success')
+    flash('Préstamo rechazado y notificación enviada.', 'success')
     return redirect(url_for('prestamos.lista_prestamos'))
 
 
@@ -225,8 +238,11 @@ def devolver_prestamo(id_prestamo):
     prestamo.save()
     db.session.commit()
     
+    # Notificar devolución
+    enviar_notificacion_prestamo(prestamo, 'devuelto', mail, es_libro=False)
+    
     current_app.logger.info('Préstamo devuelto: id=%s, equipo=%s', id_prestamo, prestamo.equipo.nombre)
-    flash(f'Préstamo del usuario {prestamo.usuario.nombre_completo()} marcado como devuelto.', 'success')
+    flash(f'Préstamo del usuario {prestamo.usuario.nombre_completo()} marcado como devuelto y notificado.', 'success')
     return redirect(url_for('prestamos.lista_prestamos'))
 
 
