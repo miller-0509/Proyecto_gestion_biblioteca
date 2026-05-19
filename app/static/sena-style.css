@@ -381,7 +381,7 @@ h6 {
 .form-control,
 .form-select {
   background: var(--neutral-0);
-  border: 1.5px solid var(--neutral-200);
+  border: 1.5px solid var(--neutral-300);
   border-radius: 12px;
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
@@ -390,7 +390,7 @@ h6 {
 }
 
 .form-control::placeholder {
-  color: var(--neutral-400);
+  color: var(--neutral-500);
 }
 
 .form-control:hover,
@@ -862,7 +862,15 @@ footer strong {
 
 /* ---- BOOTSTRAP OVERRIDES & UTILITIES ---- */
 .text-muted {
-  color: var(--neutral-500) !important;
+  color: var(--neutral-600) !important;
+}
+
+.fade-in-up {
+  animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(34, 197, 94, 0.02) !important;
 }
 
 .text-primary {
@@ -1023,18 +1031,29 @@ code {
     padding-left: 1rem;
   }
 
-  .btn {
+  .btn-mobile-full,
+  .card-sena-body form button[type="submit"],
+  .card-sena-body form .btn-primary {
     width: 100%;
     margin-bottom: 0.5rem;
   }
 
-  .d-md-flex .btn {
+  .d-md-flex .btn-mobile-full {
     width: 100%;
   }
 
   .input-group .btn {
     width: auto;
     margin-bottom: 0;
+  }
+
+  .navbar-brand span {
+    font-size: 0.925rem !important;
+    max-width: 200px !important;
+  }
+
+  .navbar-brand img {
+    max-height: 40px !important;
   }
 }
 
