@@ -518,6 +518,55 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
         detalles_extra = f'''
         <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Debió devolverse el:</strong> {fecha_dev}</p>
         '''
+        
+    elif tipo_notificacion == 'renovacion_solicitada':
+        asunto = f'🔄 Solicitud de Renovación Recibida - {recurso_nombre}'
+        titulo = 'Renovación Solicitada'
+        color_header = 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)' # Azul
+        color_sombra = 'rgba(59, 130, 246, 0.35)'
+        mensaje_principal = 'Tu solicitud de renovación de préstamo ha sido recibida correctamente y está en espera de aprobación.'
+        
+        renovacion = prestamo.historial_renovaciones[0] if getattr(prestamo, 'historial_renovaciones', None) else None
+        fecha_prop = renovacion.fecha_esperada_nueva.strftime('%d/%m/%Y') if renovacion and renovacion.fecha_esperada_nueva else 'N/A'
+        motivo = renovacion.motivo_solicitud if renovacion else 'No especificado.'
+        
+        detalles_extra = f'''
+        <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Fecha de devolución propuesta:</strong> {fecha_prop}</p>
+        <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Motivo de solicitud:</strong> {motivo}</p>
+        '''
+        
+    elif tipo_notificacion == 'renovado':
+        asunto = f'🔄 Préstamo Renovado Exitosamente - {recurso_nombre}'
+        titulo = 'Préstamo Renovado'
+        color_header = 'linear-gradient(135deg, #10B981 0%, #059669 100%)' # Verde esmeralda
+        color_sombra = 'rgba(16, 185, 129, 0.35)'
+        mensaje_principal = '¡Buenas noticias! Tu solicitud de renovación ha sido aprobada. Tu nueva fecha de vencimiento ha sido actualizada.'
+        
+        fecha_dev = prestamo.fecha_devolucion_esperada.strftime('%d/%m/%Y') if prestamo.fecha_devolucion_esperada else 'N/A'
+        veces = prestamo.renovaciones_aplicadas
+        
+        detalles_extra = f'''
+        <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Nueva fecha de vencimiento:</strong> {fecha_dev}</p>
+        <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Renovaciones aplicadas:</strong> {veces}</p>
+        '''
+        
+    elif tipo_notificacion == 'renovacion_rechazada':
+        asunto = f'❌ Solicitud de Renovación Rechazada - {recurso_nombre}'
+        titulo = 'Renovación Rechazada'
+        color_header = 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)' # Rojo
+        color_sombra = 'rgba(239, 68, 68, 0.35)'
+        mensaje_principal = 'Lo sentimos, tu solicitud de renovación de préstamo no pudo ser aprobada en esta ocasión. Por favor, realiza la entrega del recurso en la fecha programada.'
+        
+        renovacion = prestamo.historial_renovaciones[0] if getattr(prestamo, 'historial_renovaciones', None) else None
+        motivo = renovacion.motivo_rechazo if renovacion and renovacion.motivo_rechazo else 'No especificado.'
+        fecha_dev = prestamo.fecha_devolucion_esperada.strftime('%d/%m/%Y') if prestamo.fecha_devolucion_esperada else 'N/A'
+        
+        detalles_extra = f'''
+        <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Fecha de vencimiento original:</strong> {fecha_dev}</p>
+        <div style="background-color: #FEF2F2; border-left: 4px solid #EF4444; padding: 12px; margin-top: 16px;">
+            <p style="color: #991B1B; font-size: 13px; margin: 0;"><strong>Motivo del rechazo:</strong> {motivo}</p>
+        </div>
+        '''
     else:
         return None, None
 

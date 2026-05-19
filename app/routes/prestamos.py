@@ -370,6 +370,9 @@ def solicitar_renovacion(id_prestamo):
     prestamo.estado_renovacion = 'pendiente'
     db.session.commit()
     
+    # Notificar solicitud de renovación
+    enviar_notificacion_prestamo(prestamo, 'renovacion_solicitada', mail, es_libro=False)
+    
     current_app.logger.info('Solicitud de renovación creada: prestamo_id=%s, usuario_id=%s', id_prestamo, current_user.id_usuario)
     flash('Solicitud de renovación enviada correctamente. Espera la aprobación del administrador.', 'success')
     return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
