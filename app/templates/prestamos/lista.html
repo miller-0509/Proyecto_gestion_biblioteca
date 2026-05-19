@@ -17,6 +17,41 @@
   {% endif %}
 </div>
 
+<!-- Filters Card -->
+<div class="card-sena mb-4">
+  <div class="card-sena-body">
+    <form method="GET" class="row g-2">
+      <div class="col-md-5">
+        <label class="form-label small">Buscar Préstamo</label>
+        <input type="text" name="busqueda" class="form-control" 
+               placeholder="Nombre de equipo, usuario..." value="{{ busqueda }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small">Estado</label>
+        <select name="estado" class="form-select">
+          <option value="">Todos los estados</option>
+          <option value="pendiente" {% if estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+          <option value="aceptado" {% if estado == 'aceptado' %}selected{% endif %}>Aceptado / Activo</option>
+          <option value="devuelto" {% if estado == 'devuelto' %}selected{% endif %}>Devuelto</option>
+          <option value="rechazado" {% if estado == 'rechazado' %}selected{% endif %}>Rechazado</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100 mb-0">
+          <i class="bi bi-search"></i> Buscar
+        </button>
+      </div>
+      {% if busqueda or estado %}
+      <div class="col-12 mt-2">
+        <a href="{{ url_for('prestamos.lista_prestamos') }}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-x-circle me-1"></i>Limpiar Filtros
+        </a>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
 {% if prestamos %}
 <div class="card-sena">
   <div class="table-responsive">
@@ -74,8 +109,14 @@
                 <i class="bi bi-check-all me-1"></i>Devuelto
               </span>
             {% endif %}
+            
+            {% if prestamo.estado_renovacion == 'pendiente' %}
+              <br>
+              <span class="badge bg-info mt-1">
+                <i class="bi bi-arrow-repeat me-1"></i>Renovando
+              </span>
+            {% endif %}
           </td>
-          <td>
           <td>
             {% if prestamo.estado == 'devuelto' and prestamo.fecha_devolucion_real %}
               <div class="mb-1">
@@ -230,7 +271,7 @@
                           <i class="bi bi-chat-left-text me-1"></i>Observaciones <span class="text-danger">*</span>
                         </label>
                         <textarea class="form-control" id="observacion_devolucion{{ prestamo.id_prestamo }}" 
-                                  name="observacion_devolucion" rows="3" 
+                                  name="observacion_devolucion" rows="2" 
                                   placeholder="Ej: Equipo entregado con rayones en la pantalla, falta cargador..." required></textarea>
                       </div>
                     </div>
@@ -317,7 +358,7 @@
       No tienes préstamos solicitados. Consulta el catálogo de equipos y solicita uno.
     {% endif %}
   </p>
-  {% if current_user.rol != 'administrador' %}
+  {% if current_user.rol in ['aprendiz', 'instructor'] %}
   <a href="{{ url_for('prestamos.crear_prestamo') }}" class="btn btn-primary btn-sm">
     <i class="bi bi-plus-circle me-1"></i>Solicitar Préstamo Ahora
   </a>

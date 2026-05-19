@@ -27,6 +27,11 @@ class Prestamo(db.Model):
     notificacion_vencimiento_enviada = db.Column(db.Boolean, default=False)
     notificacion_vencido_enviada = db.Column(db.Boolean, default=False)
     
+    # Renovaciones
+    renovaciones_aplicadas = db.Column(db.Integer, default=0)
+    estado_renovacion = db.Column(db.String(20), nullable=True) # 'pendiente', etc.
+    
+    
     # Relaciones
     usuario = db.relationship('Usuario', foreign_keys=[id_usuario], backref='prestamos_solicitados')
     equipo = db.relationship('Equipo', foreign_keys=[id_equipo], backref='prestamos')

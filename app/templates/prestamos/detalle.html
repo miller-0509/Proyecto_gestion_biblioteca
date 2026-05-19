@@ -36,6 +36,12 @@
                 <i class="bi bi-check-all me-1"></i>Devuelto
               </span>
             {% endif %}
+            
+            {% if prestamo.estado_renovacion == 'pendiente' %}
+              <span class="badge bg-info fs-6 ms-2">
+                <i class="bi bi-arrow-repeat me-1"></i>Renovación Pendiente
+              </span>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -158,6 +164,52 @@
           </div>
         </div>
 
+        <!-- Section 4.5: Renovaciones -->
+        <div class="mb-4">
+          <h5 class="text-primary-sena mb-3">
+            <i class="bi bi-arrow-repeat me-2"></i>Historial de Renovaciones
+          </h5>
+          <div class="p-3 rounded" style="background-color: var(--sena-light);">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <small class="text-muted"><i class="bi bi-hash me-1"></i>Renovaciones Aplicadas</small>
+                <p class="mb-1 fw-semibold">{{ prestamo.renovaciones_aplicadas }}</p>
+              </div>
+              <div class="col-md-6">
+                <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Estado de Renovación</small>
+                <p class="mb-1 fw-semibold">
+                  {% if prestamo.estado_renovacion == 'pendiente' %}
+                    <span class="badge bg-warning text-dark">Pendiente</span>
+                  {% elif prestamo.estado_renovacion == 'rechazada' %}
+                    <span class="badge bg-danger">Rechazada</span>
+                  {% else %}
+                    <span class="text-muted">No solicitada</span>
+                  {% endif %}
+                </p>
+              </div>
+            </div>
+            {% if prestamo.historial_renovaciones %}
+            <div class="mt-3">
+              <small class="text-muted d-block mb-2">Solicitudes Realizadas:</small>
+              <ul class="list-group list-group-flush">
+                {% for ren in prestamo.historial_renovaciones %}
+                  <li class="list-group-item bg-transparent px-0 py-2 border-bottom">
+                    <div class="d-flex justify-content-between">
+                      <strong>{{ ren.fecha_solicitud.strftime('%d/%m/%Y') }}</strong>
+                      <span class="badge {% if ren.estado == 'aprobada' %}bg-success{% elif ren.estado == 'rechazada' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ ren.estado|capitalize }}</span>
+                    </div>
+                    <small class="d-block mt-1"><strong>Motivo:</strong> {{ ren.motivo_solicitud }}</small>
+                    {% if ren.motivo_rechazo %}
+                      <small class="d-block mt-1 text-danger"><strong>Rechazo:</strong> {{ ren.motivo_rechazo }}</small>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
         <!-- Section 5: Return Information (if applicable) -->
         {% if prestamo.estado == 'devuelto' %}
         <div class="mb-4">
@@ -245,7 +297,20 @@
       </a>
       
       <div class="d-flex gap-2">
+        {% set limite_renovaciones = 2 if current_user.rol in ['instructor', 'administrador', 'almacenista'] else 1 %}
+        {% if prestamo.estado == 'aceptado' and (prestamo.id_usuario == current_user.id_usuario or current_user.rol in ['administrador', 'almacenista']) and prestamo.estado_renovacion != 'pendiente' and dias_restantes is not none and dias_restantes >= 0 and prestamo.renovaciones_aplicadas < limite_renovaciones %}
+          <button type="button" class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#solicitarRenovacionModal">
+            <i class="bi bi-arrow-repeat me-2"></i>Renovar
+          </button>
+        {% endif %}
+
         {% if current_user.rol in ['administrador', 'almacenista'] %}
+          {% if prestamo.estado_renovacion == 'pendiente' %}
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#procesarRenovacionModal">
+              <i class="bi bi-ui-checks me-2"></i>Procesar Renovación
+            </button>
+          {% endif %}
+
           {% if prestamo.estado == 'pendiente' %}
             <!-- Accept Button -->
             <form method="POST" action="{{ url_for('prestamos.aceptar_prestamo', id_prestamo=prestamo.id_prestamo) }}" style="display:inline;">
@@ -306,7 +371,98 @@
   </div>
 </div>
 
-{% if current_user.rol in ['administrador', 'almacenista'] and prestamo.estado == 'aceptado' %}
+<!-- Solicitar Renovacion Modal -->
+<div class="modal fade" id="solicitarRenovacionModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title">
+          <i class="bi bi-arrow-repeat me-2 text-info"></i>Solicitar Renovación
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('prestamos.solicitar_renovacion', id_prestamo=prestamo.id_prestamo) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-body">
+          <p class="small text-muted mb-3">La fecha de devolución actual es <strong>{{ prestamo.fecha_devolucion_esperada.strftime('%d/%m/%Y') }}</strong>.</p>
+          <div class="form-group">
+            <label for="motivo_renovacion" class="form-label">
+              <i class="bi bi-chat-left-text me-1"></i>Motivo de la Renovación <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" id="motivo_renovacion" name="motivo_renovacion" rows="3" 
+                      placeholder="Explica por qué necesitas más tiempo con el equipo..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-info text-white">
+            <i class="bi bi-send me-1"></i>Enviar Solicitud
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if current_user.rol in ['administrador', 'almacenista'] %}
+<!-- Procesar Renovacion Modal -->
+<div class="modal fade" id="procesarRenovacionModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title">
+          <i class="bi bi-ui-checks me-2 text-primary"></i>Procesar Renovación
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('prestamos.procesar_renovacion', id_prestamo=prestamo.id_prestamo) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="modal-body">
+          <p class="mb-3">El usuario ha solicitado extender el tiempo de préstamo.</p>
+          <div class="form-group mb-3">
+            <label class="form-label">Acción a Tomar</label>
+            <select class="form-select" name="accion" id="accion_renovacion" required onchange="toggleMotivoRechazo(this.value)">
+              <option value="">Seleccione...</option>
+              <option value="aprobar">Aprobar (Extender fecha)</option>
+              <option value="rechazar">Rechazar</option>
+            </select>
+          </div>
+          <div class="form-group" id="div_motivo_rechazo_renovacion" style="display: none;">
+            <label for="motivo_rechazo_renovacion" class="form-label">
+              Motivo del Rechazo <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" id="motivo_rechazo_renovacion" name="motivo_rechazo" rows="2" 
+                      placeholder="Obligatorio si se rechaza..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check me-1"></i>Confirmar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleMotivoRechazo(val) {
+    const div = document.getElementById('div_motivo_rechazo_renovacion');
+    const input = document.getElementById('motivo_rechazo_renovacion');
+    if (val === 'rechazar') {
+        div.style.display = 'block';
+        input.required = true;
+    } else {
+        div.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+</script>
+{% endif %}
+
+{% if prestamo.estado == 'aceptado' %}
 <!-- Devolver Modal -->
 <div class="modal fade" id="devolverModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
@@ -350,7 +506,7 @@
               <i class="bi bi-chat-left-text me-1"></i>Observaciones <span class="text-danger">*</span>
             </label>
             <textarea class="form-control" id="observacion_devolucion" 
-                      name="observacion_devolucion" rows="3" 
+                      name="observacion_devolucion" rows="2" 
                       placeholder="Ej: Equipo entregado con rayones en la pantalla, falta cargador..." required></textarea>
           </div>
         </div>

@@ -162,7 +162,8 @@ def historial_prestamos(id_usuario):
             'observaciones': p.observaciones,
             'razon_rechazo': p.razon_rechazo,
             'observacion_devolucion': p.observacion_devolucion,
-            'estado_fisico_devolucion': p.estado_fisico_devolucion
+            'estado_fisico_devolucion': p.estado_fisico_devolucion,
+            'estado_renovacion': p.estado_renovacion
         })
         
     # Unificar libros
@@ -177,7 +178,8 @@ def historial_prestamos(id_usuario):
             'observaciones': p.observaciones,
             'razon_rechazo': p.razon_rechazo,
             'observacion_devolucion': p.observacion_devolucion,
-            'estado_fisico_devolucion': p.estado_fisico_devolucion
+            'estado_fisico_devolucion': p.estado_fisico_devolucion,
+            'estado_renovacion': p.estado_renovacion
         })
         
     # Ordenar por fecha de solicitud (más recientes primero)

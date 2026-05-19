@@ -444,6 +444,7 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
     """Genera el HTML y el asunto para notificaciones de préstamos."""
     recurso_nombre = prestamo.libro.titulo if es_libro else prestamo.equipo.nombre
     tipo_recurso = 'Libro' if es_libro else 'Equipo'
+    prestamo_id = prestamo.id_prestamo_libro if es_libro else prestamo.id_prestamo
     
     año_actual = datetime.now(timezone.utc).year
     
@@ -546,7 +547,7 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
                             <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px; margin-bottom: 24px;">
                                 <h3 style="color: #111827; font-size: 15px; margin: 0 0 12px; border-bottom: 1px solid #E5E7EB; padding-bottom: 8px;">Detalles del Préstamo</h3>
                                 <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>{tipo_recurso}:</strong> {recurso_nombre}</p>
-                                <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>ID Préstamo:</strong> #{prestamo.id_prestamo}</p>
+                                <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>ID Préstamo:</strong> #{prestamo_id}</p>
                                 {detalles_extra}
                             </div>
                         </td>

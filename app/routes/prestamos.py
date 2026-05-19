@@ -17,22 +17,35 @@ bp = Blueprint('prestamos', __name__, url_prefix='/prestamos')
 def lista_prestamos():
     """Lista de préstamos del usuario o todos si es admin"""
     page = request.args.get('page', 1, type=int)
-    
+    busqueda = request.args.get('busqueda', '').strip()
+    estado = request.args.get('estado', '')
+
     if current_user.rol in ['administrador', 'almacenista']:
-        # Admin/Almacenista ve todos los préstamos (con joinedload para evitar N+1)
-        query = Prestamo.query.options(
+        # Admin/Almacenista ve todos los préstamos
+        query = Prestamo.query.join(Usuario, Prestamo.id_usuario == Usuario.id_usuario).join(Equipo, Prestamo.id_equipo == Equipo.id_equipo).options(
             joinedload(Prestamo.usuario),
             joinedload(Prestamo.equipo)
-        ).order_by(Prestamo.fecha_solicitud.desc())
+        )
         titulo = 'Gestión de Préstamos'
     else:
         # Usuario ve solo sus préstamos
-        query = Prestamo.query.options(
+        query = Prestamo.query.join(Equipo, Prestamo.id_equipo == Equipo.id_equipo).outerjoin(Usuario, Prestamo.id_usuario == Usuario.id_usuario).options(
             joinedload(Prestamo.equipo)
-        ).filter_by(id_usuario=current_user.id_usuario).order_by(
-            Prestamo.fecha_solicitud.desc()
-        )
+        ).filter(Prestamo.id_usuario == current_user.id_usuario)
         titulo = 'Mis Préstamos'
+
+    if busqueda:
+        query = query.filter(
+            (Equipo.nombre.ilike(f'%{busqueda}%')) |
+            (Usuario.nombres.ilike(f'%{busqueda}%')) |
+            (Usuario.apellidos.ilike(f'%{busqueda}%')) |
+            (Usuario.correo.ilike(f'%{busqueda}%'))
+        )
+        
+    if estado:
+        query = query.filter(Prestamo.estado == estado)
+
+    query = query.order_by(Prestamo.fecha_solicitud.desc())
         
     pagination = query.paginate(page=page, per_page=15)
     prestamos = pagination.items
@@ -45,7 +58,7 @@ def lista_prestamos():
             'dias_restantes': calcular_dias_restantes(prestamo)
         })
     
-    return render_template('prestamos/lista.html', prestamos=prestamos_con_dias, titulo=titulo, pagination=pagination)
+    return render_template('prestamos/lista.html', prestamos=prestamos_con_dias, titulo=titulo, pagination=pagination, busqueda=busqueda, estado=estado)
 
 
 @bp.route('/crear', methods=['GET', 'POST'])
@@ -300,3 +313,115 @@ def detalle_prestamo(id_prestamo):
     dias_restantes = calcular_dias_restantes(prestamo)
     
     return render_template('prestamos/detalle.html', prestamo=prestamo, dias_restantes=dias_restantes)
+
+@bp.route('/<int:id_prestamo>/renovar', methods=['POST'])
+@login_required
+def solicitar_renovacion(id_prestamo):
+    """Solicitar renovación de préstamo (Usuario)"""
+    prestamo = Prestamo.query.get_or_404(id_prestamo)
+    
+    # Validar propiedad (o si es admin)
+    if prestamo.id_usuario != current_user.id_usuario and current_user.rol not in ['administrador', 'almacenista']:
+        flash('No tienes permiso para renovar este préstamo.', 'danger')
+        return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+
+    # Validar estado
+    if prestamo.estado != 'aceptado':
+        flash('Solo puedes renovar préstamos activos (aceptados).', 'warning')
+        return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+
+    # Validar si está vencido
+    if prestamo.fecha_devolucion_esperada and prestamo.fecha_devolucion_esperada < datetime.now(timezone.utc).replace(tzinfo=None):
+        flash('No puedes renovar un préstamo vencido.', 'danger')
+        return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+
+    # Validar si ya hay una solicitud pendiente
+    if prestamo.estado_renovacion == 'pendiente':
+        flash('Ya tienes una solicitud de renovación pendiente para este préstamo.', 'warning')
+        return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+
+    # Validar límite de renovaciones
+    limite = {'aprendiz': 1, 'instructor': 2}.get(current_user.rol, float('inf'))
+    if prestamo.renovaciones_aplicadas >= limite:
+        flash(f'Has alcanzado el límite máximo de renovaciones permitidas para tu rol ({limite}).', 'danger')
+        return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+    
+    motivo = request.form.get('motivo_renovacion')
+    if not motivo or not motivo.strip():
+        flash('Debes proporcionar un motivo para la renovación.', 'danger')
+        return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+
+    # Crear la solicitud
+    from app.models.renovaciones import RenovacionEquipo
+    # Validamos que tiempo_max_prestamo exista, o asignamos 3 días por defecto
+    dias_extra = prestamo.equipo.tiempo_max_prestamo or 3
+    nueva_esperada = prestamo.fecha_devolucion_esperada + timedelta(days=dias_extra)
+    
+    renovacion = RenovacionEquipo(
+        id_prestamo=id_prestamo,
+        id_usuario=current_user.id_usuario,
+        fecha_esperada_original=prestamo.fecha_devolucion_esperada,
+        fecha_esperada_nueva=nueva_esperada,
+        motivo_solicitud=motivo,
+        estado='pendiente'
+    )
+    renovacion.save()
+    
+    prestamo.estado_renovacion = 'pendiente'
+    db.session.commit()
+    
+    current_app.logger.info('Solicitud de renovación creada: prestamo_id=%s, usuario_id=%s', id_prestamo, current_user.id_usuario)
+    flash('Solicitud de renovación enviada correctamente. Espera la aprobación del administrador.', 'success')
+    return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+
+@bp.route('/<int:id_prestamo>/procesar_renovacion', methods=['POST'])
+@login_required
+@gestion_equipos_required
+def procesar_renovacion(id_prestamo):
+    """Aprobar o rechazar renovación de préstamo (Admin/Almacenista)"""
+    prestamo = Prestamo.query.get_or_404(id_prestamo)
+    
+    if prestamo.estado_renovacion != 'pendiente':
+        flash('No hay ninguna solicitud de renovación pendiente para este préstamo.', 'warning')
+        return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+        
+    accion = request.form.get('accion') # 'aprobar' o 'rechazar'
+    motivo_rechazo = request.form.get('motivo_rechazo', '')
+    
+    from app.models.renovaciones import RenovacionEquipo
+    renovacion = RenovacionEquipo.query.filter_by(id_prestamo=id_prestamo, estado='pendiente').order_by(RenovacionEquipo.fecha_solicitud.desc()).first()
+    
+    if not renovacion:
+        prestamo.estado_renovacion = None
+        db.session.commit()
+        flash('Error: No se encontró la solicitud de renovación.', 'danger')
+        return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+    
+    renovacion.id_administrador = current_user.id_usuario
+    renovacion.fecha_respuesta = datetime.now(timezone.utc)
+    
+    if accion == 'aprobar':
+        renovacion.estado = 'aprobada'
+        prestamo.estado_renovacion = 'aprobada'
+        prestamo.fecha_devolucion_esperada = renovacion.fecha_esperada_nueva
+        prestamo.renovaciones_aplicadas += 1
+        prestamo.notificacion_vencimiento_enviada = False # Reset para la nueva fecha
+        prestamo.notificacion_vencido_enviada = False
+        flash('Renovación aprobada exitosamente.', 'success')
+        enviar_notificacion_prestamo(prestamo, 'renovado', mail, es_libro=False)
+    elif accion == 'rechazar':
+        if not motivo_rechazo.strip():
+            flash('Debes proporcionar un motivo para rechazar la renovación.', 'danger')
+            return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+        renovacion.estado = 'rechazada'
+        renovacion.motivo_rechazo = motivo_rechazo
+        prestamo.estado_renovacion = 'rechazada'
+        flash('Renovación rechazada.', 'info')
+        enviar_notificacion_prestamo(prestamo, 'renovacion_rechazada', mail, es_libro=False)
+    else:
+        flash('Acción inválida.', 'danger')
+        return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+        
+    db.session.commit()
+    current_app.logger.info('Renovación procesada: prestamo_id=%s, accion=%s, admin_id=%s', id_prestamo, accion, current_user.id_usuario)
+    return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
