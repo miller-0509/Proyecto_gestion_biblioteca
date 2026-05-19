@@ -53,7 +53,7 @@
   <div class="card-sena mb-4">
     <div class="card-sena-body bg-light">
       <form method="GET" class="row g-3 align-items-end">
-        <div class="col-md-3">
+        <div class="{% if current_user.rol == 'administrador' %}col-md-3{% else %}col-md-6{% endif %}">
           <label class="form-label small fw-bold">Estado del Préstamo</label>
           <select name="estado" class="form-select">
             <option value="">Todos los estados</option>
@@ -63,18 +63,16 @@
             <option value="devuelto" {% if estado == 'devuelto' %}selected{% endif %}>Devuelto</option>
           </select>
         </div>
+        {% if current_user.rol == 'administrador' %}
         <div class="col-md-3">
           <label class="form-label small fw-bold">Tipo de Recurso</label>
           <select name="tipo_recurso" class="form-select">
             <option value="">Todos (Libros y Equipos)</option>
-            {% if current_user.rol in ['administrador', 'almacenista'] %}
             <option value="equipos" {% if tipo_recurso == 'equipos' %}selected{% endif %}>Solo Equipos</option>
-            {% endif %}
-            {% if current_user.rol in ['administrador', 'bibliotecario'] %}
             <option value="libros" {% if tipo_recurso == 'libros' %}selected{% endif %}>Solo Libros</option>
-            {% endif %}
           </select>
         </div>
+        {% endif %}
         <div class="col-md-2">
           <label class="form-label small fw-bold">Fecha Solicitud (Desde)</label>
           <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}">

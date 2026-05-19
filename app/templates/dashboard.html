@@ -74,7 +74,18 @@
 
   <!-- Préstamos Card -->
   <div class="col-md-4">
-    {% if current_user.rol in ['administrador', 'almacenista', 'bibliotecario'] %}
+    {% if current_user.rol == 'bibliotecario' %}
+    <a href="{{ url_for('prestamos_libros.lista_prestamos') }}" class="dashboard-card">
+      <div class="dashboard-card-icon" style="color: #F59E0B;">
+        <i class="bi bi-arrow-left-right"></i>
+      </div>
+      <h4>Préstamos de Libros</h4>
+      <p>Revisa, aprueba o rechaza las solicitudes de préstamo de libros.</p>
+      <div>
+        <span class="badge bg-warning text-dark">Administrar</span>
+      </div>
+    </a>
+    {% elif current_user.rol in ['administrador', 'almacenista'] %}
     <a href="{{ url_for('prestamos.lista_prestamos') }}" class="dashboard-card">
       <div class="dashboard-card-icon" style="color: #F59E0B;">
         <i class="bi bi-arrow-left-right"></i>
