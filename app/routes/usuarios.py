@@ -102,15 +102,28 @@ def eliminar_usuario(id_usuario):
         return redirect(url_for('usuarios.lista_usuarios'))
         
     try:
-        # 1. Desvincular préstamos gestionados si el usuario era administrador (llave foránea anulable)
+        # 1. Eliminar o desvincular renovaciones donde el usuario sea solicitante o aprobador
+        from app.models.renovaciones import RenovacionEquipo, RenovacionLibro
+        RenovacionEquipo.query.filter((RenovacionEquipo.id_usuario == id_usuario) | (RenovacionEquipo.id_administrador == id_usuario)).delete()
+        RenovacionLibro.query.filter((RenovacionLibro.id_usuario == id_usuario) | (RenovacionLibro.id_administrador == id_usuario)).delete()
+
+        # 2. Desvincular préstamos gestionados si el usuario era administrador (llave foránea anulable)
         Prestamo.query.filter_by(id_administrador=id_usuario).update({Prestamo.id_administrador: None})
         PrestamoLibro.query.filter_by(id_administrador=id_usuario).update({PrestamoLibro.id_administrador: None})
         
-        # 2. Eliminar préstamos de equipos y libros del usuario (llave foránea no anulable)
+        # 3. Eliminar préstamos de equipos y libros del usuario (llave foránea no anulable)
+        # Primero eliminar renovaciones asociadas a estos préstamos de forma preventiva
+        prestamos_ids = [p.id_prestamo for p in Prestamo.query.filter_by(id_usuario=id_usuario).all()]
+        prestamos_libros_ids = [pl.id_prestamo_libro for pl in PrestamoLibro.query.filter_by(id_usuario=id_usuario).all()]
+        if prestamos_ids:
+            RenovacionEquipo.query.filter(RenovacionEquipo.id_prestamo.in_(prestamos_ids)).delete(synchronize_session=False)
+        if prestamos_libros_ids:
+            RenovacionLibro.query.filter(RenovacionLibro.id_prestamo_libro.in_(prestamos_libros_ids)).delete(synchronize_session=False)
+
         Prestamo.query.filter_by(id_usuario=id_usuario).delete()
         PrestamoLibro.query.filter_by(id_usuario=id_usuario).delete()
         
-        # 3. Eliminar al usuario físicamente
+        # 4. Eliminar al usuario físicamente
         db.session.delete(usuario)
         db.session.commit()
         
