@@ -3,6 +3,18 @@
 
 {% block content %}
 <!-- Welcome Section -->
+{% if current_user.tiene_multas_pendientes() %}
+<div class="mb-4 fade-in-up">
+  <div class="alert alert-danger d-flex align-items-center" role="alert" style="border-left: 5px solid #991B1B;">
+    <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-3" style="font-size: 1.5rem;"></i>
+    <div>
+      <h5 class="alert-heading mb-1">¡Cuenta Suspendida!</h5>
+      <p class="mb-0">Tienes sanciones activas o en proceso por retraso en devoluciones. No podrás realizar nuevos préstamos ni renovaciones hasta cumplir el tiempo de suspensión. <a href="{{ url_for('multas.lista_multas') }}" class="alert-link">Ver detalles</a>.</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <div class="mb-5 fade-in-up">
   <div class="alert alert-sena">
     <div class="row align-items-center">
@@ -108,6 +120,29 @@
       </div>
     </a>
     {% endif %}
+  </div>
+
+  <!-- Multas Card -->
+  <div class="col-md-4">
+    <a href="{{ url_for('multas.lista_multas') }}" class="dashboard-card">
+      <div class="dashboard-card-icon" style="color: #DC2626;">
+        <i class="bi bi-shield-exclamation"></i>
+      </div>
+      <h4>Sanciones y Multas</h4>
+      {% if current_user.rol in ['administrador', 'bibliotecario', 'almacenista'] %}
+      <p>Gestiona y condona las suspensiones aplicadas a los usuarios por retrasos.</p>
+      <div><span class="badge bg-danger">Administrar</span></div>
+      {% else %}
+      <p>Consulta tus sanciones activas o historial de suspensiones.</p>
+      <div>
+        {% if current_user.tiene_multas_pendientes() %}
+        <span class="badge bg-danger">¡Suspensión Activa!</span>
+        {% else %}
+        <span class="badge bg-secondary">Ver Historial</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </a>
   </div>
 
 </div>

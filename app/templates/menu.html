@@ -98,6 +98,17 @@
             <span>Reportes</span>
           </a>
         </li>
+        
+        <!-- Sanciones -->
+        <li class="nav-item">
+          <a class="nav-link {{ 'active' if request.endpoint and 'multas' in request.endpoint else '' }}" href="{{ url_for('multas.lista_multas') }}">
+            <i class="bi bi-shield-exclamation me-1"></i>
+            <span>Sanciones</span>
+            {% if current_user.is_authenticated and current_user.tiene_multas_pendientes() %}
+            <span class="badge bg-danger rounded-pill ms-1" style="font-size: 0.65rem;">!</span>
+            {% endif %}
+          </a>
+        </li>
 
         <!-- Usuarios Menu (Admin only) -->
         {% if current_user.rol == 'administrador' %}
@@ -124,7 +135,7 @@
               <div class="fw-bold text-dark">{{ current_user.rol | capitalize }}</div>
               <div>{{ current_user.correo }}</div>
             </li>
-            {% if current_user.rol != 'administrador' %}
+            {% if current_user.rol in ['aprendiz', 'instructor'] %}
             <li>
               <a class="dropdown-item py-2" href="{{ url_for('usuarios.historial_prestamos', id_usuario=current_user.id_usuario) }}">
                 <i class="bi bi-clock-history text-primary me-2"></i>Mi Historial

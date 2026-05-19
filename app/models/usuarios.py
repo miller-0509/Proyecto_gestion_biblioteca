@@ -81,6 +81,33 @@ class Usuario(db.Model, UserMixin):
         
         return equipos + libros
 
+    def tiene_multas_pendientes(self):
+        """Verifica si el usuario tiene alguna multa activa o acumulando."""
+        from app.models.multas import Multa
+        from datetime import datetime, timezone
+        ahora = datetime.now(timezone.utc)
+        count = Multa.query.filter(
+            Multa.id_usuario == self.id_usuario,
+            db.or_(
+                Multa.estado == 'acumulando',
+                db.and_(Multa.estado == 'activa', Multa.fecha_fin_suspension > ahora)
+            )
+        ).count()
+        return count > 0
+
+    def multas_pendientes_count(self):
+        """Cuenta el total de multas activas o acumulando del usuario."""
+        from app.models.multas import Multa
+        from datetime import datetime, timezone
+        ahora = datetime.now(timezone.utc)
+        return Multa.query.filter(
+            Multa.id_usuario == self.id_usuario,
+            db.or_(
+                Multa.estado == 'acumulando',
+                db.and_(Multa.estado == 'activa', Multa.fecha_fin_suspension > ahora)
+            )
+        ).count()
+
     def to_dict(self):
         return {
             'id_usuario': self.id_usuario,

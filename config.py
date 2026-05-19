@@ -44,7 +44,7 @@ class Config:
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_DURATION = 3600  # 1 hora
 
-    # ── Configuración de correo SMTP ─────────────────────────────
+    # ── Configuración de Correo SMTP ─────────────────────────────
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() == 'true'
@@ -53,6 +53,11 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', MAIL_USERNAME)
     MAIL_MAX_EMAILS = 10  # Límite por conexión SMTP
+
+    # ── Configuración de Sistema de Multas (Suspensión) ───────────
+    MULTA_DIAS_POR_RETRASO_LIBRO = 1  # 1 día de retraso = 1 día de suspensión
+    MULTA_DIAS_POR_RETRASO_EQUIPO = 1 # 1 día de retraso = 1 día de suspensión
+    DIAS_GRACIA_MULTA = 1             # Días de gracia antes de empezar a contar el retraso
 
 
 class DevelopmentConfig(Config):

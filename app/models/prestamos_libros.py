@@ -56,6 +56,8 @@ class PrestamoLibro(db.Model):
             errors.append('El usuario no existe.')
         elif usuario.rol == 'administrador':
             errors.append('Los administradores no pueden solicitar préstamos de libros.')
+        elif usuario.tiene_multas_pendientes():
+            errors.append('No puedes solicitar préstamos porque tienes una sanción por retraso activa o en proceso.')
         
         libro = Libro.query.get(id_libro)
         if not libro:

@@ -288,10 +288,19 @@ def devolver_prestamo(id_prestamo):
         )
         db.session.add(historial)
         
+    # Verificar y activar suspensión si aplica
+    from app.services.multas_service import activar_suspension
+    multa_generada = activar_suspension(prestamo, es_libro=False)
+        
     db.session.commit()
     
     # Notificar devolución
     enviar_notificacion_prestamo(prestamo, 'devuelto', mail, es_libro=False)
+    
+    if multa_generada:
+        from app.services.email_service import enviar_notificacion_multa
+        enviar_notificacion_multa(multa_generada, 'activa', mail)
+        flash(f'El usuario ha sido suspendido por {multa_generada.dias_suspension} días debido a retraso en la devolución.', 'warning')
     
     current_app.logger.info('Préstamo devuelto: id=%s, equipo=%s, estado_fisico=%s, estado_final=%s', id_prestamo, prestamo.equipo.nombre, estado_fisico, estado_final)
     flash(f'Préstamo marcado como devuelto. El equipo pasó a estado {estado_final}.', 'success')
@@ -323,6 +332,11 @@ def solicitar_renovacion(id_prestamo):
     # Validar propiedad (o si es admin)
     if prestamo.id_usuario != current_user.id_usuario and current_user.rol not in ['administrador', 'almacenista']:
         flash('No tienes permiso para renovar este préstamo.', 'danger')
+        return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
+
+    # Validar multas (Si tiene multas no puede renovar)
+    if current_user.tiene_multas_pendientes() and current_user.rol not in ['administrador', 'almacenista']:
+        flash('No puedes renovar préstamos porque tienes una sanción por retraso activa o en proceso.', 'danger')
         return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
 
     # Validar estado

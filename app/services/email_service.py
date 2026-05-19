@@ -617,3 +617,122 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
 </html>'''
 
     return asunto, html
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  NOTIFICACIONES DE MULTAS / SUSPENSIONES
+# ══════════════════════════════════════════════════════════════════════════════
+
+def enviar_notificacion_multa(multa, tipo_notificacion, mail_instance):
+    """
+    Envía una notificación asíncrona sobre una sanción/suspensión.
+    
+    Args:
+        multa: Instancia de Multa.
+        tipo_notificacion: str ('acumulando', 'activa', 'condonada')
+        mail_instance: Instancia de Flask-Mail.
+    """
+    try:
+        usuario = multa.usuario
+        if not usuario or not usuario.correo:
+            logger.warning("No se puede enviar notificacion de multa: usuario sin correo.")
+            return False
+            
+        asunto, html_body = _generar_html_multa(multa, tipo_notificacion)
+        if not html_body:
+            return False
+            
+        msg = Message(
+            subject=asunto,
+            recipients=[usuario.correo],
+            html=html_body
+        )
+        
+        app = current_app._get_current_object()
+        thread = threading.Thread(target=_enviar_correo_async, args=(app, mail_instance, msg))
+        thread.start()
+        
+        logger.info('Notificacion de multa %s enviada asincronamente a %s', tipo_notificacion, usuario.correo)
+        return True
+    except Exception as e:
+        logger.error('Error enviando notificacion de multa: %s', str(e), exc_info=True)
+        return False
+
+def _generar_html_multa(multa, tipo_notificacion):
+    año_actual = datetime.now(timezone.utc).year
+    recurso_nombre = "Desconocido"
+    if multa.tipo_recurso == 'libro' and multa.prestamo_libro:
+        recurso_nombre = multa.prestamo_libro.libro.titulo
+    elif multa.tipo_recurso == 'equipo' and multa.prestamo_equipo:
+        recurso_nombre = multa.prestamo_equipo.equipo.nombre
+        
+    if tipo_notificacion == 'acumulando':
+        asunto = f'⚠️ Alerta: Préstamo Vencido y Suspensión en curso - {recurso_nombre}'
+        titulo = 'Préstamo Vencido'
+        color_header = 'linear-gradient(135deg, #F59E0B 0%, #B45309 100%)' # Naranja
+        mensaje_principal = 'Tu préstamo está vencido. Actualmente tienes una suspensión temporal calculándose. Debes devolver el recurso de inmediato.'
+        detalles_extra = f'''
+        <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Días de retraso acumulados:</strong> {multa.dias_retraso}</p>
+        <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Suspensión proyectada:</strong> {multa.dias_suspension} días</p>
+        '''
+    elif tipo_notificacion == 'activa':
+        asunto = f'🚨 Suspensión Activa - {recurso_nombre}'
+        titulo = 'Suspensión Activa'
+        color_header = 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)' # Rojo
+        mensaje_principal = 'Hemos recibido la devolución del recurso fuera de la fecha límite. Tu cuenta estará suspendida para realizar nuevos préstamos durante este tiempo.'
+        fecha_fin = multa.fecha_fin_suspension.strftime('%d/%m/%Y') if multa.fecha_fin_suspension else 'N/A'
+        detalles_extra = f'''
+        <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Días de suspensión aplicados:</strong> {multa.dias_suspension}</p>
+        <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Suspendido hasta:</strong> {fecha_fin}</p>
+        '''
+    elif tipo_notificacion == 'condonada':
+        asunto = f'✅ Suspensión Condonada - {recurso_nombre}'
+        titulo = 'Suspensión Levantada'
+        color_header = 'linear-gradient(135deg, #10B981 0%, #059669 100%)' # Verde
+        mensaje_principal = 'Un administrador ha revisado tu caso y ha condonado tu suspensión. Ya puedes volver a solicitar préstamos.'
+        obs = multa.observacion or 'Ninguna'
+        detalles_extra = f'''
+        <p style="color: #4B5563; font-size: 14px; margin: 4px 0;"><strong>Observación:</strong> {obs}</p>
+        '''
+    else:
+        return None, None
+
+    html = f'''<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: 'Segoe UI', Arial, sans-serif;">
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f4f6f9;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width: 520px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+                    <tr>
+                        <td style="background: {color_header}; padding: 36px 32px; text-align: center;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Sena_Colombia_logo.svg" alt="SENA" width="56" style="display: inline-block; margin-bottom: 16px; filter: brightness(10);">
+                            <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0;">{titulo}</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 36px 32px 24px;">
+                            <p style="color: #374151; font-size: 16px; margin: 0 0 8px; font-weight: 600;">¡Hola, {multa.usuario.nombres}!</p>
+                            <p style="color: #6B7280; font-size: 14px; line-height: 1.6; margin: 0 0 20px;">{mensaje_principal}</p>
+                            <div style="background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 16px;">
+                                {detalles_extra}
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #F9FAFB; padding: 20px 32px; text-align: center; border-top: 1px solid #E5E7EB;">
+                            <p style="color: #9CA3AF; font-size: 11px; margin: 0;">&copy; {año_actual} Sistema SENA - Biblioteca y Almacén</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>'''
+
+    return asunto, html

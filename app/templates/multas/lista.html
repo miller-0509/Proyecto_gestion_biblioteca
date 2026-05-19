@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block titulo_card %}Gestión de Sanciones{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 fade-in-up">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-shield-exclamation me-2" style="color: #DC2626;"></i>Historial de Sanciones</h4>
+        <p class="text-muted mb-0">Revisa las suspensiones generadas por retrasos en devoluciones.</p>
+    </div>
+</div>
+
+<div class="card-sena fade-in-up" style="animation-delay: 0.1s;">
+    <div class="card-sena-body">
+        <form method="GET" action="{{ url_for('multas.lista_multas') }}" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    <option value="acumulando" {% if estado_filtro == 'acumulando' %}selected{% endif %}>Acumulando</option>
+                    <option value="activa" {% if estado_filtro == 'activa' %}selected{% endif %}>Activa (Suspendido)</option>
+                    <option value="cumplida" {% if estado_filtro == 'cumplida' %}selected{% endif %}>Cumplida</option>
+                    <option value="condonada" {% if estado_filtro == 'condonada' %}selected{% endif %}>Condonada</option>
+                </select>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        {% if current_user.rol in ['administrador', 'bibliotecario', 'almacenista'] %}
+                        <th>Usuario</th>
+                        {% endif %}
+                        <th>Recurso</th>
+                        <th>Días Retraso</th>
+                        <th>Suspensión</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for multa in multas.items %}
+                    <tr>
+                        <td>
+                            <small class="d-block">{{ multa.fecha_generacion.strftime('%Y-%m-%d') }}</small>
+                            <small class="text-muted">{{ multa.fecha_generacion.strftime('%H:%M') }}</small>
+                        </td>
+                        {% if current_user.rol in ['administrador', 'bibliotecario', 'almacenista'] %}
+                        <td>
+                            {{ multa.usuario.nombre_completo() }}<br>
+                            <small class="text-muted">{{ multa.usuario.correo }}</small>
+                        </td>
+                        {% endif %}
+                        <td>
+                            {% if multa.tipo_recurso == 'libro' %}
+                            <span class="badge bg-info text-dark mb-1"><i class="bi bi-book me-1"></i>Libro</span><br>
+                            <small>{{ multa.prestamo_libro.libro.titulo if multa.prestamo_libro else 'N/A' }}</small>
+                            {% else %}
+                            <span class="badge bg-primary mb-1"><i class="bi bi-pc-display me-1"></i>Equipo</span><br>
+                            <small>{{ multa.prestamo_equipo.equipo.nombre if multa.prestamo_equipo else 'N/A' }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ multa.dias_retraso }} días</td>
+                        <td>
+                            <strong>{{ multa.dias_suspension }} días</strong>
+                            {% if multa.fecha_inicio_suspension and multa.fecha_fin_suspension %}
+                            <br><small class="text-muted">{{ multa.fecha_inicio_suspension.strftime('%d/%m/%Y') }} - {{ multa.fecha_fin_suspension.strftime('%d/%m/%Y') }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if multa.estado == 'acumulando' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Acumulando</span>
+                            {% elif multa.estado == 'activa' %}
+                            <span class="badge bg-danger"><i class="bi bi-ban me-1"></i>Suspendido</span>
+                            {% elif multa.estado == 'cumplida' %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Cumplida</span>
+                            {% elif multa.estado == 'condonada' %}
+                            <span class="badge bg-secondary"><i class="bi bi-info-circle me-1"></i>Condonada</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#detalleModal{{ multa.id_multa }}">
+                                <i class="bi bi-eye"></i>
+                            </button>
+
+                            {% if current_user.rol in ['administrador', 'bibliotecario', 'almacenista'] and multa.estado in ['acumulando', 'activa'] %}
+                            {% if (current_user.rol == 'administrador') or (current_user.rol == 'bibliotecario' and multa.tipo_recurso == 'libro') or (current_user.rol == 'almacenista' and multa.tipo_recurso == 'equipo') %}
+                            <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#condonarModal{{ multa.id_multa }}" title="Condonar Suspensión">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <!-- Modal Detalle -->
+                    <div class="modal fade" id="detalleModal{{ multa.id_multa }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content border-0 shadow-lg">
+                                <div class="modal-header {% if multa.estado == 'activa' %}bg-danger text-white{% else %}bg-light{% endif %}">
+                                    <h5 class="modal-title"><i class="bi bi-shield-exclamation me-2"></i>Detalle de Sanción</h5>
+                                    <button type="button" class="btn-close {% if multa.estado == 'activa' %}btn-close-white{% endif %}" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <dl class="row mb-0">
+                                        <dt class="col-sm-5 text-muted">Usuario</dt>
+                                        <dd class="col-sm-7">{{ multa.usuario.nombre_completo() }}</dd>
+                                        
+                                        <dt class="col-sm-5 text-muted">Recurso</dt>
+                                        <dd class="col-sm-7">
+                                            {{ 'Libro' if multa.tipo_recurso == 'libro' else 'Equipo' }}: 
+                                            {{ multa.prestamo_libro.libro.titulo if multa.tipo_recurso == 'libro' and multa.prestamo_libro else (multa.prestamo_equipo.equipo.nombre if multa.prestamo_equipo else 'N/A') }}
+                                        </dd>
+
+                                        <dt class="col-sm-5 text-muted">Días de retraso</dt>
+                                        <dd class="col-sm-7">{{ multa.dias_retraso }}</dd>
+
+                                        <dt class="col-sm-5 text-muted">Días de suspensión</dt>
+                                        <dd class="col-sm-7 fw-bold text-danger">{{ multa.dias_suspension }}</dd>
+
+                                        {% if multa.fecha_inicio_suspension %}
+                                        <dt class="col-sm-5 text-muted">Inicio suspensión</dt>
+                                        <dd class="col-sm-7">{{ multa.fecha_inicio_suspension.strftime('%Y-%m-%d %H:%M') }}</dd>
+                                        {% endif %}
+
+                                        {% if multa.fecha_fin_suspension %}
+                                        <dt class="col-sm-5 text-muted">Fin suspensión</dt>
+                                        <dd class="col-sm-7">{{ multa.fecha_fin_suspension.strftime('%Y-%m-%d %H:%M') }}</dd>
+                                        {% endif %}
+
+                                        <dt class="col-sm-5 text-muted">Estado</dt>
+                                        <dd class="col-sm-7">
+                                            {% if multa.estado == 'acumulando' %}Acumulando{% elif multa.estado == 'activa' %}Suspendido{% elif multa.estado == 'cumplida' %}Cumplida{% else %}Condonada{% endif %}
+                                        </dd>
+
+                                        {% if multa.observacion %}
+                                        <dt class="col-sm-5 text-muted">Observación de Condonación</dt>
+                                        <dd class="col-sm-7">{{ multa.observacion }}</dd>
+                                        
+                                        <dt class="col-sm-5 text-muted">Condonado por</dt>
+                                        <dd class="col-sm-7">{{ multa.administrador_resolucion.nombre_completo() if multa.administrador_resolucion else 'N/A' }}</dd>
+                                        {% endif %}
+                                    </dl>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Condonar -->
+                    <div class="modal fade" id="condonarModal{{ multa.id_multa }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content border-0 shadow-lg">
+                                <div class="modal-header" style="background-color: var(--mint-50); border-bottom: 2px solid var(--mint-200);">
+                                    <h5 class="modal-title" style="color: var(--mint-700);"><i class="bi bi-check-circle me-2"></i>Condonar Sanción</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form action="{{ url_for('multas.condonar_multa', id_multa=multa.id_multa) }}" method="POST">
+                                    <div class="modal-body">
+                                        <p>¿Estás seguro de que deseas levantar la suspensión para el usuario <strong>{{ multa.usuario.nombres }}</strong>?</p>
+                                        <div class="mb-3">
+                                            <label for="observacion{{ multa.id_multa }}" class="form-label text-muted small">Motivo / Observación (Requerido) <span class="text-danger">*</span></label>
+                                            <textarea class="form-control" id="observacion{{ multa.id_multa }}" name="observacion" rows="3" required></textarea>
+                                            <div class="form-text">Esta acción notificará al usuario que ya puede volver a realizar préstamos.</div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer bg-light">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Confirmar Condonación</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <tr>
+                        <td colspan="{% if current_user.rol in ['administrador', 'bibliotecario', 'almacenista'] %}7{% else %}6{% endif %}" class="text-center py-4">
+                            <div class="empty-state">
+                                <i class="bi bi-shield-check text-success" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">No hay sanciones registradas.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginación -->
+        {% if multas.pages > 1 %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if multas.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('multas.lista_multas', page=multas.prev_num, estado=estado_filtro) }}"><i class="bi bi-chevron-left"></i></a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in multas.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if multas.page == page_num %}
+                        <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                        {% else %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('multas.lista_multas', page=page_num, estado=estado_filtro) }}">{{ page_num }}</a></li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if multas.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('multas.lista_multas', page=multas.next_num, estado=estado_filtro) }}"><i class="bi bi-chevron-right"></i></a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
