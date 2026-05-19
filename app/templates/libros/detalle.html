@@ -287,6 +287,9 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block modals %}
 {% if current_user.rol in ['administrador', 'bibliotecario'] %}
 <!-- Modal de Confirmación de Eliminación -->
 <div class="modal fade" id="deleteModalLibro" tabindex="-1" aria-labelledby="deleteModalLabelLibro" aria-hidden="true">

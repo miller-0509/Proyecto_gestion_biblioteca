@@ -188,106 +188,6 @@
               </div>
               {% endif %}
             </div>
-            
-            {% if current_user.rol in ['administrador', 'almacenista'] and prestamo.estado == 'pendiente' %}
-            <!-- Reject Modal -->
-            <div class="modal fade" id="rechazarModal{{ prestamo.id_prestamo }}" tabindex="-1">
-              <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content border-0 shadow">
-                  <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title">
-                      <i class="bi bi-x-circle me-2" style="color: var(--sena-primary);"></i>
-                      Rechazar Préstamo
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                  </div>
-                  <form method="POST" action="{{ url_for('prestamos.rechazar_prestamo', id_prestamo=prestamo.id_prestamo) }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <div class="modal-body">
-                      <div class="form-group">
-                        <label for="razon{{ prestamo.id_prestamo }}" class="form-label">
-                          <i class="bi bi-chat-left-text me-1"></i>Razón del Rechazo
-                        </label>
-                        <textarea class="form-control" id="razon{{ prestamo.id_prestamo }}" 
-                                  name="razon_rechazo" rows="3" 
-                                  placeholder="Explicar el motivo del rechazo..."></textarea>
-                      </div>
-                    </div>
-                    <div class="modal-footer border-0 pt-0">
-                      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        Cancelar
-                      </button>
-                      <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-x-circle me-1"></i>Rechazar
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-            {% endif %}
-
-            {% if current_user.rol in ['administrador', 'almacenista'] and prestamo.estado == 'aceptado' %}
-            <!-- Devolver Modal -->
-            <div class="modal fade" id="devolverModal{{ prestamo.id_prestamo }}" tabindex="-1">
-              <div class="modal-dialog modal-lg">
-                <div class="modal-content border-0 shadow">
-                  <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title">
-                      <i class="bi bi-box-arrow-left me-2" style="color: var(--sena-primary);"></i>
-                      Registrar Devolución de Equipo
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                  </div>
-                  <form method="POST" action="{{ url_for('prestamos.devolver_prestamo', id_prestamo=prestamo.id_prestamo) }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <div class="modal-body">
-                      <div class="mb-3">
-                        <label for="estado_fisico{{ prestamo.id_prestamo }}" class="form-label">
-                          <i class="bi bi-clipboard2-check me-1"></i>Estado Físico del Equipo <span class="text-danger">*</span>
-                        </label>
-                        <select class="form-select estado-fisico-select" id="estado_fisico{{ prestamo.id_prestamo }}" name="estado_fisico" data-target="estado_final{{ prestamo.id_prestamo }}" required>
-                          <option value="">Seleccione el estado...</option>
-                          <option value="excelente">Excelente</option>
-                          <option value="bueno">Bueno</option>
-                          <option value="regular">Regular</option>
-                          <option value="dañado">Dañado</option>
-                          <option value="incompleto">Incompleto</option>
-                        </select>
-                      </div>
-                      
-                      <div class="mb-3">
-                        <label for="estado_final{{ prestamo.id_prestamo }}" class="form-label">
-                          <i class="bi bi-gear me-1"></i>Acción (Estado Final) <span class="text-danger">*</span>
-                        </label>
-                        <select class="form-select" id="estado_final{{ prestamo.id_prestamo }}" name="estado_final" required>
-                          <option value="">Seleccione primero el estado físico...</option>
-                        </select>
-                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>El equipo pasará a este estado en el inventario.</small>
-                      </div>
-
-                      <div class="mb-3">
-                        <label for="observacion_devolucion{{ prestamo.id_prestamo }}" class="form-label">
-                          <i class="bi bi-chat-left-text me-1"></i>Observaciones <span class="text-danger">*</span>
-                        </label>
-                        <textarea class="form-control" id="observacion_devolucion{{ prestamo.id_prestamo }}" 
-                                  name="observacion_devolucion" rows="2" 
-                                  placeholder="Ej: Equipo entregado con rayones en la pantalla, falta cargador..." required></textarea>
-                      </div>
-                    </div>
-                    <div class="modal-footer border-0 pt-0">
-                      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        Cancelar
-                      </button>
-                      <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-1"></i>Confirmar Devolución
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-            {% endif %}
           </td>
         </tr>
         {% endfor %}
@@ -366,6 +266,115 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block modals %}
+{# Modals section rendered outside of tables to avoid z-index and clipping issues #}
+{% if prestamos %}
+  {% for item in prestamos %}
+    {% set prestamo = item.prestamo %}
+    
+    {% if current_user.rol in ['administrador', 'almacenista'] and prestamo.estado == 'pendiente' %}
+    <!-- Reject Modal -->
+    <div class="modal fade" id="rechazarModal{{ prestamo.id_prestamo }}" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title">
+              <i class="bi bi-x-circle me-2" style="color: var(--sena-primary);"></i>
+              Rechazar Préstamo
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form method="POST" action="{{ url_for('prestamos.rechazar_prestamo', id_prestamo=prestamo.id_prestamo) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="razon{{ prestamo.id_prestamo }}" class="form-label">
+                  <i class="bi bi-chat-left-text me-1"></i>Razón del Rechazo
+                </label>
+                <textarea class="form-control" id="razon{{ prestamo.id_prestamo }}" 
+                          name="razon_rechazo" rows="3" 
+                          placeholder="Explicar el motivo del rechazo..."></textarea>
+              </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn-danger">
+                <i class="bi bi-x-circle me-1"></i>Rechazar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if current_user.rol in ['administrador', 'almacenista'] and prestamo.estado == 'aceptado' %}
+    <!-- Devolver Modal -->
+    <div class="modal fade" id="devolverModal{{ prestamo.id_prestamo }}" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title">
+              <i class="bi bi-box-arrow-left me-2" style="color: var(--sena-primary);"></i>
+              Registrar Devolución de Equipo
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form method="POST" action="{{ url_for('prestamos.devolver_prestamo', id_prestamo=prestamo.id_prestamo) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="estado_fisico{{ prestamo.id_prestamo }}" class="form-label">
+                  <i class="bi bi-clipboard2-check me-1"></i>Estado Físico del Equipo <span class="text-danger">*</span>
+                </label>
+                <select class="form-select estado-fisico-select" id="estado_fisico{{ prestamo.id_prestamo }}" name="estado_fisico" data-target="estado_final{{ prestamo.id_prestamo }}" required>
+                  <option value="">Seleccione el estado...</option>
+                  <option value="excelente">Excelente</option>
+                  <option value="bueno">Bueno</option>
+                  <option value="regular">Regular</option>
+                  <option value="dañado">Dañado</option>
+                  <option value="incompleto">Incompleto</option>
+                </select>
+              </div>
+              
+              <div class="mb-3">
+                <label for="estado_final{{ prestamo.id_prestamo }}" class="form-label">
+                  <i class="bi bi-gear me-1"></i>Acción (Estado Final) <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="estado_final{{ prestamo.id_prestamo }}" name="estado_final" required>
+                  <option value="">Seleccione primero el estado físico...</option>
+                </select>
+                <small class="text-muted"><i class="bi bi-info-circle me-1"></i>El equipo pasará a este estado in el inventario.</small>
+              </div>
+
+              <div class="mb-3">
+                <label for="observacion_devolucion{{ prestamo.id_prestamo }}" class="form-label">
+                  <i class="bi bi-chat-left-text me-1"></i>Observaciones <span class="text-danger">*</span>
+                </label>
+                <textarea class="form-control" id="observacion_devolucion{{ prestamo.id_prestamo }}" 
+                          name="observacion_devolucion" rows="2" 
+                          placeholder="Ej: Equipo entregado con rayones en la pantalla, falta cargador..." required></textarea>
+              </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-1"></i>Confirmar Devolución
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
 {% endblock %}
 
 {% block scripts %}

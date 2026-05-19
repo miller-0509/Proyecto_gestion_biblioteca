@@ -135,6 +135,9 @@
 </nav>
 {% endif %}
 
+{% endblock %}
+
+{% block modals %}
 <!-- Modales de Confirmación de Eliminación -->
 {% for usuario in usuarios.items %}
     {% if current_user.id_usuario != usuario.id_usuario %}
@@ -165,5 +168,4 @@
     </div>
     {% endif %}
 {% endfor %}
-
 {% endblock %}

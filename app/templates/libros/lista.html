@@ -252,6 +252,9 @@
   </nav>
   {% endif %}
 
+{% endblock %}
+
+{% block modals %}
   <!-- Modales de Confirmación de Eliminación (Fuera de la tabla para evitar problemas de z-index) -->
   {% if current_user.rol in ['administrador', 'bibliotecario'] %}
     {% for libro in libros.items %}
@@ -333,6 +336,4 @@
     </div>
     {% endfor %}
   {% endif %}
-
-</div>
 {% endblock %}

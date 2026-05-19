@@ -335,9 +335,9 @@
       </div>
     </div>
 
-  </div>
-</div>
+{% endblock %}
 
+{% block modals %}
 <!-- Reject Modal -->
 <div class="modal fade" id="rechazarModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -438,7 +438,7 @@
         <div class="modal-footer border-0 pt-0">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check me-1"></i>Confirmar
+            <i class="bi bi-check-circle me-1"></i>Confirmar
           </button>
         </div>
       </form>
@@ -465,7 +465,7 @@ function toggleMotivoRechazo(val) {
 {% if prestamo.estado == 'aceptado' %}
 <!-- Devolver Modal -->
 <div class="modal fade" id="devolverModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content border-0 shadow">
       <div class="modal-header border-0 pb-0">
         <h5 class="modal-title">
@@ -521,7 +521,6 @@ function toggleMotivoRechazo(val) {
   </div>
 </div>
 {% endif %}
-
 {% endblock %}
 
 {% block scripts %}
