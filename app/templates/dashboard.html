@@ -145,6 +145,20 @@
     </a>
   </div>
 
+  <!-- Manual de Usuario Card -->
+  <div class="col-md-4">
+    <a href="{{ url_for('static', filename='manuales/manual_' ~ current_user.rol ~ '.pdf') }}" target="_blank" class="dashboard-card">
+      <div class="dashboard-card-icon" style="color: #0d6efd;">
+        <i class="bi bi-file-earmark-pdf"></i>
+      </div>
+      <h4>Manual de Usuario</h4>
+      <p>Descarga la guía detallada con los procesos, permisos y límites correspondientes a tu perfil.</p>
+      <div>
+        <span class="badge bg-primary"><i class="bi bi-download me-1"></i> Descargar PDF</span>
+      </div>
+    </a>
+  </div>
+
 </div>
 
 <!-- Info Section -->
