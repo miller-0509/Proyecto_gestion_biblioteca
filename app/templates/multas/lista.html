@@ -158,6 +158,7 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <form action="{{ url_for('multas.condonar_multa', id_multa=multa.id_multa) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <div class="modal-body">
                                         <p>¿Estás seguro de que deseas levantar la suspensión para el usuario <strong>{{ multa.usuario.nombres }}</strong>?</p>
                                         <div class="mb-3">
