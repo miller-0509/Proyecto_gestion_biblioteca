@@ -59,6 +59,17 @@ class Usuario(db.Model, UserMixin):
         self.password = generate_password_hash(password_plano)
 
     def check_password(self, password_plano):
+        # Hashes BCrypt (generados por el backend Spring/React): validarlos con la libreria bcrypt.
+        if self.password and self.password.startswith('$2'):
+            try:
+                import bcrypt as _bcrypt
+                return _bcrypt.checkpw(
+                    password_plano.encode('utf-8'),
+                    self.password.encode('utf-8')
+                )
+            except Exception:
+                return False
+        # Hashes de werkzeug (scrypt/pbkdf2) generados por esta app Flask.
         return check_password_hash(self.password, password_plano)
 
     def nombre_completo(self):
