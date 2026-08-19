@@ -224,7 +224,7 @@
         </li>
       {% endif %}
 
-      {% for page_num in equipos.iter_pages(left_edge=1, left_margin=1, right_margin=1, right_edge=1) %}
+      {% for page_num in equipos.iter_pages(left_edge=1, left_current=1, right_current=1, right_edge=1) %}
         {% if page_num %}
           <li class="page-item {% if page_num == equipos.page %}active{% endif %}">
             <a class="page-link" href="{{ url_for('equipos.lista_equipos', page=page_num, busqueda=busqueda, estado=estado, tipo=tipo) }}">
