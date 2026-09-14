@@ -99,6 +99,15 @@ def create_app(config_class=None):
     # Configuración de sesión permanente con timeout de 30 minutos
     app.permanent_session_lifetime = timedelta(minutes=30)
 
+    # ── Evitar caché de páginas HTML para revalidación de sesión al retroceder ──
+    @app.after_request
+    def add_cache_headers(response):
+        if 'text/html' in response.headers.get('Content-Type', ''):
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+        return response
+
     # Limpieza segura de sesión DB
     @app.teardown_appcontext
     def shutdown_session(exception=None):
