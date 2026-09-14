@@ -13,10 +13,12 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-from run import app
+from app import create_app
 from app import db
 from app.models.usuarios import Usuario
 from datetime import datetime, timezone
+
+app = create_app()
 
 
 def migrar():

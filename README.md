@@ -19,7 +19,7 @@ El sistema cuenta con un control de accesos robusto basado en 5 roles jerárquic
   - **Administrador**: Control total sobre todos los módulos y gestión de personal. Sin límites de préstamo.
   - **Bibliotecario**: Gestión exclusiva de libros. Límite de 5 préstamos. No ve equipos.
   - **Almacenista**: Gestión exclusiva de equipos. Límite de 5 préstamos. No ve libros.
-  - **Instructor**: Nivel usuario. Límite de 5 préstamos combinados.
+  - **Instructor**: Nivel usuario. Límite de 8 préstamos combinados.
   - **Aprendiz**: Nivel usuario. Límite de 3 préstamos combinados.
 - Control dinámico de UI: El menú lateral, dashboard y botones de acción se ocultan/muestran según el rol de la sesión.
 - Control de estado por cuenta: `activo`, `inactivo` o `bloqueado`.

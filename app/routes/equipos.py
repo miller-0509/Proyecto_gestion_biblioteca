@@ -143,6 +143,12 @@ def editar_equipo(id_equipo):
                                       equipo=equipo,
                                       accion='editar')
 
+        # Validar que el estado sea permitido (evita errores de enum en la BD)
+        estados_permitidos_edicion = ['disponible', 'prestado', 'mantenimiento', 'dañado', 'perdido', 'eliminado', 'fuera_de_servicio', 'no_disponible']
+        if estado not in estados_permitidos_edicion:
+            flash('Estado inválido para el equipo.', 'danger')
+            return render_template('equipos/form.html', errors=[], equipo=equipo, accion='editar')
+
         equipo.nombre = nombre
         equipo.tipo_equipo = tipo_equipo
         equipo.marca = marca or None

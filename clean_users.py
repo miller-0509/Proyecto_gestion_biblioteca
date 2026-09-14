@@ -6,11 +6,13 @@ from sqlalchemy.exc import IntegrityError
 # Asegurar que la raíz del proyecto está en el PATH
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-from run import app
+from app import create_app
 from app import db
 from app.models.usuarios import Usuario
 from app.models.prestamos import Prestamo
 from app.models.prestamos_libros import PrestamoLibro
+
+app = create_app()
 
 def run_diagnostico():
     """Realiza un diagnóstico de seguridad antes de cualquier acción."""

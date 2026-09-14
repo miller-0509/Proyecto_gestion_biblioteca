@@ -29,12 +29,19 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Optimización de conexiones DB (Pool)
-    SQLALCHEMY_ENGINE_OPTIONS = {
+    engine_options = {
         "pool_pre_ping": True,
         "pool_recycle": 300,
         "pool_size": 10,
         "max_overflow": 20,
     }
+
+    # Forzar TimeZone=UTC en cada conexión para que los timestamps
+    # se almacenen e interpreten consistentemente con datetime.now(timezone.utc).
+    if database_url and database_url.startswith("postgres"):
+        engine_options["connect_args"] = {"options": "-c TimeZone=UTC"}
+
+    SQLALCHEMY_ENGINE_OPTIONS = engine_options
 
     # ── Seguridad y unicidad de cookies ───────────────────────────
     SESSION_COOKIE_NAME = 'biblioteca_session'  # Evita colisiones de cookies en el mismo dominio/IP (Coolify)

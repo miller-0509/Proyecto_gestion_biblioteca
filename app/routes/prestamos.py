@@ -86,6 +86,16 @@ def crear_prestamo():
                     flash(error, 'danger')
                 return redirect(url_for('prestamos.crear_prestamo'))
             
+            # Validar límite de préstamos activos del usuario destino
+            usuario_target = Usuario.query.get(id_usuario)
+            if usuario_target and usuario_target.prestamos_activos_count() >= usuario_target.limite_prestamos:
+                flash(
+                    f'El usuario {usuario_target.nombre_completo()} ya alcanzó su límite de '
+                    f'{usuario_target.limite_prestamos} préstamos activos.',
+                    'danger'
+                )
+                return redirect(url_for('prestamos.crear_prestamo'))
+
             # Re-verificar disponibilidad del equipo (protección contra race condition)
             equipo = Equipo.query.get(id_equipo)
             if not equipo or equipo.estado != 'disponible':
@@ -142,13 +152,18 @@ def crear_prestamo():
                     flash(error, 'danger')
                 return redirect(url_for('prestamos.crear_prestamo'))
             
+            # Re-verificar disponibilidad del equipo (protección contra race condition)
+            equipo = Equipo.query.get(id_equipo)
+            if not equipo or equipo.estado != 'disponible' or not equipo.disponible_prestamo:
+                flash('El equipo ya no está disponible. Otro usuario pudo haberlo solicitado.', 'danger')
+                return redirect(url_for('prestamos.crear_prestamo'))
+            
             # Fix #9: Verificar límite de préstamos activos del usuario
             if current_user.prestamos_activos_count() >= current_user.limite_prestamos:
                 flash(f'Has alcanzado el límite de {current_user.limite_prestamos} préstamos activos permitidos para tu rol.', 'warning')
                 return redirect(url_for('prestamos.lista_prestamos'))
             
             # Fix #4: Usar tiempo_max_prestamo del equipo si está definido
-            equipo = Equipo.query.get(id_equipo)
             dias_prestamo = equipo.tiempo_max_prestamo or 7
             fecha_devolucion_esperada = datetime.now(timezone.utc) + timedelta(days=dias_prestamo)
             prestamo = Prestamo(
@@ -178,6 +193,16 @@ def aceptar_prestamo(id_prestamo):
     
     if prestamo.estado != 'pendiente':
         flash('Este préstamo no está en estado pendiente.', 'warning')
+        return redirect(url_for('prestamos.lista_prestamos'))
+    
+    # Validar que el usuario no exceda su límite al aceptar (el préstamo pendiente ya cuenta)
+    usuario_destino = prestamo.usuario
+    if usuario_destino and usuario_destino.prestamos_activos_count() > usuario_destino.limite_prestamos:
+        flash(
+            f'{usuario_destino.nombre_completo()} supera su límite de '
+            f'{usuario_destino.limite_prestamos} préstamos activos.',
+            'danger'
+        )
         return redirect(url_for('prestamos.lista_prestamos'))
     
     # Re-verificar estado actual del equipo (protección contra race condition)

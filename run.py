@@ -1,4 +1,5 @@
 from app import create_app, db
+from app.db_migrations import migrar_enums_estado
 
 app = create_app()
 
@@ -9,6 +10,8 @@ with app.app_context():
         print("[OK] Base de datos inicializada correctamente.")
     except Exception as e:
         print(f"[WARN] db.create_all() omitido (probablemente ya existe): {e}")
+
+    migrar_enums_estado(app)
 
 if __name__ == '__main__':
     import os

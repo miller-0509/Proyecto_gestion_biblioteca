@@ -25,7 +25,7 @@ class Equipo(db.Model):
     marca               = db.Column(db.String(100))
     modelo              = db.Column(db.String(100))
     numero_serie        = db.Column(db.String(100), unique=True, nullable=False)
-    estado              = db.Column(db.String(20), default='disponible')
+    estado              = db.Column(db.Enum('disponible', 'prestado', 'mantenimiento', 'dañado', 'perdido', 'eliminado', 'fuera_de_servicio', 'no_disponible', name='estado_equipo'), default='disponible')
     ubicacion           = db.Column(db.String(150))  # Biblioteca, Almacén, Aula X, etc.
     fecha_registro      = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     fecha_compra        = db.Column(db.Date)

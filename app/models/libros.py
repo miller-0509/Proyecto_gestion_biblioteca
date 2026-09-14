@@ -23,7 +23,7 @@ class Libro(db.Model):
     autor               = db.Column(db.String(150), nullable=False)
     genero              = db.Column(db.String(100), nullable=False)
     codigo_unico        = db.Column(db.String(100), unique=True, nullable=False)
-    estado              = db.Column(db.String(20), default='disponible')
+    estado              = db.Column(db.Enum('disponible', 'prestado', 'mantenimiento', 'dañado', 'perdido', 'eliminado', 'no_disponible', name='estado_libro'), default='disponible')
     ubicacion           = db.Column(db.String(150))
     fecha_registro      = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     fecha_compra        = db.Column(db.Date)

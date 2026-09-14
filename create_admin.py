@@ -1,9 +1,10 @@
 import os
 import sys
 import getpass
-from run import app
-from app import db
+from app import create_app, db
 from app.models.usuarios import Usuario
+
+app = create_app()
 
 def main():
     print("=" * 60)

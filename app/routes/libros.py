@@ -146,6 +146,12 @@ def editar_libro(id_libro):
                                        libro=libro,
                                        accion='editar')
 
+        # Validar que el estado sea permitido (evita errores de enum en la BD)
+        estados_permitidos_edicion = ['disponible', 'prestado', 'mantenimiento', 'dañado', 'perdido', 'eliminado']
+        if estado not in estados_permitidos_edicion:
+            flash('Estado inválido para el libro.', 'danger')
+            return render_template('libros/form.html', errors=[], libro=libro, accion='editar')
+
         libro.titulo = titulo
         libro.autor = autor
         libro.genero = genero

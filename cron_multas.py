@@ -1,6 +1,6 @@
 import os
 from flask import current_app
-from run import app
+from app import create_app
 from app.services.multas_service import actualizar_multas_diarias
 import logging
 
@@ -17,6 +17,7 @@ logger = logging.getLogger('cron_multas')
 def main():
     logger.info("Iniciando cron job de multas...")
     try:
+        app = create_app()
         # Importante: usar app para tener el contexto de aplicación y BD
         actualizar_multas_diarias(app)
         logger.info("Cron job finalizado con éxito.")

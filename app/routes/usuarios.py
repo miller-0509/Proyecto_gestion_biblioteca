@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.models.usuarios import Usuario
 from app.models.prestamos import Prestamo
 from app.models.prestamos_libros import PrestamoLibro
+from app.models.multas import Multa
 from app.decorators import admin_required
 from app import db
 from datetime import datetime, timezone
@@ -67,9 +68,14 @@ def editar_usuario(id_usuario):
 
         errors = Usuario.validate_edicion(nombres, apellidos, correo, rol, estado, current_correo=usuario.correo)
         
-        # Validar contraseña solo si se intenta cambiar
-        if password and len(password) < 6:
-            errors.append('La nueva contraseña debe tener al menos 6 caracteres.')
+        # Validar contraseña solo si se intenta cambiar (misma política que el registro)
+        if password:
+            if len(password) < 8:
+                errors.append('La contraseña debe tener al menos 8 caracteres.')
+            if not any(c.isupper() for c in password):
+                errors.append('La contraseña debe contener al menos una letra mayúscula.')
+            if not any(c.isdigit() for c in password):
+                errors.append('La contraseña debe contener al menos un número.')
 
         if errors:
             return render_template('usuarios/editar.html',
@@ -119,6 +125,16 @@ def eliminar_usuario(id_usuario):
             RenovacionEquipo.query.filter(RenovacionEquipo.id_prestamo.in_(prestamos_ids)).delete(synchronize_session=False)
         if prestamos_libros_ids:
             RenovacionLibro.query.filter(RenovacionLibro.id_prestamo_libro.in_(prestamos_libros_ids)).delete(synchronize_session=False)
+
+        # 3.5 Eliminar multas/sanciones asociadas al usuario o a sus préstamos.
+        # El borrado masivo no dispara el cascade ORM, así que se eliminan antes
+        # para evitar violación de llave foránea al borrar los préstamos.
+        multa_filtros = [Multa.id_usuario == id_usuario]
+        if prestamos_ids:
+            multa_filtros.append(Multa.id_prestamo_equipo.in_(prestamos_ids))
+        if prestamos_libros_ids:
+            multa_filtros.append(Multa.id_prestamo_libro.in_(prestamos_libros_ids))
+        Multa.query.filter(db.or_(*multa_filtros)).delete(synchronize_session=False)
 
         Prestamo.query.filter_by(id_usuario=id_usuario).delete()
         PrestamoLibro.query.filter_by(id_usuario=id_usuario).delete()
