@@ -36,9 +36,10 @@ class Usuario(db.Model, UserMixin):
         
         # Convertir a string de forma segura y normalizar para comparación
         estado_str = str(self.estado).lower()
+        if '.' in estado_str:
+            estado_str = estado_str.split('.')[-1]
         
-        # En algunos sistemas el string viene como 'estado_usuario.activo'
-        return 'activo' in estado_str
+        return estado_str == 'activo'
 
     @property
     def limite_prestamos(self):

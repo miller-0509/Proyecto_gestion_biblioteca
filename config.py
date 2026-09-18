@@ -83,10 +83,26 @@ class ProductionConfig(Config):
     REMEMBER_COOKIE_SECURE = True
 
 
+class TestingConfig(Config):
+    """Configuración para pruebas automatizadas con pytest."""
+
+    TESTING = True
+    DEBUG = False
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_ENGINE_OPTIONS = {}  # Deshabilita connect_args de PostgreSQL para SQLite in-memory
+    WTF_CSRF_ENABLED = False        # Deshabilita validación CSRF en peticiones POST de pruebas
+    RATELIMIT_ENABLED = False       # Deshabilita rate limiting durante la ejecución de tests
+    MAIL_SUPPRESS_SEND = True       # Evita el envío real de correos durante pruebas
+    SECRET_KEY = 'testing-secret-key-para-pruebas-unitarias'
+    SESSION_COOKIE_SECURE = False
+    REMEMBER_COOKIE_SECURE = False
+
+
 # Mapa de entornos
 config_by_env = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
+    'testing': TestingConfig,
 }
 
 
@@ -100,4 +116,4 @@ def get_config():
             "Falta la SECRET_KEY en el entorno de Producción."
         )
 
-    return config_by_env.get(env, DevelopmentConfig)
+    return config_by_env.get(env, DevelopmentConfig)
