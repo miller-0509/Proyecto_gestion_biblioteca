@@ -1,0 +1,10 @@
+[flake8]
+exclude =
+    venv,
+    venvclear,
+    migrations,
+    __pycache__,
+    .git,
+    scratch
+max-line-length = 127
+max-complexity = 15
