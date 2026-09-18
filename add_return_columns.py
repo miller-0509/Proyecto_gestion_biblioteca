@@ -1,6 +1,6 @@
-import os
-from app import create_app, db
 from sqlalchemy import text
+
+from app import create_app, db
 
 app = create_app()
 

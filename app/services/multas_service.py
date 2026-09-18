@@ -1,16 +1,18 @@
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
+
 from flask import current_app
+
 from app import db
+from app.models.multas import Multa
 from app.models.prestamos import Prestamo
 from app.models.prestamos_libros import PrestamoLibro
-from app.models.multas import Multa
 
 logger = logging.getLogger(__name__)
 
 def _now():
     """Retorna la fecha y hora actual en la misma zona horaria que la DB (UTC)."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 def activar_suspension(prestamo, es_libro=False):
     """
@@ -19,7 +21,7 @@ def activar_suspension(prestamo, es_libro=False):
     Nota: Esta función NO hace db.session.commit(), delega la responsabilidad a quien la llama.
     """
     ahora = _now()
-    fecha_esperada = prestamo.fecha_devolucion_esperada.replace(tzinfo=timezone.utc) if prestamo.fecha_devolucion_esperada.tzinfo is None else prestamo.fecha_devolucion_esperada
+    fecha_esperada = prestamo.fecha_devolucion_esperada.replace(tzinfo=UTC) if prestamo.fecha_devolucion_esperada.tzinfo is None else prestamo.fecha_devolucion_esperada
     
     # Calcular retraso usando fechas para evitar off-by-one errors (horas)
     dias_gracia = current_app.config.get('DIAS_GRACIA_MULTA', 1)
@@ -97,7 +99,7 @@ def actualizar_multas_diarias(app):
             try:
                 # Usar nested transaction para evitar que un error rompa el ciclo completo
                 with db.session.begin_nested():
-                    fecha_esperada = p.fecha_devolucion_esperada.replace(tzinfo=timezone.utc) if p.fecha_devolucion_esperada.tzinfo is None else p.fecha_devolucion_esperada
+                    fecha_esperada = p.fecha_devolucion_esperada.replace(tzinfo=UTC) if p.fecha_devolucion_esperada.tzinfo is None else p.fecha_devolucion_esperada
                     retraso = (ahora.date() - fecha_esperada.date()).days
                     suspension_proyectada = retraso * factor_equipo
                     
@@ -131,14 +133,14 @@ def actualizar_multas_diarias(app):
             PrestamoLibro.fecha_devolucion_esperada < (ahora - timedelta(days=dias_gracia))
         ).all()
         
-        for l in libros_vencidos:
+        for pl in libros_vencidos:
             try:
                 with db.session.begin_nested():
-                    fecha_esperada = l.fecha_devolucion_esperada.replace(tzinfo=timezone.utc) if l.fecha_devolucion_esperada.tzinfo is None else l.fecha_devolucion_esperada
+                    fecha_esperada = pl.fecha_devolucion_esperada.replace(tzinfo=UTC) if pl.fecha_devolucion_esperada.tzinfo is None else pl.fecha_devolucion_esperada
                     retraso = (ahora.date() - fecha_esperada.date()).days
                     suspension_proyectada = retraso * factor_libro
                     
-                    multa = Multa.query.filter_by(id_prestamo_libro=l.id_prestamo_libro).first()
+                    multa = Multa.query.filter_by(id_prestamo_libro=pl.id_prestamo_libro).first()
                     
                     if multa:
                         if multa.estado != 'acumulando':
@@ -147,8 +149,8 @@ def actualizar_multas_diarias(app):
                     else:
                         multa = Multa(
                             tipo_recurso='libro',
-                            id_prestamo_libro=l.id_prestamo_libro,
-                            id_usuario=l.id_usuario,
+                            id_prestamo_libro=pl.id_prestamo_libro,
+                            id_usuario=pl.id_usuario,
                             estado='acumulando',
                             fecha_generacion=ahora
                         )
@@ -159,7 +161,7 @@ def actualizar_multas_diarias(app):
                     multa.dias_suspension = suspension_proyectada
             except Exception as e:
                 errores += 1
-                logger.error(f"Error procesando préstamo libro {l.id_prestamo_libro}: {e}")
+                logger.error(f"Error procesando préstamo libro {pl.id_prestamo_libro}: {e}")
             
         # 3. Revisar multas activas cuyo tiempo ya pasó
         multas_activas = Multa.query.filter(

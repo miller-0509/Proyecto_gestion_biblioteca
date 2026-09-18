@@ -3,19 +3,18 @@ Módulo de Reportes - Sistema de Gestión Biblioteca/Almacén SENA
 Genera reportes de inventario, préstamos y usuarios con exportación Excel/PDF.
 Respeta estrictamente el RBAC de 5 roles.
 """
-from flask import (
-    Blueprint, render_template, request, flash, redirect,
-    url_for, send_file, current_app, abort
-)
-from flask_login import login_required, current_user
+import io
+from datetime import datetime, timedelta
+
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, send_file, url_for
+from flask_login import current_user, login_required
+
 from app import db
 from app.models.equipos import Equipo
 from app.models.libros import Libro
 from app.models.prestamos import Prestamo
 from app.models.prestamos_libros import PrestamoLibro
 from app.models.usuarios import Usuario
-from datetime import datetime, timezone, timedelta
-import io
 
 bp = Blueprint('reportes', __name__, url_prefix='/reportes')
 
@@ -191,7 +190,7 @@ def exportar_excel(tipo_reporte):
 
     try:
         from openpyxl import Workbook
-        from openpyxl.styles import Font, Alignment, PatternFill
+        from openpyxl.styles import Alignment, Font, PatternFill
     except ImportError:
         flash('Librería openpyxl no disponible. Instala los requerimientos.', 'danger')
         return redirect(url_for('reportes.index'))
@@ -203,7 +202,8 @@ def exportar_excel(tipo_reporte):
     fecha_hoy = datetime.now().strftime('%Y-%m-%d')
 
     if tipo_reporte == 'inventario_equipos':
-        if not _puede_ver_equipos(): abort(403)
+        if not _puede_ver_equipos():
+            abort(403)
         ws.title = "Inventario Equipos"
         headers = ['ID', 'Nombre', 'Tipo', 'Marca', 'Modelo', 'N° Serie', 'Estado', 'Ubicación', 'Registro']
         for col, h in enumerate(headers, 1):
@@ -221,24 +221,26 @@ def exportar_excel(tipo_reporte):
             ws.cell(row=row, column=9, value=str(e.fecha_registro.strftime('%Y-%m-%d') if e.fecha_registro else ''))
 
     elif tipo_reporte == 'inventario_libros':
-        if not _puede_ver_libros(): abort(403)
+        if not _puede_ver_libros():
+            abort(403)
         ws.title = "Inventario Libros"
         headers = ['ID', 'Título', 'Autor', 'Género', 'Código', 'Estado', 'Ubicación', 'Registro']
         for col, h in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col, value=h)
             cell.font, cell.fill, cell.alignment = header_font, header_fill, Alignment(horizontal='center')
-        for row, l in enumerate(Libro.query.filter_by(eliminado=False).all(), 2):
-            ws.cell(row=row, column=1, value=l.id_libro)
-            ws.cell(row=row, column=2, value=l.titulo)
-            ws.cell(row=row, column=3, value=l.autor)
-            ws.cell(row=row, column=4, value=l.genero)
-            ws.cell(row=row, column=5, value=l.codigo_unico)
-            ws.cell(row=row, column=6, value=l.estado)
-            ws.cell(row=row, column=7, value=l.ubicacion or '')
-            ws.cell(row=row, column=8, value=str(l.fecha_registro.strftime('%Y-%m-%d') if l.fecha_registro else ''))
+        for row, libro in enumerate(Libro.query.filter_by(eliminado=False).all(), 2):
+            ws.cell(row=row, column=1, value=libro.id_libro)
+            ws.cell(row=row, column=2, value=libro.titulo)
+            ws.cell(row=row, column=3, value=libro.autor)
+            ws.cell(row=row, column=4, value=libro.genero)
+            ws.cell(row=row, column=5, value=libro.codigo_unico)
+            ws.cell(row=row, column=6, value=libro.estado)
+            ws.cell(row=row, column=7, value=libro.ubicacion or '')
+            ws.cell(row=row, column=8, value=str(libro.fecha_registro.strftime('%Y-%m-%d') if libro.fecha_registro else ''))
 
     elif tipo_reporte == 'prestamos_equipos':
-        if not _puede_ver_equipos(): abort(403)
+        if not _puede_ver_equipos():
+            abort(403)
         ws.title = "Préstamos Equipos"
         headers = ['Cod', 'Usuario', 'Equipo', 'Estado', 'Solicitud', 'Devolución']
         for col, h in enumerate(headers, 1):
@@ -253,7 +255,8 @@ def exportar_excel(tipo_reporte):
             ws.cell(row=row, column=6, value=str(p.fecha_devolucion_real.strftime('%Y-%m-%d') if p.fecha_devolucion_real else 'Pendiente'))
 
     elif tipo_reporte == 'prestamos_libros':
-        if not _puede_ver_libros(): abort(403)
+        if not _puede_ver_libros():
+            abort(403)
         ws.title = "Préstamos Libros"
         headers = ['Cod', 'Usuario', 'Libro', 'Estado', 'Solicitud', 'Devolución']
         for col, h in enumerate(headers, 1):
@@ -300,7 +303,7 @@ def exportar_excel(tipo_reporte):
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except Exception:
                 pass
         ws.column_dimensions[column].width = max(max_length + 2, 10)
 
@@ -321,10 +324,10 @@ def exportar_pdf(tipo_reporte):
         abort(403)
 
     try:
-        from reportlab.lib.pagesizes import letter, landscape
         from reportlab.lib import colors
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.pagesizes import landscape, letter
         from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
     except ImportError:
         flash('Librería reportlab no disponible. Instala los requerimientos.', 'danger')
         return redirect(url_for('reportes.index'))
@@ -352,7 +355,8 @@ def exportar_pdf(tipo_reporte):
     ])
 
     if tipo_reporte == 'inventario_equipos':
-        if not _puede_ver_equipos(): abort(403)
+        if not _puede_ver_equipos():
+            abort(403)
         elements.append(Paragraph('Reporte de Inventario - Equipos', title_style))
         elements.append(Paragraph(f'Generado: {fecha_hoy} | Por: {current_user.nombre_completo()}', subtitle_style))
         elements.append(Spacer(1, 20))
@@ -364,19 +368,21 @@ def exportar_pdf(tipo_reporte):
         elements.append(t)
 
     elif tipo_reporte == 'inventario_libros':
-        if not _puede_ver_libros(): abort(403)
+        if not _puede_ver_libros():
+            abort(403)
         elements.append(Paragraph('Reporte de Inventario - Libros', title_style))
         elements.append(Paragraph(f'Generado: {fecha_hoy} | Por: {current_user.nombre_completo()}', subtitle_style))
         elements.append(Spacer(1, 20))
         data = [['ID', 'Título', 'Autor', 'Género', 'Código', 'Estado', 'Ubicación']]
-        for l in Libro.query.filter_by(eliminado=False).all():
-            data.append([l.id_libro, l.titulo[:30], l.autor[:20], l.genero, l.codigo_unico, l.estado, l.ubicacion or ''])
+        for libro in Libro.query.filter_by(eliminado=False).all():
+            data.append([libro.id_libro, libro.titulo[:30], libro.autor[:20], libro.genero, libro.codigo_unico, libro.estado, libro.ubicacion or ''])
         t = Table(data, repeatRows=1)
         t.setStyle(header_style)
         elements.append(t)
 
     elif tipo_reporte == 'prestamos_equipos':
-        if not _puede_ver_equipos(): abort(403)
+        if not _puede_ver_equipos():
+            abort(403)
         elements.append(Paragraph('Reporte de Préstamos - Equipos', title_style))
         elements.append(Paragraph(f'Generado: {fecha_hoy}', subtitle_style))
         elements.append(Spacer(1, 20))
@@ -393,7 +399,8 @@ def exportar_pdf(tipo_reporte):
         elements.append(t)
 
     elif tipo_reporte == 'prestamos_libros':
-        if not _puede_ver_libros(): abort(403)
+        if not _puede_ver_libros():
+            abort(403)
         elements.append(Paragraph('Reporte de Préstamos - Libros', title_style))
         elements.append(Paragraph(f'Generado: {fecha_hoy}', subtitle_style))
         elements.append(Spacer(1, 20))

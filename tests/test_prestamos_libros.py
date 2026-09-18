@@ -1,10 +1,8 @@
 """
 Pruebas unitarias y de integración para el Blueprint de Préstamos de Libros (prestamos_libros).
 """
-import pytest
-from app.models.prestamos_libros import PrestamoLibro
-from app.models.libros import Libro
 from app import db
+from app.models.prestamos_libros import PrestamoLibro
 
 
 def test_lista_prestamos_libros_unauthenticated(client):

@@ -1,13 +1,15 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from flask_login import login_required, current_user
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
+
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
+
 from app import db, mail
-from app.models.prestamos import Prestamo
-from app.services.email_service import enviar_notificacion_prestamo
+from app.decorators import calcular_dias_restantes, gestion_equipos_required
 from app.models.equipos import Equipo, HistorialEstadoEquipo
+from app.models.prestamos import Prestamo
 from app.models.usuarios import Usuario
-from app.decorators import admin_required, gestion_equipos_required, calcular_dias_restantes
+from app.services.email_service import enviar_notificacion_prestamo
 
 bp = Blueprint('prestamos', __name__, url_prefix='/prestamos')
 
@@ -104,14 +106,14 @@ def crear_prestamo():
             
             # Crear préstamo y marcar equipo como prestado
             equipo.estado = 'prestado'
-            fecha_devolucion_esperada = datetime.now(timezone.utc) + timedelta(days=dias_prestamo)
+            fecha_devolucion_esperada = datetime.now(UTC) + timedelta(days=dias_prestamo)
             prestamo = Prestamo(
                 id_usuario=id_usuario,
                 id_equipo=id_equipo,
                 id_administrador=current_user.id_usuario,
                 fecha_devolucion_esperada=fecha_devolucion_esperada,
                 estado='aceptado',  # El admin crea directamente aceptado
-                fecha_aprobacion=datetime.now(timezone.utc),
+                fecha_aprobacion=datetime.now(UTC),
                 observaciones=observaciones
             )
             db.session.add(prestamo)
@@ -165,7 +167,7 @@ def crear_prestamo():
             
             # Fix #4: Usar tiempo_max_prestamo del equipo si está definido
             dias_prestamo = equipo.tiempo_max_prestamo or 7
-            fecha_devolucion_esperada = datetime.now(timezone.utc) + timedelta(days=dias_prestamo)
+            fecha_devolucion_esperada = datetime.now(UTC) + timedelta(days=dias_prestamo)
             prestamo = Prestamo(
                 id_usuario=current_user.id_usuario,
                 id_equipo=id_equipo,
@@ -212,7 +214,7 @@ def aceptar_prestamo(id_prestamo):
         return redirect(url_for('prestamos.lista_prestamos'))
     
     prestamo.estado = 'aceptado'
-    prestamo.fecha_aprobacion = datetime.now(timezone.utc)
+    prestamo.fecha_aprobacion = datetime.now(UTC)
     prestamo.id_administrador = current_user.id_usuario
     equipo.estado = 'prestado'
     db.session.commit()
@@ -295,7 +297,7 @@ def devolver_prestamo(id_prestamo):
     estado_anterior = prestamo.equipo.estado
     
     prestamo.estado = 'devuelto'
-    prestamo.fecha_devolucion_real = datetime.now(timezone.utc)
+    prestamo.fecha_devolucion_real = datetime.now(UTC)
     prestamo.observacion_devolucion = observacion_devolucion
     prestamo.estado_fisico_devolucion = estado_fisico
     
@@ -370,7 +372,7 @@ def solicitar_renovacion(id_prestamo):
         return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
 
     # Validar si está vencido
-    if prestamo.fecha_devolucion_esperada and prestamo.fecha_devolucion_esperada < datetime.now(timezone.utc).replace(tzinfo=None):
+    if prestamo.fecha_devolucion_esperada and prestamo.fecha_devolucion_esperada < datetime.now(UTC).replace(tzinfo=None):
         flash('No puedes renovar un préstamo vencido.', 'danger')
         return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
 
@@ -440,7 +442,7 @@ def procesar_renovacion(id_prestamo):
         return redirect(url_for('prestamos.detalle_prestamo', id_prestamo=id_prestamo))
     
     renovacion.id_administrador = current_user.id_usuario
-    renovacion.fecha_respuesta = datetime.now(timezone.utc)
+    renovacion.fecha_respuesta = datetime.now(UTC)
     
     if accion == 'aprobar':
         renovacion.estado = 'aprobada'

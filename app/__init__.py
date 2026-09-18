@@ -1,14 +1,15 @@
+from datetime import UTC, datetime, timedelta
+
 from flask import Flask, render_template
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, logout_user, current_user
-from datetime import datetime, timezone, timedelta
-from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from werkzeug.exceptions import HTTPException
-from flask_migrate import Migrate
-from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_login import LoginManager, current_user, logout_user
 from flask_mail import Mail
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
+from werkzeug.exceptions import HTTPException
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -70,7 +71,7 @@ def create_app(config_class=None):
     @app.context_processor
     def inject_now():
         return {
-            'now': lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+            'now': lambda: datetime.now(UTC).replace(tzinfo=None)
         }
 
     # Auto-logout si la cuenta fue desactivada (optimizado para evitar consultas a la BD en archivos estáticos)
@@ -117,16 +118,7 @@ def create_app(config_class=None):
         db.session.remove()
 
     # ── Blueprints ─────────────────────────────────────────────────
-    from app.routes import (
-        auth,
-        equipos,
-        prestamos,
-        libros,
-        prestamos_libros,
-        usuarios,
-        reportes,
-        multas
-    )
+    from app.routes import auth, equipos, libros, multas, prestamos, prestamos_libros, reportes, usuarios
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(equipos.bp)

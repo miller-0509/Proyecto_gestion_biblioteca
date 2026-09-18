@@ -3,8 +3,9 @@ Migraciones ligeras e idempotentes para bases PostgreSQL con tipos ENUM.
 Se ejecutan de forma segura al arrancar la app (ver run.py) y no requieren
 Flask-Migrate ni afectan a bases nuevas (no existe el tipo -> no-op).
 """
-from sqlalchemy import text
 from flask import current_app
+from sqlalchemy import text
+
 from app import db
 
 # Valores adicionales que los enums de la BD deben soportar para que

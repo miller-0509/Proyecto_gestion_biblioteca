@@ -1,9 +1,8 @@
 """
 Pruebas unitarias y de integración para el Blueprint de Equipos (equipos).
 """
-import pytest
-from app.models.equipos import Equipo
 from app import db
+from app.models.equipos import Equipo
 
 
 def test_lista_equipos_unauthenticated(client):

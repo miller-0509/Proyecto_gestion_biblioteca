@@ -1,9 +1,8 @@
 """
 Pruebas unitarias y de integración para el Blueprint de Libros (libros).
 """
-import pytest
-from app.models.libros import Libro
 from app import db
+from app.models.libros import Libro
 
 
 def test_lista_libros_unauthenticated(client):

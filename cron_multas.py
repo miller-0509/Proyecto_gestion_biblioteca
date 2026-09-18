@@ -1,8 +1,7 @@
-import os
-from flask import current_app
+import logging
+
 from app import create_app
 from app.services.multas_service import actualizar_multas_diarias
-import logging
 
 # Configurar logging específico para el cron
 logging.basicConfig(

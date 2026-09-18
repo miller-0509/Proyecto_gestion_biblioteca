@@ -1,5 +1,4 @@
 from app import create_app, db
-from app.models.renovaciones import RenovacionEquipo, RenovacionLibro
 
 app = create_app()
 

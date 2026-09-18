@@ -1,10 +1,11 @@
 import os
-from datetime import datetime
-from reportlab.lib.pagesizes import letter
+
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.pdfgen import canvas
+from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
 
 # Clase NumberedCanvas para paginación dinámica e imagen de marca SENA
 class NumberedCanvas(canvas.Canvas):
@@ -91,7 +92,6 @@ def generar_pdf_manual(rol_key, config_rol, output_dir):
     color_primary = colors.HexColor('#39A900') # Verde SENA
     color_secondary = colors.HexColor('#00303F') # Gris/Teal Oscuro SENA
     color_text = colors.HexColor('#333333') # Texto principal
-    color_bg_table = colors.HexColor('#F4F6F9') # Fondo gris suave
     
     # Estilos de Párrafo personalizados
     title_style = ParagraphStyle(
@@ -227,7 +227,7 @@ def generar_pdf_manual(rol_key, config_rol, output_dir):
     elements.append(Paragraph(config_rol['introduccion'], body_style))
     
     # Límites del Rol (tabla o nota)
-    elements.append(Paragraph(f"<b>Reglas de Operación y Límites:</b>", h2_style))
+    elements.append(Paragraph("<b>Reglas de Operación y Límites:</b>", h2_style))
     elements.append(Paragraph(f"• <b>Límite de Préstamos Activos Simultáneos:</b> {config_rol['limite_prestamos']} elementos en total (aplica a la suma de libros y equipos).", bullet_style))
     for regla in config_rol['reglas']:
         elements.append(Paragraph(f"• {regla}", bullet_style))

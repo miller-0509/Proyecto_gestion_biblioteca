@@ -1,5 +1,6 @@
+from datetime import UTC, datetime
 from functools import wraps
-from datetime import datetime, timezone
+
 from flask import flash, redirect, url_for
 from flask_login import current_user
 
@@ -86,10 +87,10 @@ def calcular_dias_restantes(prestamo):
     if prestamo.estado != 'aceptado' or not prestamo.fecha_devolucion_esperada:
         return None
     try:
-        ahora = datetime.now(timezone.utc)
+        ahora = datetime.now(UTC)
         fecha_dev = prestamo.fecha_devolucion_esperada
         if fecha_dev.tzinfo is None:
-            fecha_dev = fecha_dev.replace(tzinfo=timezone.utc)
+            fecha_dev = fecha_dev.replace(tzinfo=UTC)
         return (fecha_dev - ahora).days
     except Exception:
         return None

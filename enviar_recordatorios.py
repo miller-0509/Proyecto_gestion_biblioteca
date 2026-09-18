@@ -1,5 +1,6 @@
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
+
 from app import create_app, db, mail
 from app.models.prestamos import Prestamo
 from app.models.prestamos_libros import PrestamoLibro
@@ -20,7 +21,7 @@ def procesar_recordatorios():
     app = create_app()
     with app.app_context():
         logger.info("Iniciando proceso de revisión de recordatorios...")
-        ahora = datetime.now(timezone.utc)
+        ahora = datetime.now(UTC)
         un_dia_despues = ahora + timedelta(days=1)
         
         prestamos_procesados = 0
@@ -46,7 +47,7 @@ def procesar_recordatorios():
                 # Si la fecha de devolución no tiene zona horaria, se la asignamos (UTC)
                 fecha_limite = prestamo.fecha_devolucion_esperada
                 if fecha_limite.tzinfo is None:
-                    fecha_limite = fecha_limite.replace(tzinfo=timezone.utc)
+                    fecha_limite = fecha_limite.replace(tzinfo=UTC)
                 
                 try:
                     # 1. Verificar si está vencido

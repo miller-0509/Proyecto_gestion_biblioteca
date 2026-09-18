@@ -1,5 +1,7 @@
+from datetime import UTC, datetime
+
 from app import db
-from datetime import datetime, timezone
+
 
 class PrestamoLibro(db.Model):
     __tablename__ = 'prestamos_libros'
@@ -9,7 +11,7 @@ class PrestamoLibro(db.Model):
     id_libro = db.Column(db.Integer, db.ForeignKey('libros.id_libro'), nullable=False)
     id_administrador = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=True)
     
-    fecha_solicitud = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    fecha_solicitud = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     fecha_aprobacion = db.Column(db.DateTime, nullable=True)
     fecha_devolucion_esperada = db.Column(db.DateTime, nullable=True)
     fecha_devolucion_real = db.Column(db.DateTime, nullable=True)
@@ -48,8 +50,8 @@ class PrestamoLibro(db.Model):
     def validate_crear_prestamo(id_usuario, id_libro, observaciones=None):
         errors = []
         
-        from app.models.usuarios import Usuario
         from app.models.libros import Libro
+        from app.models.usuarios import Usuario
         
         usuario = Usuario.query.get(id_usuario)
         if not usuario:

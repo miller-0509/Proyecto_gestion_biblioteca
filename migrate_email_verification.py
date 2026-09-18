@@ -13,10 +13,10 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-from app import create_app
-from app import db
+from datetime import UTC, datetime
+
+from app import create_app, db
 from app.models.usuarios import Usuario
-from datetime import datetime, timezone
 
 app = create_app()
 
@@ -54,7 +54,7 @@ def migrar():
 
         # 4. Marcar administradores existentes como verificados automaticamente
         print("[3/3] Verificando administradores existentes automaticamente...")
-        ahora = datetime.now(timezone.utc)
+        ahora = datetime.now(UTC)
         admins = Usuario.query.filter_by(rol='administrador').all()
         for admin in admins:
             if not admin.email_verificado:
@@ -70,15 +70,15 @@ def migrar():
         total = Usuario.query.count()
         verificados = Usuario.query.filter_by(email_verificado=True).count()
         sin_verificar = total - verificados
-        print(f"")
-        print(f"Resumen:")
+        print("")
+        print("Resumen:")
         print(f"  - Total de usuarios: {total}")
         print(f"  - Verificados: {verificados}")
         print(f"  - Pendientes de verificacion: {sin_verificar}")
 
     except Exception as e:
         db.session.rollback()
-        print(f"")
+        print("")
         print(f"[ERROR] La migracion fallo: {e}")
         raise
 

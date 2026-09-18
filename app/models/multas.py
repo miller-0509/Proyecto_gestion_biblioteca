@@ -1,5 +1,7 @@
+from datetime import UTC, datetime
+
 from app import db
-from datetime import datetime, timezone
+
 
 class Multa(db.Model):
     __tablename__ = 'multas'
@@ -17,7 +19,7 @@ class Multa(db.Model):
     dias_suspension = db.Column(db.Integer, default=0, nullable=False)
     
     # Fechas
-    fecha_generacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    fecha_generacion = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
     fecha_inicio_suspension = db.Column(db.DateTime, nullable=True)
     fecha_fin_suspension = db.Column(db.DateTime, nullable=True)
     
@@ -29,8 +31,8 @@ class Multa(db.Model):
     id_administrador_resolucion = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=True)
     
     # Timestamps
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC), nullable=False)
 
     # Relaciones
     usuario = db.relationship('Usuario', foreign_keys=[id_usuario], backref=db.backref('multas', lazy=True, cascade='all, delete-orphan'))

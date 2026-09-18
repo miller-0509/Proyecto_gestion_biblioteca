@@ -1,13 +1,8 @@
 """
 Script para inicializar la base de datos
 """
+
 from app import create_app, db
-from app.models.usuarios import Usuario
-from app.models.equipos import Equipo
-from app.models.prestamos import Prestamo
-from app.models.libros import Libro
-from app.models.prestamos_libros import PrestamoLibro
-import os
 
 app = create_app()
 

@@ -1,12 +1,14 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, abort
-from flask_login import login_required, current_user
-from app.models.usuarios import Usuario
+from datetime import UTC, datetime
+
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+
+from app import db
+from app.decorators import admin_required
+from app.models.multas import Multa
 from app.models.prestamos import Prestamo
 from app.models.prestamos_libros import PrestamoLibro
-from app.models.multas import Multa
-from app.decorators import admin_required
-from app import db
-from datetime import datetime, timezone
+from app.models.usuarios import Usuario
 
 bp = Blueprint('usuarios', __name__, url_prefix='/usuarios')
 
@@ -159,7 +161,7 @@ def historial_prestamos(id_usuario):
         return redirect(url_for('auth.dashboard'))
         
     usuario = Usuario.query.get_or_404(id_usuario)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     
     # Obtener préstamos de equipos
     prestamos_equipos = Prestamo.query.filter_by(id_usuario=id_usuario).all()
@@ -174,7 +176,7 @@ def historial_prestamos(id_usuario):
             fecha_esp = prestamo.fecha_devolucion_esperada
             # Asegurar que la fecha sea timezone-aware para comparación segura
             if fecha_esp.tzinfo is None:
-                fecha_esp = fecha_esp.replace(tzinfo=timezone.utc)
+                fecha_esp = fecha_esp.replace(tzinfo=UTC)
             if fecha_esp < now:
                 return 'atrasado'
         return prestamo.estado

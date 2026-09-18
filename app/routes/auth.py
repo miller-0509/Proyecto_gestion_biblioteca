@@ -1,11 +1,14 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
-from flask_login import login_user, logout_user, login_required, current_user
-from app.models.usuarios import Usuario
+from datetime import UTC
+
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required, login_user, logout_user
+
 from app import db, limiter, mail
+from app.models.usuarios import Usuario
 from app.services.email_service import (
+    enviar_correo_recuperacion,
     enviar_correo_verificacion,
     verificar_token,
-    enviar_correo_recuperacion,
     verificar_token_recuperacion,
 )
 
@@ -149,9 +152,9 @@ def verificar_email(token):
         return redirect(url_for('auth.login'))
 
     # Marcar como verificado
-    from datetime import datetime, timezone
+    from datetime import datetime
     usuario.email_verificado = True
-    usuario.fecha_verificacion = datetime.now(timezone.utc)
+    usuario.fecha_verificacion = datetime.now(UTC)
     db.session.commit()
 
     current_app.logger.info(

@@ -1,13 +1,15 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from flask_login import login_required, current_user
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
+
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload
+
 from app import db, mail
+from app.decorators import calcular_dias_restantes, gestion_libros_required
+from app.models.libros import HistorialEstadoLibro, Libro
 from app.models.prestamos_libros import PrestamoLibro
-from app.services.email_service import enviar_notificacion_prestamo
-from app.models.libros import Libro, HistorialEstadoLibro
 from app.models.usuarios import Usuario
-from app.decorators import admin_required, gestion_libros_required, calcular_dias_restantes
+from app.services.email_service import enviar_notificacion_prestamo
 
 bp = Blueprint('prestamos_libros', __name__, url_prefix='/prestamos-libros')
 
@@ -96,14 +98,14 @@ def crear_prestamo():
             
             # Crear préstamo y marcar libro como prestado
             libro.estado = 'prestado'
-            fecha_devolucion_esperada = datetime.now(timezone.utc) + timedelta(days=dias_prestamo)
+            fecha_devolucion_esperada = datetime.now(UTC) + timedelta(days=dias_prestamo)
             prestamo = PrestamoLibro(
                 id_usuario=id_usuario,
                 id_libro=id_libro,
                 id_administrador=current_user.id_usuario,
                 fecha_devolucion_esperada=fecha_devolucion_esperada,
                 estado='aceptado',
-                fecha_aprobacion=datetime.now(timezone.utc),
+                fecha_aprobacion=datetime.now(UTC),
                 observaciones=observaciones
             )
             db.session.add(prestamo)
@@ -143,7 +145,7 @@ def crear_prestamo():
                 return redirect(url_for('prestamos_libros.lista_prestamos'))
             
             dias_prestamo = libro.tiempo_max_prestamo or 15
-            fecha_devolucion_esperada = datetime.now(timezone.utc) + timedelta(days=dias_prestamo)
+            fecha_devolucion_esperada = datetime.now(UTC) + timedelta(days=dias_prestamo)
             prestamo = PrestamoLibro(
                 id_usuario=current_user.id_usuario,
                 id_libro=id_libro,
@@ -187,7 +189,7 @@ def aceptar_prestamo(id_prestamo):
         return redirect(url_for('prestamos_libros.lista_prestamos'))
     
     prestamo.estado = 'aceptado'
-    prestamo.fecha_aprobacion = datetime.now(timezone.utc)
+    prestamo.fecha_aprobacion = datetime.now(UTC)
     prestamo.id_administrador = current_user.id_usuario
     libro.estado = 'prestado'
     db.session.commit()
@@ -264,7 +266,7 @@ def devolver_prestamo(id_prestamo):
     estado_anterior = prestamo.libro.estado
     
     prestamo.estado = 'devuelto'
-    prestamo.fecha_devolucion_real = datetime.now(timezone.utc)
+    prestamo.fecha_devolucion_real = datetime.now(UTC)
     prestamo.observacion_devolucion = observacion_devolucion
     prestamo.estado_fisico_devolucion = estado_fisico
     
@@ -330,7 +332,7 @@ def solicitar_renovacion(id_prestamo):
         flash('Solo puedes renovar préstamos activos (aceptados).', 'warning')
         return redirect(url_for('prestamos_libros.detalle_prestamo', id_prestamo=id_prestamo))
 
-    if prestamo.fecha_devolucion_esperada and prestamo.fecha_devolucion_esperada < datetime.now(timezone.utc).replace(tzinfo=None):
+    if prestamo.fecha_devolucion_esperada and prestamo.fecha_devolucion_esperada < datetime.now(UTC).replace(tzinfo=None):
         flash('No puedes renovar un préstamo vencido.', 'danger')
         return redirect(url_for('prestamos_libros.detalle_prestamo', id_prestamo=id_prestamo))
 
@@ -396,7 +398,7 @@ def procesar_renovacion(id_prestamo):
         return redirect(url_for('prestamos_libros.detalle_prestamo', id_prestamo=id_prestamo))
     
     renovacion.id_administrador = current_user.id_usuario
-    renovacion.fecha_respuesta = datetime.now(timezone.utc)
+    renovacion.fecha_respuesta = datetime.now(UTC)
     
     if accion == 'aprobar':
         renovacion.estado = 'aprobada'

@@ -1,6 +1,6 @@
-import os
-import sys
 import getpass
+import os
+
 from app import create_app, db
 from app.models.usuarios import Usuario
 

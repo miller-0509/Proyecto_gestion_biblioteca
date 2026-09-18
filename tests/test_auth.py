@@ -1,9 +1,7 @@
 """
 Pruebas unitarias y de integración para el Blueprint de Autenticación (auth).
 """
-import pytest
 from app.models.usuarios import Usuario
-from app import db
 
 
 def test_health_check(client):

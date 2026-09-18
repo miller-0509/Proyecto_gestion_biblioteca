@@ -2,14 +2,16 @@
 Fixtures globales y configuración de pruebas unitarias/integración para pytest.
 Utiliza base de datos SQLite en memoria para garantizar aislamiento total y rapidez.
 """
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timezone, timedelta
+
 from app import create_app, db
-from app.models.usuarios import Usuario
-from app.models.libros import Libro
 from app.models.equipos import Equipo
+from app.models.libros import Libro
 from app.models.prestamos import Prestamo
 from app.models.prestamos_libros import PrestamoLibro
+from app.models.usuarios import Usuario
 from config import TestingConfig
 
 
@@ -55,7 +57,7 @@ def admin_user(app):
         rol="administrador",
         estado="activo",
         email_verificado=True,
-        fecha_verificacion=datetime.now(timezone.utc)
+        fecha_verificacion=datetime.now(UTC)
     )
     user.set_password("Admin123!")
     user.save()
@@ -73,7 +75,7 @@ def bibliotecario_user(app):
         rol="bibliotecario",
         estado="activo",
         email_verificado=True,
-        fecha_verificacion=datetime.now(timezone.utc)
+        fecha_verificacion=datetime.now(UTC)
     )
     user.set_password("Biblio123!")
     user.save()
@@ -91,7 +93,7 @@ def almacenista_user(app):
         rol="almacenista",
         estado="activo",
         email_verificado=True,
-        fecha_verificacion=datetime.now(timezone.utc)
+        fecha_verificacion=datetime.now(UTC)
     )
     user.set_password("Almacen123!")
     user.save()
@@ -109,7 +111,7 @@ def aprendiz_user(app):
         rol="aprendiz",
         estado="activo",
         email_verificado=True,
-        fecha_verificacion=datetime.now(timezone.utc)
+        fecha_verificacion=datetime.now(UTC)
     )
     user.set_password("Aprendiz123!")
     user.save()
@@ -127,7 +129,7 @@ def instructor_user(app):
         rol="instructor",
         estado="activo",
         email_verificado=True,
-        fecha_verificacion=datetime.now(timezone.utc)
+        fecha_verificacion=datetime.now(UTC)
     )
     user.set_password("Docente123!")
     user.save()
@@ -255,7 +257,7 @@ def sample_equipo(app):
 @pytest.fixture
 def sample_prestamo_libro(app, sample_libro, aprendiz_user):
     """Crea un préstamo de libro aceptado."""
-    ahora = datetime.now(timezone.utc)
+    ahora = datetime.now(UTC)
     prestamo = PrestamoLibro(
         id_libro=sample_libro.id_libro,
         id_usuario=aprendiz_user.id_usuario,
@@ -274,7 +276,7 @@ def sample_prestamo_libro(app, sample_libro, aprendiz_user):
 @pytest.fixture
 def sample_prestamo_equipo(app, sample_equipo, aprendiz_user):
     """Crea un préstamo de equipo aceptado."""
-    ahora = datetime.now(timezone.utc)
+    ahora = datetime.now(UTC)
     prestamo = Prestamo(
         id_equipo=sample_equipo.id_equipo,
         id_usuario=aprendiz_user.id_usuario,

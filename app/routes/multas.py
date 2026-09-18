@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
-from flask_login import login_required, current_user
+from datetime import UTC, datetime
+
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+
 from app import db, mail
 from app.models.multas import Multa
 from app.services.email_service import enviar_notificacion_multa
-from app.decorators import role_required
-from datetime import datetime, timezone
 
 bp = Blueprint('multas', __name__, url_prefix='/multas')
 
@@ -72,7 +73,7 @@ def condonar_multa(id_multa):
     multa.estado = 'condonada'
     multa.observacion = observacion
     multa.id_administrador_resolucion = current_user.id_usuario
-    multa.fecha_fin_suspension = datetime.now(timezone.utc) # Termina ahora
+    multa.fecha_fin_suspension = datetime.now(UTC) # Termina ahora
     
     try:
         db.session.commit()

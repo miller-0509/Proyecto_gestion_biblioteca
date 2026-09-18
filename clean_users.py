@@ -1,16 +1,14 @@
+import argparse
 import os
 import sys
-import argparse
-from sqlalchemy.exc import IntegrityError
 
 # Asegurar que la raíz del proyecto está en el PATH
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-from app import create_app
-from app import db
-from app.models.usuarios import Usuario
+from app import create_app, db
 from app.models.prestamos import Prestamo
 from app.models.prestamos_libros import PrestamoLibro
+from app.models.usuarios import Usuario
 
 app = create_app()
 
@@ -75,7 +73,7 @@ def run_diagnostico():
         print("  - No se detectaron correos duplicados en la base de datos.")
         
     # Verificar usuarios sin contraseñas válidas o campos incompletos
-    corruptos = Usuario.query.filter((Usuario.nombres == '') | (Usuario.apellidos == '') | (Usuario.password == None)).all()
+    corruptos = Usuario.query.filter((Usuario.nombres == '') | (Usuario.apellidos == '') | (Usuario.password.is_(None))).all()
     if corruptos:
         print(f"  [ALERTA] Se detectaron {len(corruptos)} usuarios con registros corruptos/incompletos:")
         for corr in corruptos:
@@ -159,7 +157,7 @@ def delete_seguro():
                 eliminados += 1
                 
         db.session.commit()
-        print(f"[ÉXITO] Limpieza finalizada correctamente:")
+        print("[ÉXITO] Limpieza finalizada correctamente:")
         print(f"  - Usuarios ELIMINADOS físicamente (sin historial): {eliminados}")
         print(f"  - Usuarios DESACTIVADOS (con préstamos asociados): {desactivados}")
         print("  - Administradores PROTEGIDOS: Todo el personal administrativo quedó intacto.")
@@ -199,7 +197,7 @@ def main():
                 
         elif args.eliminar:
             sin_historial, con_historial = run_diagnostico()
-            print(f"\nATENCIÓN:")
+            print("\nATENCIÓN:")
             print(f"  * {sin_historial} usuarios serán eliminados permanentemente (DELETE).")
             print(f"  * {con_historial} usuarios con préstamos asociados serán desactivados (inactivo) para proteger la integridad.")
             confirmacion = input("\n¿ESTÁS COMPLETAMENTE SEGURO de proceder con esta limpieza? (escribe 'SI' para confirmar): ")

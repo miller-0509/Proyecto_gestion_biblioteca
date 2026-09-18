@@ -1,13 +1,9 @@
 """
 Pruebas unitarias para modelos y métodos del dominio de la aplicación.
 """
-import pytest
-from app.models.usuarios import Usuario
-from app.models.libros import Libro
 from app.models.equipos import Equipo
-from app.models.prestamos import Prestamo
-from app.models.prestamos_libros import PrestamoLibro
-from app import db
+from app.models.libros import Libro
+from app.models.usuarios import Usuario
 
 
 class TestUsuarioModel:

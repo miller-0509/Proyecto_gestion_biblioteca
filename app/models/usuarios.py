@@ -1,8 +1,10 @@
 import re
-from app import db
+from datetime import UTC, datetime
+
 from flask_login import UserMixin
-from datetime import datetime, timezone
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from app import db
 
 # Regex básico para validación de email
 _EMAIL_RE = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
@@ -18,7 +20,7 @@ class Usuario(db.Model, UserMixin):
     password           = db.Column(db.String(255), nullable=False)
     rol                = db.Column(db.Enum('administrador', 'aprendiz', 'instructor', 'bibliotecario', 'almacenista', name='rol_usuario'), default='aprendiz')
     estado             = db.Column(db.Enum('activo', 'inactivo', 'bloqueado', name='estado_usuario'), default='activo')
-    fecha_registro     = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    fecha_registro     = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     email_verificado   = db.Column(db.Boolean, default=False, nullable=False, server_default='false')
     fecha_verificacion = db.Column(db.DateTime, nullable=True)
     
@@ -26,7 +28,7 @@ class Usuario(db.Model, UserMixin):
         # Normalizar correo si está presente
         if 'correo' in kwargs:
             kwargs['correo'] = kwargs['correo'].strip().lower()
-        super(Usuario, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     @property
     def is_active(self):
@@ -95,9 +97,10 @@ class Usuario(db.Model, UserMixin):
 
     def tiene_multas_pendientes(self):
         """Verifica si el usuario tiene alguna multa activa o acumulando."""
+        from datetime import datetime
+
         from app.models.multas import Multa
-        from datetime import datetime, timezone
-        ahora = datetime.now(timezone.utc)
+        ahora = datetime.now(UTC)
         count = Multa.query.filter(
             Multa.id_usuario == self.id_usuario,
             db.or_(
@@ -109,9 +112,10 @@ class Usuario(db.Model, UserMixin):
 
     def multas_pendientes_count(self):
         """Cuenta el total de multas activas o acumulando del usuario."""
+        from datetime import datetime
+
         from app.models.multas import Multa
-        from datetime import datetime, timezone
-        ahora = datetime.now(timezone.utc)
+        ahora = datetime.now(UTC)
         return Multa.query.filter(
             Multa.id_usuario == self.id_usuario,
             db.or_(

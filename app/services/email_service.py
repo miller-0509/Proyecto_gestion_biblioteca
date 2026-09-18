@@ -7,10 +7,11 @@ funcionalidades como recuperación de contraseña y notificaciones.
 """
 import logging
 import threading
-from datetime import datetime, timezone
-from flask import url_for, current_app, render_template
+from datetime import UTC, datetime
+
+from flask import current_app, url_for
 from flask_mail import Message
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +111,7 @@ def _generar_html_verificacion(usuario, enlace):
     Utiliza tablas para máxima compatibilidad con clientes de correo.
     """
     expiracion_minutos = TOKEN_EXPIRACION_SEGUNDOS // 60
-    año_actual = datetime.now(timezone.utc).year
+    año_actual = datetime.now(UTC).year
     
     return f'''<!DOCTYPE html>
 <html lang="es">
@@ -294,7 +295,7 @@ def _generar_html_recuperacion(usuario, enlace):
     Utiliza tablas para máxima compatibilidad con clientes de correo.
     """
     expiracion_minutos = TOKEN_EXPIRACION_SEGUNDOS // 60
-    year = datetime.now(timezone.utc).year
+    year = datetime.now(UTC).year
 
     return f'''<!DOCTYPE html>
 <html lang="es">
@@ -446,14 +447,13 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
     tipo_recurso = 'Libro' if es_libro else 'Equipo'
     prestamo_id = prestamo.id_prestamo_libro if es_libro else prestamo.id_prestamo
     
-    año_actual = datetime.now(timezone.utc).year
+    año_actual = datetime.now(UTC).year
     
     # Textos por tipo de notificación
     if tipo_notificacion == 'pendiente':
         asunto = f'📚 Solicitud de Préstamo Recibida - {recurso_nombre}'
         titulo = 'Solicitud Recibida'
         color_header = 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)' # Azul
-        color_sombra = 'rgba(59, 130, 246, 0.35)'
         mensaje_principal = 'Tu solicitud fue recibida correctamente y está pendiente de aprobación.'
         detalles_extra = ''
         
@@ -461,7 +461,6 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
         asunto = f'✅ Préstamo Aprobado - {recurso_nombre}'
         titulo = 'Préstamo Aprobado'
         color_header = 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)' # Verde
-        color_sombra = 'rgba(34, 197, 94, 0.35)'
         mensaje_principal = '¡Buenas noticias! Tu solicitud de préstamo ha sido aprobada.'
         
         fecha_dev = prestamo.fecha_devolucion_esperada.strftime('%d/%m/%Y') if prestamo.fecha_devolucion_esperada else 'N/A'
@@ -475,7 +474,6 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
         asunto = f'❌ Solicitud Rechazada - {recurso_nombre}'
         titulo = 'Solicitud Rechazada'
         color_header = 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)' # Rojo
-        color_sombra = 'rgba(239, 68, 68, 0.35)'
         mensaje_principal = 'Lo sentimos, tu solicitud de préstamo no pudo ser aprobada en esta ocasión.'
         motivo = prestamo.razon_rechazo or 'No especificado.'
         detalles_extra = f'''
@@ -488,7 +486,6 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
         asunto = f'🔄 Devolución Registrada - {recurso_nombre}'
         titulo = 'Devolución Registrada'
         color_header = 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)' # Morado
-        color_sombra = 'rgba(139, 92, 246, 0.35)'
         mensaje_principal = 'Hemos registrado exitosamente la devolución de tu préstamo. ¡Gracias por usar nuestros servicios!'
         fecha_real = prestamo.fecha_devolucion_real.strftime('%d/%m/%Y') if prestamo.fecha_devolucion_real else 'N/A'
         obs = prestamo.observaciones or 'Ninguna'
@@ -501,7 +498,6 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
         asunto = f'⚠️ Préstamo Próximo a Vencer - {recurso_nombre}'
         titulo = 'Préstamo Próximo a Vencer'
         color_header = 'linear-gradient(135deg, #F59E0B 0%, #B45309 100%)' # Naranja
-        color_sombra = 'rgba(245, 158, 11, 0.35)'
         mensaje_principal = 'Te recordamos que tu préstamo está próximo a vencer. Por favor, asegúrate de realizar la devolución a tiempo.'
         fecha_dev = prestamo.fecha_devolucion_esperada.strftime('%d/%m/%Y') if prestamo.fecha_devolucion_esperada else 'N/A'
         detalles_extra = f'''
@@ -512,7 +508,6 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
         asunto = f'🚨 Préstamo Vencido - {recurso_nombre}'
         titulo = 'Préstamo Vencido'
         color_header = 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)' # Rojo oscuro
-        color_sombra = 'rgba(220, 38, 38, 0.35)'
         mensaje_principal = 'Tu préstamo se encuentra actualmente vencido. Por favor, devuelve el recurso lo antes posible para evitar sanciones.'
         fecha_dev = prestamo.fecha_devolucion_esperada.strftime('%d/%m/%Y') if prestamo.fecha_devolucion_esperada else 'N/A'
         detalles_extra = f'''
@@ -523,7 +518,6 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
         asunto = f'🔄 Solicitud de Renovación Recibida - {recurso_nombre}'
         titulo = 'Renovación Solicitada'
         color_header = 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)' # Azul
-        color_sombra = 'rgba(59, 130, 246, 0.35)'
         mensaje_principal = 'Tu solicitud de renovación de préstamo ha sido recibida correctamente y está en espera de aprobación.'
         
         renovacion = prestamo.historial_renovaciones[0] if getattr(prestamo, 'historial_renovaciones', None) else None
@@ -539,7 +533,6 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
         asunto = f'🔄 Préstamo Renovado Exitosamente - {recurso_nombre}'
         titulo = 'Préstamo Renovado'
         color_header = 'linear-gradient(135deg, #10B981 0%, #059669 100%)' # Verde esmeralda
-        color_sombra = 'rgba(16, 185, 129, 0.35)'
         mensaje_principal = '¡Buenas noticias! Tu solicitud de renovación ha sido aprobada. Tu nueva fecha de vencimiento ha sido actualizada.'
         
         fecha_dev = prestamo.fecha_devolucion_esperada.strftime('%d/%m/%Y') if prestamo.fecha_devolucion_esperada else 'N/A'
@@ -554,7 +547,6 @@ def _generar_html_notificacion(prestamo, tipo_notificacion, es_libro):
         asunto = f'❌ Solicitud de Renovación Rechazada - {recurso_nombre}'
         titulo = 'Renovación Rechazada'
         color_header = 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)' # Rojo
-        color_sombra = 'rgba(239, 68, 68, 0.35)'
         mensaje_principal = 'Lo sentimos, tu solicitud de renovación de préstamo no pudo ser aprobada en esta ocasión. Por favor, realiza la entrega del recurso en la fecha programada.'
         
         renovacion = prestamo.historial_renovaciones[0] if getattr(prestamo, 'historial_renovaciones', None) else None
@@ -659,7 +651,7 @@ def enviar_notificacion_multa(multa, tipo_notificacion, mail_instance):
         return False
 
 def _generar_html_multa(multa, tipo_notificacion):
-    año_actual = datetime.now(timezone.utc).year
+    año_actual = datetime.now(UTC).year
     recurso_nombre = "Desconocido"
     if multa.tipo_recurso == 'libro' and multa.prestamo_libro:
         recurso_nombre = multa.prestamo_libro.libro.titulo

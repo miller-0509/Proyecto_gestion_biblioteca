@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app
-from flask_login import login_required, current_user
-from app.models.equipos import Equipo, HistorialEstadoEquipo
+from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
+
 from app import db
 from app.decorators import gestion_equipos_required
+from app.models.equipos import Equipo, HistorialEstadoEquipo
 
 bp = Blueprint('equipos', __name__, url_prefix='/equipos')
 

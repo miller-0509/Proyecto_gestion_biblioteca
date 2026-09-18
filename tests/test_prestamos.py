@@ -1,10 +1,8 @@
 """
 Pruebas unitarias y de integración para el Blueprint de Préstamos de Equipos (prestamos).
 """
-import pytest
-from app.models.prestamos import Prestamo
-from app.models.equipos import Equipo
 from app import db
+from app.models.prestamos import Prestamo
 
 
 def test_lista_prestamos_unauthenticated(client):

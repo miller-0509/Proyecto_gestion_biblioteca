@@ -1,5 +1,7 @@
+from datetime import UTC, datetime
+
 from app import db
-from datetime import datetime, timezone
+
 
 class HistorialEstadoEquipo(db.Model):
     __tablename__ = 'historial_estado_equipos'
@@ -10,7 +12,7 @@ class HistorialEstadoEquipo(db.Model):
     estado_nuevo = db.Column(db.String(50), nullable=False)
     observacion = db.Column(db.Text, nullable=False)
     id_administrador = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=False)
-    fecha = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    fecha = db.Column(db.DateTime, default=lambda: datetime.now(UTC), nullable=False)
 
     admin = db.relationship('Usuario', backref='cambios_estado_equipos', lazy=True)
 
@@ -27,7 +29,7 @@ class Equipo(db.Model):
     numero_serie        = db.Column(db.String(100), unique=True, nullable=False)
     estado              = db.Column(db.Enum('disponible', 'prestado', 'mantenimiento', 'dañado', 'perdido', 'eliminado', 'fuera_de_servicio', 'no_disponible', name='estado_equipo'), default='disponible')
     ubicacion           = db.Column(db.String(150))  # Biblioteca, Almacén, Aula X, etc.
-    fecha_registro      = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    fecha_registro      = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     fecha_compra        = db.Column(db.Date)
     proveedor           = db.Column(db.String(150))
     responsable         = db.Column(db.String(150))  # Persona o área responsable
@@ -40,8 +42,9 @@ class Equipo(db.Model):
 
     @property
     def tiene_prestamo_activo(self):
-        from app.models.prestamos import Prestamo
         from sqlalchemy import exists
+
+        from app.models.prestamos import Prestamo
         return db.session.query(
             exists().where(
                 Prestamo.id_equipo == self.id_equipo,

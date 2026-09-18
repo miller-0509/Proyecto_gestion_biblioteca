@@ -1,5 +1,6 @@
+from datetime import UTC, datetime
+
 from app import db
-from datetime import datetime, timezone, timedelta
 
 
 class Prestamo(db.Model):
@@ -10,7 +11,7 @@ class Prestamo(db.Model):
     id_equipo = db.Column(db.Integer, db.ForeignKey('equipos.id_equipo'), nullable=False)
     id_administrador = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=True)
     
-    fecha_solicitud = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    fecha_solicitud = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     fecha_aprobacion = db.Column(db.DateTime, nullable=True)
     fecha_devolucion_esperada = db.Column(db.DateTime, nullable=True)
     fecha_devolucion_real = db.Column(db.DateTime, nullable=True)
@@ -67,8 +68,8 @@ class Prestamo(db.Model):
         """Validar creación de préstamo"""
         errors = []
         
-        from app.models.usuarios import Usuario
         from app.models.equipos import Equipo
+        from app.models.usuarios import Usuario
         
         # Verificar usuario existe
         usuario = Usuario.query.get(id_usuario)
