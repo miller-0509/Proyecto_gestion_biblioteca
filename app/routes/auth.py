@@ -269,7 +269,7 @@ def restablecer_password(token):
         return redirect(url_for('auth.login'))
 
     # Anti-replay: comparar fragmento del hash con el actual
-    if usuario.password[:16] != ph_fragment:
+    if usuario.password[:64] != ph_fragment:
         current_app.logger.warning(
             'Token de recuperacion reutilizado (password ya cambiada) para: %s', correo
         )

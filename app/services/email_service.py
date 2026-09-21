@@ -221,8 +221,9 @@ def generar_token_recuperacion(correo, password_hash):
     se invalide automáticamente si la contraseña ya fue cambiada (anti-replay).
     """
     s = _get_serializer()
-    # Incluir fragmento del hash para invalidación automática tras cambio
-    payload = {'correo': correo, 'ph': password_hash[:16]}
+    # Fragmento largo: los primeros 16 chars de werkzeug son metadatos
+    # constantes ('scrypt:...'/'pbkdf2:...'), por lo que no detectarían el cambio.
+    payload = {'correo': correo, 'ph': password_hash[:64]}
     token = s.dumps(payload, salt=TOKEN_SALT_RECUPERACION)
     logger.info('Token de recuperacion generado para: %s', correo)
     return token
