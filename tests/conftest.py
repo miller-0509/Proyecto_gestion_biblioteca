@@ -290,3 +290,37 @@ def sample_prestamo_equipo(app, sample_equipo, aprendiz_user):
     sample_equipo.estado = "prestado"
     db.session.commit()
     return prestamo
+
+
+@pytest.fixture
+def sample_prestamo_equipo_pendiente(app, sample_equipo, aprendiz_user):
+    """Crea un préstamo de equipo pendiente (equipo sigue disponible)."""
+    ahora = datetime.now(UTC)
+    prestamo = Prestamo(
+        id_equipo=sample_equipo.id_equipo,
+        id_usuario=aprendiz_user.id_usuario,
+        estado="pendiente",
+        fecha_solicitud=ahora,
+        fecha_devolucion_esperada=ahora + timedelta(days=7),
+        observaciones="Solicitud pendiente de prueba"
+    )
+    prestamo.save()
+    db.session.commit()
+    return prestamo
+
+
+@pytest.fixture
+def sample_prestamo_libro_pendiente(app, sample_libro, aprendiz_user):
+    """Crea un préstamo de libro pendiente (libro sigue disponible)."""
+    ahora = datetime.now(UTC)
+    prestamo = PrestamoLibro(
+        id_libro=sample_libro.id_libro,
+        id_usuario=aprendiz_user.id_usuario,
+        estado="pendiente",
+        fecha_solicitud=ahora,
+        fecha_devolucion_esperada=ahora + timedelta(days=15),
+        observaciones="Solicitud pendiente de prueba"
+    )
+    prestamo.save()
+    db.session.commit()
+    return prestamo
