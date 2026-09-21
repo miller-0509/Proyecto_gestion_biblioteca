@@ -11,13 +11,11 @@ Verifica:
 7. Mecanismos anti-bot (Honeypot).
 8. Encabezados de seguridad HTTP y protección CSRF.
 """
-import pytest
-from app.models.usuarios import Usuario
-from app.models.libros import Libro
+from app import create_app, db
 from app.models.equipos import Equipo
-from app import db, create_app
+from app.models.libros import Libro
+from app.models.usuarios import Usuario
 from config import TestingConfig
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. CONTROL DE ACCESO BASADO EN ROLES (RBAC) & PRIVILEGE ESCALATION
