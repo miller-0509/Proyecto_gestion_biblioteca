@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 # Solo cargar .env en desarrollo local
 if os.environ.get("FLASK_ENV") != "production":
-    load_dotenv()
+    load_dotenv(override=True)
 
 
 class Config:
